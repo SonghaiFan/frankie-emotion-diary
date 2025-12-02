@@ -23,16 +23,17 @@ import {
 import { EmotionLog, TodoItem, Message } from "../types";
 import { Emotion, Category } from "@/constants";
 
+
 // TODO: Replace with your actual Firebase project configuration
 // Get this from: Firebase Console -> Project Settings -> General -> Your apps
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+  apiKey: "AIzaSyAMNRqyyJAgsKshDzQ2gaKoUqV0D4bPepM",
+  authDomain: "aurora-mental.firebaseapp.com",
+  projectId: "aurora-mental",
+  storageBucket: "aurora-mental.firebasestorage.app",
+  messagingSenderId: "448988354364",
+  appId: "1:448988354364:web:de5983309381deb1b97039",
+  measurementId: "G-CPMN7RP66Q"
 };
 
 // Initialize Firebase
