@@ -40,6 +40,7 @@ const EMOTION_PRESETS: Record<Emotion | 'thinking' | 'sleeping', FaceConfig> = {
   angry:     { eyes: 'angry', mouth: 'frown', accessory: 'shock' },
   love:      { eyes: 'hearts', mouth: 'smile', accessory: 'blush' },
   grateful:  { eyes: 'teary', mouth: 'smile', accessory: 'blush' },
+  hungry:    { eyes: 'star', mouth: 'open', accessory: 'utensils' },
   thinking:  { eyes: 'dot', mouth: 'open', accessory: 'sweat' },
   sleeping:  { eyes: 'closed', mouth: 'neutral', accessory: 'none' } 
 };

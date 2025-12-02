@@ -7,6 +7,7 @@ interface MemoWallProps {
   onUpdateTodoPosition: (id: string, x: number, y: number) => void;
   onDeleteTodo: (id: string) => void;
   onToggleTodo: (id: string) => void;
+  onDragEnd?: (id: string) => void; // New prop for syncing after drag
   canvasOffset: { x: number; y: number };
   onPanChange: React.Dispatch<React.SetStateAction<{ x: number; y: number }>>;
 }
@@ -98,7 +99,7 @@ const MemoNote: React.FC<{
   );
 };
 
-const MemoWall: React.FC<MemoWallProps> = ({ todos, onUpdateTodoPosition, onDeleteTodo, onToggleTodo, canvasOffset, onPanChange }) => {
+const MemoWall: React.FC<MemoWallProps> = ({ todos, onUpdateTodoPosition, onDeleteTodo, onToggleTodo, onDragEnd, canvasOffset, onPanChange }) => {
   const [draggingNoteId, setDraggingNoteId] = useState<string | null>(null);
   const [isPanning, setIsPanning] = useState(false);
   
@@ -158,6 +159,9 @@ const MemoWall: React.FC<MemoWallProps> = ({ todos, onUpdateTodoPosition, onDele
     };
 
     const handleEnd = () => {
+      if (draggingNoteId && onDragEnd) {
+        onDragEnd(draggingNoteId);
+      }
       setIsPanning(false);
       setDraggingNoteId(null);
     };
@@ -175,7 +179,7 @@ const MemoWall: React.FC<MemoWallProps> = ({ todos, onUpdateTodoPosition, onDele
       window.removeEventListener('mouseup', handleEnd);
       window.removeEventListener('touchend', handleEnd);
     };
-  }, [isPanning, draggingNoteId, onPanChange, onUpdateTodoPosition, canvasOffset]);
+  }, [isPanning, draggingNoteId, onPanChange, onUpdateTodoPosition, canvasOffset, onDragEnd]);
 
   return (
     <div 

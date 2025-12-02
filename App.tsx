@@ -5,10 +5,21 @@ import InputArea from './components/InputArea';
 import MemoWall from './components/MemoWall';
 import DebugPanel from './components/DebugPanel';
 import SpeechBubble from './components/SpeechBubble';
+import AuthButton from './components/AuthButton';
+import EmotionCalendar from './components/EmotionCalendar';
 import { sendMessage, initializeChat } from './services/geminiService';
-import { Message, Category, Emotion, TodoItem } from './types';
+import { Message, Category, Emotion, TodoItem, UserProfile } from './types';
 import { CATEGORY_THEMES, AVATAR_REACTIONS } from './constants';
 import { Content } from '@google/genai';
+import { 
+  subscribeToAuthChanges, 
+  logEmotion, 
+  syncTodoToCloud, 
+  deleteTodoFromCloud, 
+  getUserTodos,
+  saveChatMessage,
+  getRecentChatHistory
+} from './services/firebase';
 
 const App: React.FC = () => {
   // --- State ---
@@ -22,6 +33,10 @@ const App: React.FC = () => {
   const [savedTodos, setSavedTodos] = useState<TodoItem[]>([]);
   
   const [isBubbleVisible, setIsBubbleVisible] = useState(false);
+  
+  // Auth State
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [showCalendar, setShowCalendar] = useState(false);
   
   // Debug State
   const [showDebug, setShowDebug] = useState(false);
@@ -74,8 +89,67 @@ const App: React.FC = () => {
     return { emotion, category, text: cleanText.trim(), suggestions };
   };
 
+  // Helper to re-init chat from a message list
+  const reinitializeGemini = (msgs: Message[]) => {
+      const history: Content[] = msgs
+         .filter(m => m.id !== 'init' && !m.id.startsWith('reaction-')) 
+         .map(m => ({
+            role: m.role,
+            parts: [{ text: m.text }]
+         }));
+      initializeChat(history);
+  };
+
   // --- 1. Initialization & Persistence ---
   useEffect(() => {
+    // Auth Listener with Cloud Sync
+    const unsubscribe = subscribeToAuthChanges(async (firebaseUser) => {
+      if (firebaseUser) {
+        setUser({
+          uid: firebaseUser.uid,
+          displayName: firebaseUser.displayName,
+          email: firebaseUser.email,
+          photoURL: firebaseUser.photoURL
+        });
+        
+        // --- 1. Fetch Cloud Data (Todos) ---
+        const cloudTodos = await getUserTodos(firebaseUser.uid);
+        
+        // Merge Local Guest Todos if not already in cloud
+        const localTodos = JSON.parse(localStorage.getItem('aurora_todos') || '[]');
+        const mergedTodos = [...cloudTodos];
+        const cloudIds = new Set(cloudTodos.map(t => t.id));
+        
+        for (const localT of localTodos) {
+            if (!cloudIds.has(localT.id)) {
+                await syncTodoToCloud(firebaseUser.uid, localT);
+                mergedTodos.push(localT);
+            }
+        }
+        setSavedTodos(mergedTodos);
+
+        // --- 2. Fetch Cloud Chat History ---
+        const cloudHistory = await getRecentChatHistory(firebaseUser.uid);
+        if (cloudHistory.length > 0) {
+            setMessages(cloudHistory);
+            reinitializeGemini(cloudHistory);
+            setIsBubbleVisible(true);
+        } else {
+             // New User or Empty History -> Keep current Guest Messages but now they are tied to user
+             // Optionally, clear messages for a fresh start if we want strict separation
+             // For now, let's allow guest messages to carry over if cloud is empty
+             if (messages.length > 0) {
+                 messages.forEach(m => saveChatMessage(firebaseUser.uid, m));
+             }
+        }
+
+      } else {
+        setUser(null);
+        // On logout, fallback to LocalStorage or Default
+        // We will just reload page state logic below handles it
+      }
+    });
+
     const loadState = () => {
       try {
         const storedMessages = localStorage.getItem('aurora_messages');
@@ -83,20 +157,13 @@ const App: React.FC = () => {
         const storedCategory = localStorage.getItem('aurora_category');
         const storedEmotion = localStorage.getItem('aurora_emotion');
 
+        // Only load local messages if we aren't waiting on a user login to overwrite it
+        // But since auth is async, we load local first, then auth overwrites if needed.
         if (storedMessages) {
           const parsedMsgs = JSON.parse(storedMessages) as Message[];
           setMessages(parsedMsgs);
-          
-          // Rehydrate Gemini Chat History
-          const history: Content[] = parsedMsgs
-             .filter(m => m.id !== 'init' && !m.id.startsWith('reaction-')) // Filter out local-only msgs for API context if preferred, or keep them.
-             .map(m => ({
-                role: m.role,
-                parts: [{ text: m.text }]
-             }));
-          
-          initializeChat(history);
-          setIsBubbleVisible(true); // Show last message
+          reinitializeGemini(parsedMsgs);
+          setIsBubbleVisible(true); 
         } else {
           // New User: Greeting
           const rawGreeting = "你好啊。我是阿朵拉。今天感觉怎么样？\nHello. I am Aurora. How are you feeling today?\n[CALM] [DEFAULT] <TODO>深呼吸 Deep Breath</TODO> <TODO>喝杯水 Drink Water</TODO>";
@@ -112,10 +179,10 @@ const App: React.FC = () => {
           setIsBubbleVisible(true);
           setCurrentCategory(parsed.category);
           setCurrentEmotion(parsed.emotion);
-          initializeChat(); // Init empty chat
+          initializeChat(); 
         }
 
-        if (storedTodos) setSavedTodos(JSON.parse(storedTodos));
+        if (!user && storedTodos) setSavedTodos(JSON.parse(storedTodos));
         if (storedCategory) setCurrentCategory(storedCategory as Category);
         if (storedEmotion) setCurrentEmotion(storedEmotion as Emotion);
 
@@ -126,9 +193,10 @@ const App: React.FC = () => {
     };
 
     loadState();
-  }, []);
+    return () => unsubscribe();
+  }, []); // Run once on mount
 
-  // Persist State Changes
+  // Persist State Changes (Local Storage Backup)
   useEffect(() => {
     if (messages.length > 0) localStorage.setItem('aurora_messages', JSON.stringify(messages));
     localStorage.setItem('aurora_todos', JSON.stringify(savedTodos));
@@ -203,6 +271,9 @@ const App: React.FC = () => {
     
     setMessages(prev => [...prev, reactionMsg]);
     setIsBubbleVisible(true);
+    
+    // Save reaction to cloud history? Optional, but keeps conversation fluid.
+    if (user) saveChatMessage(user.uid, reactionMsg);
   };
 
 
@@ -258,15 +329,34 @@ const App: React.FC = () => {
     setIsBubbleVisible(true);
     setCurrentEmotion('focused'); 
 
+    // Add user message immediately
+    const userMsg: Message = {
+        id: Date.now().toString(),
+        role: 'user',
+        text: text,
+        timestamp: Date.now()
+    };
+    setMessages(prev => [...prev, userMsg]);
+    
+    // Save User Msg to Cloud
+    if (user) saveChatMessage(user.uid, userMsg);
+
     try {
+      // Pass complete history + new text implicitly via the Gemini session
+      // But we pass todo context explicitly
       const rawResponse = await sendMessage(text, savedTodos);
       const { text: cleanText, emotion, category, suggestions } = parseResponse(rawResponse);
 
       setCurrentCategory(category);
       setCurrentEmotion(emotion);
+      
+      // Log emotion to Cloud
+      if (user && emotion !== 'neutral') {
+        logEmotion(user.uid, emotion, category, cleanText);
+      }
 
       const modelMsg: Message = {
-        id: Date.now().toString(),
+        id: (Date.now() + 1).toString(),
         role: 'model',
         text: cleanText,
         timestamp: Date.now(),
@@ -275,6 +365,9 @@ const App: React.FC = () => {
       
       setMessages(prev => [...prev, modelMsg]);
       setIsBubbleVisible(true); 
+      
+      // Save Model Msg to Cloud
+      if (user) saveChatMessage(user.uid, modelMsg);
 
     } catch (error) {
       console.error(error);
@@ -310,12 +403,26 @@ const App: React.FC = () => {
       rotation: (Math.random() - 0.5) * 8,
       color: theme.noteBg
     };
+    
     setSavedTodos(prev => [newTodo, ...prev]);
+    
+    // Sync to cloud
+    if (user) {
+        syncTodoToCloud(user.uid, newTodo);
+    }
   };
 
   const toggleTodo = (id: string) => {
+    let toggledItem: TodoItem | undefined;
+
     setSavedTodos(prev => {
-      const newTodos = prev.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+      const newTodos = prev.map(t => {
+        if (t.id === id) {
+            toggledItem = { ...t, completed: !t.completed };
+            return toggledItem;
+        }
+        return t;
+      });
       
       const allCompleted = newTodos.length > 0 && newTodos.every(t => t.completed);
       const wasAllCompleted = prev.every(t => t.completed) && prev.length > 0;
@@ -326,15 +433,36 @@ const App: React.FC = () => {
       
       return newTodos;
     });
+
+    if (user && toggledItem) {
+        syncTodoToCloud(user.uid, toggledItem);
+        
+        // Log "Completion" as a positive emotion event!
+        if (toggledItem.completed) {
+            logEmotion(user.uid, 'excited', currentCategory, `Completed: ${toggledItem.text}`);
+        }
+    }
   };
 
   const deleteTodo = (id: string) => {
     setSavedTodos(prev => prev.filter(t => t.id !== id));
+    if (user) {
+        deleteTodoFromCloud(user.uid, id);
+    }
   };
 
   const updateTodoPosition = (id: string, x: number, y: number) => {
     setSavedTodos(prev => prev.map(t => t.id === id ? { ...t, x, y } : t));
   }
+  
+  // New handler called only when drag ends to sync final position
+  const handleTodoDragEnd = (id: string) => {
+      if (!user) return;
+      const todo = savedTodos.find(t => t.id === id);
+      if (todo) {
+          syncTodoToCloud(user.uid, todo);
+      }
+  };
 
   const theme = CATEGORY_THEMES[currentCategory] || CATEGORY_THEMES.default;
 
@@ -357,10 +485,14 @@ const App: React.FC = () => {
         }`} />
       </div>
 
-      {/* Credits */}
-      <div className="absolute top-3 right-3 sm:top-6 sm:right-8 z-0 text-right pointer-events-none select-none opacity-30 hover:opacity-60 transition-opacity duration-500">
-        <p className="text-[9px] sm:text-[10px] text-stone-600 font-bold tracking-wide">Inspired by 武田有纪《高敏感人士幸福清单》</p>
-        <p className="text-[9px] sm:text-[10px] text-stone-500 tracking-wider mt-0.5">Made by 范不着frank</p>
+      {/* Top Bar: Auth & Credits */}
+      <div className="absolute top-0 right-0 p-4 z-50 flex flex-col items-end gap-2">
+         <AuthButton user={user} onOpenCalendar={() => setShowCalendar(true)} />
+         
+         <div className="text-right pointer-events-none select-none opacity-30 hover:opacity-60 transition-opacity duration-500 mt-2">
+           <p className="text-[9px] sm:text-[10px] text-stone-600 font-bold tracking-wide">Inspired by 武田有纪《高敏感人士幸福清单》</p>
+           <p className="text-[9px] sm:text-[10px] text-stone-500 tracking-wider mt-0.5">Made by 范不着frank</p>
+         </div>
       </div>
 
       {/* 2. Memo Wall */}
@@ -369,6 +501,7 @@ const App: React.FC = () => {
         onUpdateTodoPosition={updateTodoPosition}
         onDeleteTodo={deleteTodo}
         onToggleTodo={toggleTodo}
+        onDragEnd={handleTodoDragEnd}
         canvasOffset={canvasOffset}
         onPanChange={setCanvasOffset}
       />
@@ -425,7 +558,11 @@ const App: React.FC = () => {
         />
       </div>
 
-      {/* 5. Debug Panel & Toggle */}
+      {/* 5. Modals & Overlays */}
+      {showCalendar && user && (
+        <EmotionCalendar uid={user.uid} onClose={() => setShowCalendar(false)} />
+      )}
+
       {showDebug && (
         <DebugPanel
           currentCategory={currentCategory}

@@ -22,7 +22,7 @@ interface DebugPanelProps {
 
 const EMOTIONS: Emotion[] = [
   'neutral', 'happy', 'calm', 'excited', 'sad', 'surprised', 'focused',
-  'confused', 'tired', 'angry', 'love', 'grateful'
+  'confused', 'tired', 'angry', 'love', 'grateful', 'hungry'
 ];
 
 // Lists for Dropdowns

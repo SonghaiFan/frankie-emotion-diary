@@ -22,6 +22,7 @@ export type Emotion =
   | 'angry'
   | 'love'
   | 'grateful'
+  | 'hungry';
 
 export interface TodoItem {
   id: string;
@@ -50,4 +51,21 @@ export interface ChatState {
   currentCategory: Category;
   currentEmotion: Emotion;
   savedTodos: TodoItem[];
+}
+
+// Auth Types
+export interface UserProfile {
+  uid: string;
+  displayName: string | null;
+  photoURL: string | null;
+  email: string | null;
+}
+
+export interface EmotionLog {
+  id: string;
+  uid: string;
+  emotion: Emotion;
+  category: Category;
+  timestamp: number;
+  note?: string; // Optional context, e.g., the last message
 }
