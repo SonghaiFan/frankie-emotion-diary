@@ -102,7 +102,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
 
           {/* The Avatar */}
           <div
-            className="relative w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-96 lg:h-96 mb-10 md:mb-14 animate-pop-in flex items-center justify-center"
+            className="relative animate-pop-in flex items-center justify-center"
             style={{ animationDelay: "0.3s" }}
           >
             <div className="absolute inset-0 bg-white/30 rounded-full blur-3xl scale-90"></div>
@@ -112,12 +112,13 @@ const LandingPage: React.FC<LandingPageProps> = ({
               emotion={currentEmotion}
               isInputFocused={false}
               forceSmile={false}
+              className="w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-96 lg:h-96"
             />
           </div>
 
           {/* Intro Text & Features */}
           <div
-            className="space-y-10 mb-12 animate-slide-up-fade-in w-full max-w-4xl mx-auto"
+            className="space-y-10 animate-slide-up-fade-in w-full max-w-4xl mx-auto"
             style={{ animationDelay: "0.5s" }}
           >
             <p className="text-lg sm:text-xl md:text-2xl text-stone-600 font-medium leading-relaxed max-w-2xl mx-auto">
@@ -134,10 +135,10 @@ const LandingPage: React.FC<LandingPageProps> = ({
                 <>
                   <button
                     onClick={onLogin}
-                    className="group relative px-10 py-5 bg-stone-800 text-white rounded-full text-base font-bold tracking-wide shadow-xl hover:shadow-2xl hover:bg-stone-700 transition-all duration-300 hover:-translate-y-1 active:scale-95 flex items-center gap-3 w-full sm:w-auto justify-center min-w-[240px]"
+                    className="group relative px-10 py-5 bg-white/80 backdrop-blur-md text-stone-600 rounded-full text-base font-medium tracking-wide shadow-lg hover:shadow-xl hover:bg-white transition-all duration-500 hover:-translate-y-1 active:scale-95 flex items-center gap-3 w-full sm:w-auto justify-center min-w-[240px] border border-white/60 ring-1 ring-stone-100"
                   >
                     <svg
-                      className="w-5 h-5"
+                      className="w-5 h-5 opacity-80 group-hover:opacity-100 transition-opacity"
                       viewBox="0 0 24 24"
                       fill="currentColor"
                     >
@@ -158,11 +159,13 @@ const LandingPage: React.FC<LandingPageProps> = ({
                         fill="#EA4335"
                       />
                     </svg>
-                    Start with Google
+                    <span className="group-hover:text-stone-800 transition-colors">
+                      Start with Google
+                    </span>
                   </button>
                   <button
                     onClick={handleStart}
-                    className="text-stone-400 text-sm font-medium hover:text-stone-600 transition-colors underline decoration-stone-200 underline-offset-4 hover:decoration-stone-400"
+                    className="text-stone-400 text-sm font-medium hover:text-stone-600 transition-all duration-300 hover:tracking-wider"
                   >
                     Continue as Guest
                   </button>
@@ -170,12 +173,12 @@ const LandingPage: React.FC<LandingPageProps> = ({
               ) : (
                 <button
                   onClick={handleStart}
-                  className="group relative px-10 py-5 bg-stone-800 text-white rounded-full text-base font-bold tracking-wide shadow-xl hover:shadow-2xl hover:bg-stone-700 transition-all duration-300 hover:-translate-y-1 active:scale-95 w-full sm:w-auto justify-center min-w-[240px]"
+                  className="group relative px-10 py-5 bg-white/80 backdrop-blur-md text-stone-600 rounded-full text-base font-medium tracking-wide shadow-lg hover:shadow-xl hover:bg-white transition-all duration-500 hover:-translate-y-1 active:scale-95 w-full sm:w-auto justify-center min-w-[240px] border border-white/60 ring-1 ring-stone-100"
                 >
-                  <span className="relative z-10 flex items-center justify-center gap-2">
+                  <span className="relative z-10 flex items-center justify-center gap-2 group-hover:text-stone-800 transition-colors">
                     Continue as {user.displayName?.split(" ")[0] || "User"}
                     <svg
-                      className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1"
+                      className="w-5 h-5 transition-transform duration-500 group-hover:translate-x-1 text-stone-400 group-hover:text-stone-600"
                       viewBox="0 0 20 20"
                       fill="currentColor"
                     >
@@ -186,7 +189,6 @@ const LandingPage: React.FC<LandingPageProps> = ({
                       />
                     </svg>
                   </span>
-                  <div className="absolute inset-0 rounded-full bg-white/10 scale-0 group-hover:scale-100 transition-transform duration-300" />
                 </button>
               )}
             </div>

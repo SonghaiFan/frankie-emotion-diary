@@ -54,6 +54,7 @@ interface AuroraSphereProps {
   eyeOverride?: EyeType;
   mouthOverride?: MouthType;
   accessoryOverride?: AccessoryType;
+  className?: string;
 }
 
 interface FaceConfig {
@@ -534,6 +535,7 @@ const AuroraSphere: React.FC<AuroraSphereProps> = ({
   eyeOverride,
   mouthOverride,
   accessoryOverride,
+  className = "w-40 h-40 sm:w-64 sm:h-64",
 }) => {
   const style = CATEGORY_THEMES[category] || CATEGORY_THEMES.default;
   const [currentCategory, setCurrentCategory] = useState(category);
@@ -667,7 +669,7 @@ const AuroraSphere: React.FC<AuroraSphereProps> = ({
   return (
     <div
       ref={containerRef}
-      className={`relative w-40 h-40 sm:w-64 sm:h-64 transition-all duration-700 ease-out ${
+      className={`relative transition-all duration-700 ease-out ${className} ${
         animating ? "scale-90 opacity-80" : "scale-100 opacity-100"
       }`}
     >

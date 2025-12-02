@@ -49,6 +49,9 @@ const App: React.FC = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [forceSmile, setForceSmile] = useState(false);
   const [savedTodos, setSavedTodos] = useState<TodoItem[]>([]);
+  const [deletedTodoTexts, setDeletedTodoTexts] = useState<Set<string>>(
+    new Set()
+  );
 
   const [isBubbleVisible, setIsBubbleVisible] = useState(false);
 
@@ -82,7 +85,8 @@ const App: React.FC = () => {
 
   // Helper for safe comparison
   const isTodoSaved = (text: string) =>
-    savedTodos.some((t) => t.text.trim() === text.trim());
+    savedTodos.some((t) => t.text.trim() === text.trim()) ||
+    deletedTodoTexts.has(text.trim());
 
   // Parsing Helper - Refactored for Robustness
   const parseResponse = (
@@ -549,6 +553,12 @@ const App: React.FC = () => {
   };
 
   const deleteTodo = (id: string) => {
+    const todoToDelete = savedTodos.find((t) => t.id === id);
+    if (todoToDelete) {
+      setDeletedTodoTexts((prev) =>
+        new Set(prev).add(todoToDelete.text.trim())
+      );
+    }
     setSavedTodos((prev) => prev.filter((t) => t.id !== id));
     if (user) {
       deleteTodoFromCloud(user.uid, id);

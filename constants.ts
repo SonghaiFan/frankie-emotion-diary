@@ -113,7 +113,7 @@ export const HAPPINESS_ITEMS: { text: string; category: Category }[] = [
 export const HAPPINESS_LIST = HAPPINESS_ITEMS.map((item) => item.text);
 
 export const NEW_USER_GREETING =
-  "你好啊。我是阿朵拉。今天感觉怎么样？\n试着点击下面的小气泡，把它们贴在墙上吧。\n[CALM] [DEFAULT] <TODO>深呼吸 Deep Breath</TODO> <TODO>喝杯水 Drink Water</TODO>";
+  "你好啊。我是阿朵拉。今天感觉怎么样？\n试着点击下面朵拉建议的待办事项，把它们贴在墙上吧。\n[CALM] [DEFAULT] <TODO>深呼吸 Deep Breath</TODO> <TODO>喝杯水 Drink Water</TODO>";
 
 export const GUEST_MESSAGE_LIMIT = 20;
 
