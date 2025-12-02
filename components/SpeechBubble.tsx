@@ -82,13 +82,22 @@ const SpeechBubble: React.FC<SpeechBubbleProps> = ({
       setWaitingMessage(msg);
     }
   }, [isLoading]);
+
+  // Logic to auto-hide if all suggestions are done
+  const hasSuggestions = message?.suggestions && message.suggestions.length > 0;
+  const allSaved = hasSuggestions && message.suggestions.every(s => isTodoSaved(s));
+
+  // The bubble is visible if the parent says so (isVisible), AND
+  // we are NOT in a state where we should hide it (not loading + valid suggestions + all saved)
+  // Text-only messages (no suggestions) will remain visible as normal.
+  const effectiveIsVisible = isVisible && (isLoading || !(hasSuggestions && allSaved));
   
   if (!message && !isLoading) return null;
 
   return (
     <div 
       className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 sm:mb-4 w-[90vw] sm:w-80 max-w-[calc(100vw-2rem)] z-20 pointer-events-auto origin-bottom animate-slide-up-fade ${
-        !isVisible ? '!opacity-0 !scale-95 !pointer-events-none transition-all duration-700 ease-in-out' : ''
+        !effectiveIsVisible ? '!opacity-0 !scale-95 !pointer-events-none transition-all duration-700 ease-in-out' : ''
       }`}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
