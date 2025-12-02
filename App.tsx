@@ -1,26 +1,29 @@
-
-import React, { useState, useEffect, useRef } from 'react';
-import AuroraSphere, { EyeType, MouthType, AccessoryType } from './components/AuroraSphere';
-import InputArea from './components/InputArea';
-import MemoWall from './components/MemoWall';
-import DebugPanel from './components/DebugPanel';
-import SpeechBubble from './components/SpeechBubble';
-import AuthButton from './components/AuthButton';
-import EmotionCalendar from './components/EmotionCalendar';
-import LandingPage from './components/LandingPage';
-import { sendMessage, initializeChat } from './services/geminiService';
-import { Message, Category, Emotion, TodoItem, UserProfile } from './types';
-import { CATEGORY_THEMES, AVATAR_REACTIONS } from './constants';
-import { Content } from '@google/genai';
-import { 
-  subscribeToAuthChanges, 
-  logEmotion, 
-  syncTodoToCloud, 
-  deleteTodoFromCloud, 
+import React, { useState, useEffect, useRef } from "react";
+import AuroraSphere, {
+  EyeType,
+  MouthType,
+  AccessoryType,
+} from "./components/AuroraSphere";
+import InputArea from "./components/InputArea";
+import MemoWall from "./components/MemoWall";
+import DebugPanel from "./components/DebugPanel";
+import SpeechBubble from "./components/SpeechBubble";
+import AuthButton from "./components/AuthButton";
+import EmotionCalendar from "./components/EmotionCalendar";
+import LandingPage from "./components/LandingPage";
+import { sendMessage, initializeChat } from "./services/geminiService";
+import { Message, Category, Emotion, TodoItem, UserProfile } from "./types";
+import { CATEGORY_THEMES, AVATAR_REACTIONS } from "./constants";
+import { Content } from "@google/genai";
+import {
+  subscribeToAuthChanges,
+  logEmotion,
+  syncTodoToCloud,
+  deleteTodoFromCloud,
   getUserTodos,
   saveChatMessage,
-  getRecentChatHistory
-} from './services/firebase';
+  getRecentChatHistory,
+} from "./services/firebase";
 
 const MANAGER_UID = "qv7LevpiYLhSA3jEI1nLyMtO5Rt1";
 
@@ -32,18 +35,18 @@ const App: React.FC = () => {
   // Initialize from LocalStorage if available, otherwise default
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [currentCategory, setCurrentCategory] = useState<Category>('default');
-  const [currentEmotion, setCurrentEmotion] = useState<Emotion>('neutral');
+  const [currentCategory, setCurrentCategory] = useState<Category>("default");
+  const [currentEmotion, setCurrentEmotion] = useState<Emotion>("neutral");
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [forceSmile, setForceSmile] = useState(false);
   const [savedTodos, setSavedTodos] = useState<TodoItem[]>([]);
-  
+
   const [isBubbleVisible, setIsBubbleVisible] = useState(false);
-  
+
   // Auth State
   const [user, setUser] = useState<UserProfile | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
-  
+
   // Debug State
   const [showDebug, setShowDebug] = useState(false);
   const [debugOverrides, setDebugOverrides] = useState<{
@@ -51,45 +54,65 @@ const App: React.FC = () => {
     mouth?: MouthType;
     accessory?: AccessoryType;
   }>({});
-  
+
   // Canvas State
   const [canvasOffset, setCanvasOffset] = useState({ x: 0, y: 0 });
 
   // Avatar Physics State
-  const [avatarPos, setAvatarPos] = useState({ x: window.innerWidth / 2, y: window.innerHeight * 0.8 });
+  const [avatarPos, setAvatarPos] = useState({
+    x: window.innerWidth / 2,
+    y: window.innerHeight * 0.8,
+  });
   const [isPaused, setIsPaused] = useState(false);
-  const targetPos = useRef({ x: window.innerWidth / 2, y: window.innerHeight * 0.8 });
-  
+  const targetPos = useRef({
+    x: window.innerWidth / 2,
+    y: window.innerHeight * 0.8,
+  });
+
   const [isTypingComplete, setIsTypingComplete] = useState(false);
 
   // Helper for safe comparison
-  const isTodoSaved = (text: string) => savedTodos.some(t => t.text.trim() === text.trim());
+  const isTodoSaved = (text: string) =>
+    savedTodos.some((t) => t.text.trim() === text.trim());
 
   // Parsing Helper - Refactored for Robustness
-  const parseResponse = (rawText: string): { text: string; emotion: Emotion; category: Category; suggestions: string[] } => {
-    let emotion: Emotion = 'neutral';
-    let category: Category = currentCategory; 
-    let cleanText = rawText || ''; // Ensure string
+  const parseResponse = (
+    rawText: string
+  ): {
+    text: string;
+    emotion: Emotion;
+    category: Category;
+    suggestions: string[];
+  } => {
+    let emotion: Emotion = "neutral";
+    let category: Category = currentCategory;
+    let cleanText = rawText || ""; // Ensure string
     const suggestions: string[] = [];
 
     // 1. Extract Emotion Tags [HAPPY] - Callback approach allows single-pass removal
-    cleanText = cleanText.replace(/\[(NEUTRAL|HAPPY|CALM|EXCITED|SAD|SURPRISED|FOCUSED|CONFUSED|TIRED|ANGRY|LOVE|GRATEFUL|HUNGRY)\]/gi, (match, p1) => {
-      if (p1) emotion = p1.toUpperCase().toLowerCase() as Emotion;
-      return ''; // Remove tag from string
-    });
+    cleanText = cleanText.replace(
+      /\[(NEUTRAL|HAPPY|CALM|EXCITED|SAD|SURPRISED|FOCUSED|CONFUSED|TIRED|ANGRY|LOVE|GRATEFUL|HUNGRY)\]/gi,
+      (match, p1) => {
+        if (p1) emotion = p1.toUpperCase().toLowerCase() as Emotion;
+        return ""; // Remove tag from string
+      }
+    );
 
     // 2. Extract Category Tags [NATURE]
-    cleanText = cleanText.replace(/\[(DEFAULT|SENSORY|VISUAL|NATURE|CONNECTION|CREATIVE|TRANQUIL|PRESENT)\]/gi, (match, p1) => {
-      if (p1) category = p1.toUpperCase().toLowerCase() as Category;
-      return ''; // Remove tag from string
-    });
+    cleanText = cleanText.replace(
+      /\[(DEFAULT|SENSORY|VISUAL|NATURE|CONNECTION|CREATIVE|TRANQUIL|PRESENT)\]/gi,
+      (match, p1) => {
+        if (p1) category = p1.toUpperCase().toLowerCase() as Category;
+        return ""; // Remove tag from string
+      }
+    );
 
     // 3. Extract Todo Tags <TODO>...</TODO>
     cleanText = cleanText.replace(/<TODO>(.*?)<\/TODO>/gi, (match, content) => {
       if (content && content.trim()) {
         suggestions.push(content.trim());
       }
-      return ''; // Remove tag from string
+      return ""; // Remove tag from string
     });
 
     return { emotion, category, text: cleanText.trim(), suggestions };
@@ -97,13 +120,13 @@ const App: React.FC = () => {
 
   // Helper to re-init chat from a message list
   const reinitializeGemini = (msgs: Message[]) => {
-      const history: Content[] = msgs
-         .filter(m => m.id !== 'init' && !m.id.startsWith('reaction-')) 
-         .map(m => ({
-            role: m.role,
-            parts: [{ text: m.text }]
-         }));
-      initializeChat(history);
+    const history: Content[] = msgs
+      .filter((m) => m.id !== "init" && !m.id.startsWith("reaction-"))
+      .map((m) => ({
+        role: m.role,
+        parts: [{ text: m.text }],
+      }));
+    initializeChat(history);
   };
 
   // --- 1. Initialization & Persistence ---
@@ -111,47 +134,48 @@ const App: React.FC = () => {
     // Auth Listener with Cloud Sync
     const unsubscribe = subscribeToAuthChanges(async (firebaseUser) => {
       if (firebaseUser) {
-        // If user logs in, we can optionally auto-dismiss landing page, 
+        // If user logs in, we can optionally auto-dismiss landing page,
         // but it's nice to let them click "Begin".
-        // setShowLanding(false); 
-        
+        // setShowLanding(false);
+
         setUser({
           uid: firebaseUser.uid,
           displayName: firebaseUser.displayName,
           email: firebaseUser.email,
-          photoURL: firebaseUser.photoURL
+          photoURL: firebaseUser.photoURL,
         });
-        
+
         // --- 1. Fetch Cloud Data (Todos) ---
         const cloudTodos = await getUserTodos(firebaseUser.uid);
-        
+
         // Merge Local Guest Todos if not already in cloud
-        const localTodos = JSON.parse(localStorage.getItem('aurora_todos') || '[]');
+        const localTodos = JSON.parse(
+          localStorage.getItem("aurora_todos") || "[]"
+        );
         const mergedTodos = [...cloudTodos];
-        const cloudIds = new Set(cloudTodos.map(t => t.id));
-        
+        const cloudIds = new Set(cloudTodos.map((t) => t.id));
+
         for (const localT of localTodos) {
-            if (!cloudIds.has(localT.id)) {
-                await syncTodoToCloud(firebaseUser.uid, localT);
-                mergedTodos.push(localT);
-            }
+          if (!cloudIds.has(localT.id)) {
+            await syncTodoToCloud(firebaseUser.uid, localT);
+            mergedTodos.push(localT);
+          }
         }
         setSavedTodos(mergedTodos);
 
         // --- 2. Fetch Cloud Chat History ---
         const cloudHistory = await getRecentChatHistory(firebaseUser.uid);
         if (cloudHistory.length > 0) {
-            setMessages(cloudHistory);
-            reinitializeGemini(cloudHistory);
-            // Don't show bubble immediately on load if it's old history
-            // setIsBubbleVisible(true); 
+          setMessages(cloudHistory);
+          reinitializeGemini(cloudHistory);
+          // Don't show bubble immediately on load if it's old history
+          // setIsBubbleVisible(true);
         } else {
-             // New User or Empty History -> Keep current Guest Messages but now they are tied to user
-             if (messages.length > 0) {
-                 messages.forEach(m => saveChatMessage(firebaseUser.uid, m));
-             }
+          // New User or Empty History -> Keep current Guest Messages but now they are tied to user
+          if (messages.length > 0) {
+            messages.forEach((m) => saveChatMessage(firebaseUser.uid, m));
+          }
         }
-
       } else {
         setUser(null);
       }
@@ -159,11 +183,11 @@ const App: React.FC = () => {
 
     const loadState = () => {
       try {
-        const storedMessages = localStorage.getItem('aurora_messages');
-        const storedTodos = localStorage.getItem('aurora_todos');
-        const storedCategory = localStorage.getItem('aurora_category');
-        const storedEmotion = localStorage.getItem('aurora_emotion');
-        const hasVisited = localStorage.getItem('aurora_visited');
+        const storedMessages = localStorage.getItem("aurora_messages");
+        const storedTodos = localStorage.getItem("aurora_todos");
+        const storedCategory = localStorage.getItem("aurora_category");
+        const storedEmotion = localStorage.getItem("aurora_emotion");
+        const hasVisited = localStorage.getItem("aurora_visited");
 
         // Optional: If user has visited before, maybe skip landing?
         // For now, let's always show it for the vibe, or check session logic.
@@ -175,25 +199,25 @@ const App: React.FC = () => {
           reinitializeGemini(parsedMsgs);
         } else {
           // New User: Greeting
-          const rawGreeting = "你好啊。我是阿朵拉。今天感觉怎么样？\nHello. I am Aurora. How are you feeling today?\n[CALM] [DEFAULT] <TODO>深呼吸 Deep Breath</TODO> <TODO>喝杯水 Drink Water</TODO>";
+          const rawGreeting =
+            "你好啊。我是阿朵拉。今天感觉怎么样？\nHello. I am Aurora. How are you feeling today?\n[CALM] [DEFAULT] <TODO>深呼吸 Deep Breath</TODO> <TODO>喝杯水 Drink Water</TODO>";
           const parsed = parseResponse(rawGreeting);
           const greeting: Message = {
-            id: 'init',
-            role: 'model',
+            id: "init",
+            role: "model",
             text: parsed.text,
             timestamp: Date.now(),
-            suggestions: parsed.suggestions
+            suggestions: parsed.suggestions,
           };
           setMessages([greeting]);
           setCurrentCategory(parsed.category);
           setCurrentEmotion(parsed.emotion);
-          initializeChat(); 
+          initializeChat();
         }
 
         if (!user && storedTodos) setSavedTodos(JSON.parse(storedTodos));
         if (storedCategory) setCurrentCategory(storedCategory as Category);
         if (storedEmotion) setCurrentEmotion(storedEmotion as Emotion);
-
       } catch (e) {
         console.error("Failed to load state", e);
         initializeChat();
@@ -206,14 +230,15 @@ const App: React.FC = () => {
 
   // Persist State Changes (Local Storage Backup)
   useEffect(() => {
-    if (messages.length > 0) localStorage.setItem('aurora_messages', JSON.stringify(messages));
-    localStorage.setItem('aurora_todos', JSON.stringify(savedTodos));
-    localStorage.setItem('aurora_category', currentCategory);
-    localStorage.setItem('aurora_emotion', currentEmotion);
+    if (messages.length > 0)
+      localStorage.setItem("aurora_messages", JSON.stringify(messages));
+    localStorage.setItem("aurora_todos", JSON.stringify(savedTodos));
+    localStorage.setItem("aurora_category", currentCategory);
+    localStorage.setItem("aurora_emotion", currentEmotion);
   }, [messages, savedTodos, currentCategory, currentEmotion]);
 
-
-  const lastModelMessage = messages.length > 0 ? messages[messages.length - 1] : null;
+  const lastModelMessage =
+    messages.length > 0 ? messages[messages.length - 1] : null;
 
   // Reset typing state when message changes
   useEffect(() => {
@@ -224,8 +249,8 @@ const App: React.FC = () => {
   useEffect(() => {
     // If landing page is shown, hide bubble
     if (showLanding) {
-        setIsBubbleVisible(false);
-        return;
+      setIsBubbleVisible(false);
+      return;
     }
 
     if (isLoading) {
@@ -234,69 +259,72 @@ const App: React.FC = () => {
     }
 
     if (!lastModelMessage) return;
-    
+
     // On first load/enter, show the bubble if it's the greeting or recent
     if (!isBubbleVisible && !showLanding) {
-       // Only if it was recently added? Or just show it.
-       // Let's show it.
-       setIsBubbleVisible(true);
+      // Only if it was recently added? Or just show it.
+      // Let's show it.
+      setIsBubbleVisible(true);
     }
 
-    const hasSuggestions = lastModelMessage.suggestions && lastModelMessage.suggestions.length > 0;
-    const allSuggestionsSaved = hasSuggestions && lastModelMessage.suggestions?.every(s => isTodoSaved(s));
+    const hasSuggestions =
+      lastModelMessage.suggestions && lastModelMessage.suggestions.length > 0;
+    const allSuggestionsSaved =
+      hasSuggestions &&
+      lastModelMessage.suggestions?.every((s) => isTodoSaved(s));
 
     if (hasSuggestions && allSuggestionsSaved) {
-       setIsBubbleVisible(false);
-       return;
+      setIsBubbleVisible(false);
+      return;
     }
 
     if (!hasSuggestions) {
-      const delay = 8000; 
+      const delay = 8000;
       const timer = setTimeout(() => {
         setIsBubbleVisible(false);
       }, delay);
       return () => clearTimeout(timer);
     }
-    
+
     setIsBubbleVisible(true);
   }, [lastModelMessage, savedTodos, isLoading, showLanding]);
-
 
   // --- Logic: Avatar Reactions ---
   const triggerReaction = (type: keyof typeof AVATAR_REACTIONS) => {
     if (isLoading || showLanding) return;
 
-    const hasUnsavedSuggestions = lastModelMessage?.suggestions && lastModelMessage.suggestions.some(s => !isTodoSaved(s));
+    const hasUnsavedSuggestions =
+      lastModelMessage?.suggestions &&
+      lastModelMessage.suggestions.some((s) => !isTodoSaved(s));
     if (hasUnsavedSuggestions) return;
 
     const phrases = AVATAR_REACTIONS[type];
     const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
-    
+
     const { text, emotion } = parseResponse(randomPhrase);
-    
-    if (emotion !== 'neutral') {
-       setCurrentEmotion(emotion);
+
+    if (emotion !== "neutral") {
+      setCurrentEmotion(emotion);
     } else {
-       if (type === 'poke') setCurrentEmotion('surprised');
-       if (type === 'typing') setCurrentEmotion('focused');
-       if (type === 'completion') setCurrentEmotion('excited');
+      if (type === "poke") setCurrentEmotion("surprised");
+      if (type === "typing") setCurrentEmotion("focused");
+      if (type === "completion") setCurrentEmotion("excited");
     }
 
     const reactionMsg: Message = {
       id: `reaction-${Date.now()}`,
-      role: 'model',
+      role: "model",
       text: text,
       timestamp: Date.now(),
-      suggestions: []
+      suggestions: [],
     };
-    
-    setMessages(prev => [...prev, reactionMsg]);
+
+    setMessages((prev) => [...prev, reactionMsg]);
     setIsBubbleVisible(true);
-    
+
     // Save reaction to cloud history? Optional, but keeps conversation fluid.
     if (user) saveChatMessage(user.uid, reactionMsg);
   };
-
 
   // --- Animation Loop ---
   useEffect(() => {
@@ -308,14 +336,15 @@ const App: React.FC = () => {
         time += 0.0015;
         const cx = window.innerWidth / 2;
         const isMobile = window.innerWidth < 640;
-        
-        const cy = window.innerHeight - (isMobile ? 140 : 190); 
-        const rx = isMobile ? 10 : Math.min(window.innerWidth * 0.1, 40); 
+
+        const cy = window.innerHeight - (isMobile ? 140 : 190);
+        const rx = isMobile ? 10 : Math.min(window.innerWidth * 0.1, 40);
         const ry = 10;
 
         const wanderX = Math.sin(time) * rx + Math.sin(time * 0.5) * (rx * 0.5);
-        const wanderY = Math.cos(time * 0.8) * ry + Math.sin(time * 0.3) * (ry * 0.5);
-        
+        const wanderY =
+          Math.cos(time * 0.8) * ry + Math.sin(time * 0.3) * (ry * 0.5);
+
         let targetX = cx + wanderX;
         let targetY = cy + wanderY;
 
@@ -327,11 +356,11 @@ const App: React.FC = () => {
         targetPos.current.x = targetX;
         targetPos.current.y = targetY;
 
-        const lerpFactor = 0.003; 
-        
-        setAvatarPos(prev => ({
+        const lerpFactor = 0.003;
+
+        setAvatarPos((prev) => ({
           x: prev.x + (targetPos.current.x - prev.x) * lerpFactor,
-          y: prev.y + (targetPos.current.y - prev.y) * lerpFactor
+          y: prev.y + (targetPos.current.y - prev.y) * lerpFactor,
         }));
       }
 
@@ -342,12 +371,11 @@ const App: React.FC = () => {
     return () => cancelAnimationFrame(animationFrameId);
   }, [isInputFocused, isPaused, showLanding]);
 
-
   // --- Handlers ---
 
   const handleEnterApp = () => {
     setShowLanding(false);
-    localStorage.setItem('aurora_visited', 'true');
+    localStorage.setItem("aurora_visited", "true");
     // Ensure bubble shows up when entering
     setIsBubbleVisible(true);
   };
@@ -355,17 +383,17 @@ const App: React.FC = () => {
   const handleSend = async (text: string) => {
     setIsLoading(true);
     setIsBubbleVisible(true);
-    setCurrentEmotion('focused'); 
+    setCurrentEmotion("focused");
 
     // Add user message immediately
     const userMsg: Message = {
-        id: Date.now().toString(),
-        role: 'user',
-        text: text,
-        timestamp: Date.now()
+      id: Date.now().toString(),
+      role: "user",
+      text: text,
+      timestamp: Date.now(),
     };
-    setMessages(prev => [...prev, userMsg]);
-    
+    setMessages((prev) => [...prev, userMsg]);
+
     // Save User Msg to Cloud
     if (user) saveChatMessage(user.uid, userMsg);
 
@@ -373,151 +401,167 @@ const App: React.FC = () => {
       // Pass complete history + new text implicitly via the Gemini session
       // But we pass todo context explicitly
       const rawResponse = await sendMessage(text, savedTodos);
-      const { text: cleanText, emotion, category, suggestions } = parseResponse(rawResponse);
+      const {
+        text: cleanText,
+        emotion,
+        category,
+        suggestions,
+      } = parseResponse(rawResponse);
 
       setCurrentCategory(category);
       setCurrentEmotion(emotion);
-      
+
       // Log emotion to Cloud
-      if (user && emotion !== 'neutral') {
+      if (user && emotion !== "neutral") {
         logEmotion(user.uid, emotion, category, cleanText);
       }
 
       const modelMsg: Message = {
         id: (Date.now() + 1).toString(),
-        role: 'model',
+        role: "model",
         text: cleanText,
         timestamp: Date.now(),
-        suggestions: suggestions
+        suggestions: suggestions,
       };
-      
-      setMessages(prev => [...prev, modelMsg]);
-      setIsBubbleVisible(true); 
-      
+
+      setMessages((prev) => [...prev, modelMsg]);
+      setIsBubbleVisible(true);
+
       // Save Model Msg to Cloud
       if (user) saveChatMessage(user.uid, modelMsg);
-
     } catch (error) {
       console.error(error);
       const errorMsg: Message = {
         id: Date.now().toString(),
-        role: 'model',
+        role: "model",
         text: "The connection is a bit fuzzy...",
         timestamp: Date.now(),
       };
-      setMessages(prev => [...prev, errorMsg]);
-      setCurrentEmotion('sad');
+      setMessages((prev) => [...prev, errorMsg]);
+      setCurrentEmotion("sad");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleSaveTodo = (text: string) => {
-    if (savedTodos.some(t => t.text.trim() === text.trim())) return;
+    if (savedTodos.some((t) => t.text.trim() === text.trim())) return;
 
     const screenX = Math.random() * (window.innerWidth - 100) + 50;
     const screenY = Math.random() * (window.innerHeight * 0.3) + 80;
     const canvasX = screenX - canvasOffset.x;
     const canvasY = screenY - canvasOffset.y;
     const theme = CATEGORY_THEMES[currentCategory] || CATEGORY_THEMES.default;
-    
+
     const newTodo: TodoItem = {
       id: Date.now().toString() + Math.random().toString(),
       text: text.trim(),
       completed: false,
       timestamp: Date.now(),
-      x: canvasX, 
-      y: canvasY, 
+      x: canvasX,
+      y: canvasY,
       rotation: (Math.random() - 0.5) * 8,
-      color: theme.noteBg
+      color: theme.noteBg,
     };
-    
-    setSavedTodos(prev => [newTodo, ...prev]);
-    
+
+    setSavedTodos((prev) => [newTodo, ...prev]);
+
     // Sync to cloud
     if (user) {
-        syncTodoToCloud(user.uid, newTodo);
+      syncTodoToCloud(user.uid, newTodo);
     }
   };
 
   const toggleTodo = (id: string) => {
     let toggledItem: TodoItem | undefined;
 
-    setSavedTodos(prev => {
-      const newTodos = prev.map(t => {
+    setSavedTodos((prev) => {
+      const newTodos = prev.map((t) => {
         if (t.id === id) {
-            toggledItem = { ...t, completed: !t.completed };
-            return toggledItem;
+          toggledItem = { ...t, completed: !t.completed };
+          return toggledItem;
         }
         return t;
       });
-      
-      const allCompleted = newTodos.length > 0 && newTodos.every(t => t.completed);
-      const wasAllCompleted = prev.every(t => t.completed) && prev.length > 0;
-      
+
+      const allCompleted =
+        newTodos.length > 0 && newTodos.every((t) => t.completed);
+      const wasAllCompleted = prev.every((t) => t.completed) && prev.length > 0;
+
       if (allCompleted && !wasAllCompleted) {
-        setTimeout(() => triggerReaction('completion'), 500);
+        setTimeout(() => triggerReaction("completion"), 500);
       }
-      
+
       return newTodos;
     });
 
     if (user && toggledItem) {
-        syncTodoToCloud(user.uid, toggledItem);
-        
-        // Log "Completion" as a positive emotion event!
-        if (toggledItem.completed) {
-            logEmotion(user.uid, 'excited', currentCategory, `Completed: ${toggledItem.text}`);
-        }
+      syncTodoToCloud(user.uid, toggledItem);
+
+      // Log "Completion" as a positive emotion event!
+      if (toggledItem.completed) {
+        logEmotion(
+          user.uid,
+          "excited",
+          currentCategory,
+          `Completed: ${toggledItem.text}`
+        );
+      }
     }
   };
 
   const deleteTodo = (id: string) => {
-    setSavedTodos(prev => prev.filter(t => t.id !== id));
+    setSavedTodos((prev) => prev.filter((t) => t.id !== id));
     if (user) {
-        deleteTodoFromCloud(user.uid, id);
+      deleteTodoFromCloud(user.uid, id);
     }
   };
 
   const updateTodoPosition = (id: string, x: number, y: number) => {
-    setSavedTodos(prev => prev.map(t => t.id === id ? { ...t, x, y } : t));
-  }
-  
+    setSavedTodos((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, x, y } : t))
+    );
+  };
+
   // New handler called only when drag ends to sync final position
   const handleTodoDragEnd = (id: string) => {
-      if (!user) return;
-      const todo = savedTodos.find(t => t.id === id);
-      if (todo) {
-          syncTodoToCloud(user.uid, todo);
-      }
+    if (!user) return;
+    const todo = savedTodos.find((t) => t.id === id);
+    if (todo) {
+      syncTodoToCloud(user.uid, todo);
+    }
   };
 
   const theme = CATEGORY_THEMES[currentCategory] || CATEGORY_THEMES.default;
 
   return (
-    <div 
+    <div
       className="relative w-full h-screen overflow-hidden touch-none transition-colors duration-1000 ease-in-out"
-      style={{ background: theme.bgGradient }} 
+      style={{ background: theme.bgGradient }}
     >
-      
       {showLanding && <LandingPage onEnter={handleEnterApp} />}
 
       {/* 1. Dynamic Background Orbs */}
       <div className="absolute inset-0 pointer-events-none opacity-30 mix-blend-multiply transition-colors duration-1000 z-0">
-        <div className={`absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full blur-[120px] transition-colors duration-1000 ${
-           currentCategory === 'nature' ? 'bg-sky-100' : 
-           currentCategory === 'sensory' ? 'bg-pink-100' : 
-           'bg-blue-50'
-        }`} />
-        <div className={`absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full blur-[120px] transition-colors duration-1000 ${
-            currentCategory === 'creative' ? 'bg-purple-100' :
-            'bg-cyan-50'
-        }`} />
+        <div
+          className={`absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full blur-[120px] transition-colors duration-1000 ${
+            currentCategory === "nature"
+              ? "bg-sky-100"
+              : currentCategory === "sensory"
+              ? "bg-pink-100"
+              : "bg-blue-50"
+          }`}
+        />
+        <div
+          className={`absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full blur-[120px] transition-colors duration-1000 ${
+            currentCategory === "creative" ? "bg-purple-100" : "bg-cyan-50"
+          }`}
+        />
       </div>
 
       {/* 2. Memo Wall */}
-      <MemoWall 
-        todos={savedTodos} 
+      <MemoWall
+        todos={savedTodos}
         onUpdateTodoPosition={updateTodoPosition}
         onDeleteTodo={deleteTodo}
         onToggleTodo={toggleTodo}
@@ -527,22 +571,25 @@ const App: React.FC = () => {
       />
 
       {/* 3. Avatar Container */}
-      <div 
-        className={`absolute z-30 transition-all duration-700 ease-in-out pointer-events-none ${showLanding ? 'opacity-0 translate-y-20' : 'opacity-100 translate-y-0'}`}
-        style={{ 
-          transform: `translate(${avatarPos.x - 128}px, ${avatarPos.y - 128}px)`,
+      <div
+        className={`absolute z-30 transition-all duration-700 ease-in-out pointer-events-none ${
+          showLanding ? "opacity-0 translate-y-20" : "opacity-100 translate-y-0"
+        }`}
+        style={{
+          transform: `translate(${avatarPos.x - 128}px, ${
+            avatarPos.y - 128
+          }px)`,
         }}
       >
         <div className="relative w-64 h-64 flex items-center justify-center">
-          
-          <div 
+          <div
             className="relative z-10 pointer-events-auto cursor-pointer"
-            onClick={() => triggerReaction('poke')}
+            onClick={() => triggerReaction("poke")}
           >
-            <AuroraSphere 
-              isThinking={isLoading} 
+            <AuroraSphere
+              isThinking={isLoading}
               category={currentCategory}
-              emotion={currentEmotion} 
+              emotion={currentEmotion}
               isInputFocused={isInputFocused}
               forceSmile={forceSmile}
               eyeOverride={debugOverrides.eyes}
@@ -551,7 +598,7 @@ const App: React.FC = () => {
             />
           </div>
 
-          <SpeechBubble 
+          <SpeechBubble
             message={lastModelMessage || null}
             isLoading={isLoading}
             isVisible={isBubbleVisible}
@@ -567,30 +614,45 @@ const App: React.FC = () => {
       </div>
 
       {/* 4. Input Layer */}
-      <div className={`absolute bottom-0 left-0 w-full p-4 md:p-6 z-40 flex flex-col items-center pointer-events-none transition-opacity duration-700 ${showLanding ? 'opacity-0 translate-y-10' : 'opacity-100 translate-y-0'}`}>
-        <InputArea 
-          onSend={handleSend} 
-          isLoading={isLoading} 
+      <div
+        className={`absolute bottom-0 left-0 w-full p-4 md:p-6 z-40 flex flex-col items-center pointer-events-none transition-opacity duration-700 ${
+          showLanding ? "opacity-0 translate-y-10" : "opacity-100 translate-y-0"
+        }`}
+      >
+        <InputArea
+          onSend={handleSend}
+          isLoading={isLoading}
           onFocusChange={setIsInputFocused}
           onSmileChange={setForceSmile}
-          onTypingStart={() => triggerReaction('typing')}
-          onIdle={() => triggerReaction('idle')}
+          onTypingStart={() => triggerReaction("typing")}
+          onIdle={() => triggerReaction("idle")}
         />
       </div>
 
       {/* Top Right: Auth & Credits */}
-      <div className={`absolute top-0 right-0 p-4 z-50 flex flex-col items-end gap-2 transition-opacity duration-500 ${showLanding ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-         <AuthButton user={user} onOpenCalendar={() => setShowCalendar(true)} />
-         
-         <div className="text-right pointer-events-none select-none opacity-30 hover:opacity-60 transition-opacity duration-500 mb-1">
-           <p className="text-[9px] sm:text-[10px] text-stone-600 font-bold tracking-wide">Inspired by 武田有纪《高敏感人士幸福清单》</p>
-           <p className="text-[9px] sm:text-[10px] text-stone-500 tracking-wider mt-0.5">Made by 范不着frank</p>
-         </div>
+      <div
+        className={`absolute top-0 right-0 p-4 z-50 flex flex-col items-end gap-2 transition-opacity duration-500 ${
+          showLanding ? "opacity-0 pointer-events-none" : "opacity-100"
+        }`}
+      >
+        <AuthButton user={user} onOpenCalendar={() => setShowCalendar(true)} />
+
+        <div className="text-right pointer-events-none select-none opacity-30 hover:opacity-60 transition-opacity duration-500 mb-1">
+          <p className="text-[9px] sm:text-[10px] text-stone-600 font-bold tracking-wide">
+            Inspired by 武田有纪《高敏感人士幸福清单》
+          </p>
+          <p className="text-[9px] sm:text-[10px] text-stone-500 tracking-wider mt-0.5">
+            Made by 范不着frank
+          </p>
+        </div>
       </div>
 
       {/* 5. Modals & Overlays */}
       {showCalendar && user && (
-        <EmotionCalendar uid={user.uid} onClose={() => setShowCalendar(false)} />
+        <EmotionCalendar
+          uid={user.uid}
+          onClose={() => setShowCalendar(false)}
+        />
       )}
 
       {showDebug && (
@@ -605,22 +667,35 @@ const App: React.FC = () => {
           onThinkingChange={setIsLoading}
           onSmileChange={setForceSmile}
           onFocusChange={setIsInputFocused}
-          onOverrideChange={(eyes, mouth, accessory) => setDebugOverrides({ eyes, mouth, accessory })}
+          onOverrideChange={(eyes, mouth, accessory) =>
+            setDebugOverrides({ eyes, mouth, accessory })
+          }
           onClose={() => setShowDebug(false)}
         />
       )}
-      
-      {(!showLanding && (process.env.NODE_ENV === 'development' || user?.uid === MANAGER_UID)) && (
-        <button 
-          onClick={() => setShowDebug(true)}
-          className="fixed top-4 left-4 z-50 p-2 text-stone-300 hover:text-stone-500 hover:bg-white/50 rounded-full transition-all opacity-20 hover:opacity-100 pointer-events-auto"
-          title="Open Debug Panel"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c-.836-1.372.734-2.942 2.106-2.106a1.532 1.532 0 012.287.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-          </svg>
-        </button>
-      )}
+
+      {!showLanding &&
+        (process.env.NODE_ENV === "development" ||
+          user?.uid === MANAGER_UID) && (
+          <button
+            onClick={() => setShowDebug(true)}
+            className="fixed top-4 left-4 z-50 p-2 text-stone-300 hover:text-stone-500 hover:bg-white/50 rounded-full transition-all opacity-20 hover:opacity-100 pointer-events-auto"
+            title="Open Debug Panel"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c-.836-1.372.734-2.942 2.106-2.106a1.532 1.532 0 012.287.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+        )}
     </div>
   );
 };
