@@ -78,13 +78,16 @@ export const subscribeToAuthChanges = (callback: (user: User | null) => void) =>
   return onAuthStateChanged(auth, callback);
 };
 
-// --- Emotion Logging ---
+// --- Emotion Logging (Sub-collection) ---
 
 export const logEmotion = async (uid: string, emotion: Emotion, category: Category, note?: string) => {
   if (!db) return;
   try {
-    await addDoc(collection(db, 'emotionLogs'), {
-      uid,
+    // Path: users/{uid}/emotionLogs/{logId}
+    const userEmotionColl = collection(db, 'users', uid, 'emotionLogs');
+    
+    await addDoc(userEmotionColl, {
+      uid, // Keep uid in data for redundancy/export ease, though implied by path
       emotion,
       category,
       timestamp: Timestamp.now(),
@@ -98,9 +101,11 @@ export const logEmotion = async (uid: string, emotion: Emotion, category: Catego
 export const getEmotionHistory = async (uid: string): Promise<EmotionLog[]> => {
   if (!db) return [];
   try {
+    // Path: users/{uid}/emotionLogs
+    const userEmotionColl = collection(db, 'users', uid, 'emotionLogs');
+    
     const q = query(
-      collection(db, 'emotionLogs'),
-      where("uid", "==", uid),
+      userEmotionColl,
       orderBy("timestamp", "desc"),
       limit(100)
     );
@@ -110,7 +115,7 @@ export const getEmotionHistory = async (uid: string): Promise<EmotionLog[]> => {
       const data = doc.data();
       return {
         id: doc.id,
-        uid: data.uid,
+        uid: uid, // Use the uid from context since it matches the path
         emotion: data.emotion as Emotion,
         category: data.category as Category,
         timestamp: data.timestamp.toMillis(),
@@ -123,16 +128,17 @@ export const getEmotionHistory = async (uid: string): Promise<EmotionLog[]> => {
   }
 };
 
-// --- Todo Cloud Sync ---
+// --- Todo Cloud Sync (Sub-collection) ---
 
 export const syncTodoToCloud = async (uid: string, todo: TodoItem) => {
   if (!db) return;
   try {
-    // Use setDoc with the todo ID to create or update
-    await setDoc(doc(db, 'todos', todo.id), {
-      ...todo,
-      uid // Tag with user ID for security rules/filtering
-    });
+    // Path: users/{uid}/todos/{todoId}
+    const userTodoRef = doc(db, 'users', uid, 'todos', todo.id);
+    
+    // We strictly save the todo item. We don't need to manually inject 'uid' 
+    // for security anymore because the path secures it.
+    await setDoc(userTodoRef, todo);
   } catch (error) {
     console.error("Error syncing todo", error);
   }
@@ -141,7 +147,8 @@ export const syncTodoToCloud = async (uid: string, todo: TodoItem) => {
 export const deleteTodoFromCloud = async (uid: string, todoId: string) => {
   if (!db) return;
   try {
-    await deleteDoc(doc(db, 'todos', todoId));
+    // Path: users/{uid}/todos/{todoId}
+    await deleteDoc(doc(db, 'users', uid, 'todos', todoId));
   } catch (error) {
     console.error("Error deleting todo", error);
   }
@@ -150,10 +157,12 @@ export const deleteTodoFromCloud = async (uid: string, todoId: string) => {
 export const getUserTodos = async (uid: string): Promise<TodoItem[]> => {
   if (!db) return [];
   try {
-    const q = query(
-      collection(db, 'todos'),
-      where("uid", "==", uid)
-    );
+    // Path: users/{uid}/todos
+    const userTodosColl = collection(db, 'users', uid, 'todos');
+    
+    // No need for 'where uid == ...' because we are querying that specific user's subcollection
+    const q = query(userTodosColl);
+    
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => doc.data() as TodoItem);
   } catch (error) {
@@ -162,15 +171,17 @@ export const getUserTodos = async (uid: string): Promise<TodoItem[]> => {
   }
 };
 
-// --- Chat History Sync ---
+// --- Chat History Sync (Sub-collection) ---
 
 export const saveChatMessage = async (uid: string, message: Message) => {
   if (!db) return;
   try {
-    // We store messages in a 'chats' collection
-    await setDoc(doc(db, 'chats', message.id), {
+    // Path: users/{uid}/chats/{messageId}
+    const userChatRef = doc(db, 'users', uid, 'chats', message.id);
+    
+    await setDoc(userChatRef, {
       ...message,
-      uid,
+      uid, // Optional redundancy
       timestamp: Timestamp.fromMillis(message.timestamp)
     });
   } catch (error) {
@@ -181,11 +192,13 @@ export const saveChatMessage = async (uid: string, message: Message) => {
 export const getRecentChatHistory = async (uid: string): Promise<Message[]> => {
   if (!db) return [];
   try {
+    // Path: users/{uid}/chats
+    const userChatsColl = collection(db, 'users', uid, 'chats');
+
     const q = query(
-      collection(db, 'chats'),
-      where("uid", "==", uid),
-      orderBy("timestamp", "asc"), // Get them in chronological order
-      limit(50) // Reasonable context limit
+      userChatsColl,
+      orderBy("timestamp", "asc"),
+      limit(50)
     );
 
     const querySnapshot = await getDocs(q);
@@ -195,7 +208,7 @@ export const getRecentChatHistory = async (uid: string): Promise<Message[]> => {
         id: doc.id,
         role: data.role,
         text: data.text,
-        timestamp: data.timestamp.toMillis(), // Convert Firestore Timestamp back to number
+        timestamp: data.timestamp.toMillis(),
         suggestions: data.suggestions
       } as Message;
     });
