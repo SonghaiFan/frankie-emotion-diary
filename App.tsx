@@ -5,11 +5,14 @@ import InputArea from './components/InputArea';
 import MemoWall from './components/MemoWall';
 import DebugPanel from './components/DebugPanel';
 import SpeechBubble from './components/SpeechBubble';
-import { sendMessage } from './services/geminiService';
+import { sendMessage, initializeChat } from './services/geminiService';
 import { Message, Category, Emotion, TodoItem } from './types';
 import { CATEGORY_THEMES, AVATAR_REACTIONS } from './constants';
+import { Content } from '@google/genai';
 
 const App: React.FC = () => {
+  // --- State ---
+  // Initialize from LocalStorage if available, otherwise default
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentCategory, setCurrentCategory] = useState<Category>('default');
@@ -18,7 +21,6 @@ const App: React.FC = () => {
   const [forceSmile, setForceSmile] = useState(false);
   const [savedTodos, setSavedTodos] = useState<TodoItem[]>([]);
   
-  // Visibility State for Bubble (Managed separately to allow transitions)
   const [isBubbleVisible, setIsBubbleVisible] = useState(false);
   
   // Debug State
@@ -29,7 +31,7 @@ const App: React.FC = () => {
     accessory?: AccessoryType;
   }>({});
   
-  // Canvas State (Infinite Pan)
+  // Canvas State
   const [canvasOffset, setCanvasOffset] = useState({ x: 0, y: 0 });
 
   // Avatar Physics State
@@ -37,25 +39,113 @@ const App: React.FC = () => {
   const [isPaused, setIsPaused] = useState(false);
   const targetPos = useRef({ x: window.innerWidth / 2, y: window.innerHeight * 0.8 });
   
-  // Text Reveal State
   const [isTypingComplete, setIsTypingComplete] = useState(false);
 
   // Helper for safe comparison
   const isTodoSaved = (text: string) => savedTodos.some(t => t.text.trim() === text.trim());
 
-  // Initial setup
+  // Parsing Helper
+  const parseResponse = (rawText: string): { text: string; emotion: Emotion; category: Category; suggestions: string[] } => {
+    let emotion: Emotion = 'neutral';
+    let category: Category = currentCategory; 
+    let cleanText = rawText;
+
+    // Use string.match instead of exec loop on global regex to avoid state issues
+    const emotionRegex = /\[(NEUTRAL|HAPPY|CALM|EXCITED|SAD|SURPRISED|FOCUSED|CONFUSED|TIRED|ANGRY|LOVE|GRATEFUL|HUNGRY)\]/gi;
+    const emotionMatches = cleanText.match(emotionRegex);
+    if (emotionMatches) {
+        // Take the last one found
+        const lastTag = emotionMatches[emotionMatches.length - 1];
+        // Strip brackets
+        emotion = lastTag.replace(/[\[\]]/g, '').toLowerCase() as Emotion;
+        // Remove all emotion tags
+        cleanText = cleanText.replace(emotionRegex, '');
+    }
+
+    const categoryRegex = /\[(DEFAULT|SENSORY|VISUAL|NATURE|CONNECTION|CREATIVE|TRANQUIL|PRESENT)\]/gi;
+    const categoryMatches = cleanText.match(categoryRegex);
+    if (categoryMatches) {
+        const lastTag = categoryMatches[categoryMatches.length - 1];
+        category = lastTag.replace(/[\[\]]/g, '').toLowerCase() as Category;
+        cleanText = cleanText.replace(categoryRegex, '');
+    }
+
+    const suggestions: string[] = [];
+    const todoRegex = /<TODO>(.*?)<\/TODO>/gi;
+    const todoMatches = cleanText.match(todoRegex);
+    if (todoMatches) {
+        todoMatches.forEach(tag => {
+            const content = tag.replace(/<\/?TODO>/g, '').trim();
+            if (content) suggestions.push(content);
+        });
+        cleanText = cleanText.replace(todoRegex, '');
+    }
+
+    return { emotion, category, text: cleanText.trim(), suggestions };
+  };
+
+  // --- 1. Initialization & Persistence ---
   useEffect(() => {
-    const greeting: Message = {
-      id: 'init',
-      role: 'model',
-      text: "你好啊。我是阿朵拉。今天感觉怎么样？\nHello. I am Aurora. How are you feeling today?",
-      timestamp: Date.now(),
-      suggestions: ["深呼吸 Deep Breath", "喝杯水 Drink Water"]
+    const loadState = () => {
+      try {
+        const storedMessages = localStorage.getItem('aurora_messages');
+        const storedTodos = localStorage.getItem('aurora_todos');
+        const storedCategory = localStorage.getItem('aurora_category');
+        const storedEmotion = localStorage.getItem('aurora_emotion');
+
+        if (storedMessages) {
+          const parsedMsgs = JSON.parse(storedMessages) as Message[];
+          setMessages(parsedMsgs);
+          
+          // Rehydrate Gemini Chat History
+          const history: Content[] = parsedMsgs
+             .filter(m => m.id !== 'init' && !m.id.startsWith('reaction-')) // Filter out local-only msgs for API context if preferred, or keep them.
+             .map(m => ({
+                role: m.role,
+                parts: [{ text: m.text }]
+             }));
+          
+          initializeChat(history);
+          setIsBubbleVisible(true); // Show last message
+        } else {
+          // New User: Greeting
+          const rawGreeting = "你好啊。我是阿朵拉。今天感觉怎么样？\nHello. I am Aurora. How are you feeling today?\n[CALM] [DEFAULT] <TODO>深呼吸 Deep Breath</TODO> <TODO>喝杯水 Drink Water</TODO>";
+          const parsed = parseResponse(rawGreeting);
+          const greeting: Message = {
+            id: 'init',
+            role: 'model',
+            text: parsed.text,
+            timestamp: Date.now(),
+            suggestions: parsed.suggestions
+          };
+          setMessages([greeting]);
+          setIsBubbleVisible(true);
+          setCurrentCategory(parsed.category);
+          setCurrentEmotion(parsed.emotion);
+          initializeChat(); // Init empty chat
+        }
+
+        if (storedTodos) setSavedTodos(JSON.parse(storedTodos));
+        if (storedCategory) setCurrentCategory(storedCategory as Category);
+        if (storedEmotion) setCurrentEmotion(storedEmotion as Emotion);
+
+      } catch (e) {
+        console.error("Failed to load state", e);
+        initializeChat();
+      }
     };
-    setMessages([greeting]);
-    setIsBubbleVisible(true);
-    setCurrentEmotion('calm');
+
+    loadState();
   }, []);
+
+  // Persist State Changes
+  useEffect(() => {
+    if (messages.length > 0) localStorage.setItem('aurora_messages', JSON.stringify(messages));
+    localStorage.setItem('aurora_todos', JSON.stringify(savedTodos));
+    localStorage.setItem('aurora_category', currentCategory);
+    localStorage.setItem('aurora_emotion', currentEmotion);
+  }, [messages, savedTodos, currentCategory, currentEmotion]);
+
 
   const lastModelMessage = messages.length > 0 ? messages[messages.length - 1] : null;
 
@@ -66,7 +156,6 @@ const App: React.FC = () => {
 
   // --- Logic: Bubble Visibility Management ---
   useEffect(() => {
-    // Priority 1: Always visible if waiting for a response
     if (isLoading) {
       setIsBubbleVisible(true);
       return;
@@ -74,19 +163,15 @@ const App: React.FC = () => {
 
     if (!lastModelMessage) return;
 
-    // Check if we have unsaved suggestions
     const hasSuggestions = lastModelMessage.suggestions && lastModelMessage.suggestions.length > 0;
     const allSuggestionsSaved = hasSuggestions && lastModelMessage.suggestions?.every(s => isTodoSaved(s));
 
-    // Case 1: All suggestions added -> Hide immediately
     if (hasSuggestions && allSuggestionsSaved) {
        setIsBubbleVisible(false);
        return;
     }
 
-    // Case 2: No suggestions (Chat or Reaction) -> Hide after delay
     if (!hasSuggestions) {
-      // Keep chat bubbles visible longer (8s), reactions slightly shorter (5s)
       const delay = 8000; 
       const timer = setTimeout(() => {
         setIsBubbleVisible(false);
@@ -94,32 +179,25 @@ const App: React.FC = () => {
       return () => clearTimeout(timer);
     }
     
-    // Case 3: Has unsaved suggestions -> Keep visible indefinitely
     setIsBubbleVisible(true);
-
-  }, [lastModelMessage, savedTodos, isLoading]); // Add isLoading to dependency
+  }, [lastModelMessage, savedTodos, isLoading]);
 
 
   // --- Logic: Avatar Reactions ---
   const triggerReaction = (type: keyof typeof AVATAR_REACTIONS) => {
-    // Don't interrupt if loading
     if (isLoading) return;
 
-    // Don't trigger if bubble currently has unsaved suggestions (don't override helpful tools)
     const hasUnsavedSuggestions = lastModelMessage?.suggestions && lastModelMessage.suggestions.some(s => !isTodoSaved(s));
     if (hasUnsavedSuggestions) return;
 
     const phrases = AVATAR_REACTIONS[type];
     const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
     
-    // Parse the reaction (it might have tags)
     const { text, emotion } = parseResponse(randomPhrase);
     
-    // Update emotion if parsed, otherwise set context-aware emotion
     if (emotion !== 'neutral') {
        setCurrentEmotion(emotion);
     } else {
-       // Defaults if no tag
        if (type === 'poke') setCurrentEmotion('surprised');
        if (type === 'typing') setCurrentEmotion('focused');
        if (type === 'completion') setCurrentEmotion('excited');
@@ -149,11 +227,7 @@ const App: React.FC = () => {
         const cx = window.innerWidth / 2;
         const isMobile = window.innerWidth < 640;
         
-        // Closer to bottom on mobile (larger CY value = lower on screen)
-        // Desktop: 190px from bottom. Mobile: 130px from bottom (closer to input)
         const cy = window.innerHeight - (isMobile ? 140 : 190); 
-        
-        // Restrict horizontal wander on mobile to prevent bubble clipping
         const rx = isMobile ? 10 : Math.min(window.innerWidth * 0.1, 40); 
         const ry = 10;
 
@@ -187,36 +261,6 @@ const App: React.FC = () => {
   }, [isInputFocused, isPaused]);
 
 
-  // --- Parsing ---
-
-  const parseResponse = (rawText: string): { text: string; emotion: Emotion; category: Category; suggestions: string[] } => {
-    let emotion: Emotion = 'neutral';
-    let category: Category = currentCategory; // Default to current if not specified
-    let cleanText = rawText;
-
-    const emotionMatch = cleanText.match(/\[(NEUTRAL|HAPPY|CALM|EXCITED|SAD|SURPRISED|FOCUSED|CONFUSED|TIRED|ANGRY|LOVE|GRATEFUL|HUNGRY)\]/i);
-    if (emotionMatch) {
-      emotion = emotionMatch[1].toLowerCase() as Emotion;
-      cleanText = cleanText.replace(emotionMatch[0], '');
-    }
-
-    const categoryMatch = cleanText.match(/\[(DEFAULT|SENSORY|VISUAL|NATURE|CONNECTION|CREATIVE|TRANQUIL|PRESENT)\]/i);
-    if (categoryMatch) {
-      category = categoryMatch[1].toLowerCase() as Category;
-      cleanText = cleanText.replace(categoryMatch[0], '');
-    }
-
-    const suggestions: string[] = [];
-    const todoRegex = /<TODO>(.*?)<\/TODO>/gi;
-    let todoMatch;
-    while ((todoMatch = todoRegex.exec(cleanText)) !== null) {
-      suggestions.push(todoMatch[1].trim());
-    }
-    cleanText = cleanText.replace(todoRegex, '').trim();
-
-    return { emotion, category, text: cleanText, suggestions };
-  };
-
   // --- Handlers ---
 
   const handleSend = async (text: string) => {
@@ -225,7 +269,7 @@ const App: React.FC = () => {
     setCurrentEmotion('focused'); 
 
     try {
-      const rawResponse = await sendMessage(text);
+      const rawResponse = await sendMessage(text, savedTodos);
       const { text: cleanText, emotion, category, suggestions } = parseResponse(rawResponse);
 
       setCurrentCategory(category);
@@ -240,7 +284,7 @@ const App: React.FC = () => {
       };
       
       setMessages(prev => [...prev, modelMsg]);
-      setIsBubbleVisible(true); // Ensure visible on new message
+      setIsBubbleVisible(true); 
 
     } catch (error) {
       console.error(error);
@@ -258,7 +302,6 @@ const App: React.FC = () => {
   };
 
   const handleSaveTodo = (text: string) => {
-    // Safe comparison
     if (savedTodos.some(t => t.text.trim() === text.trim())) return;
 
     const screenX = Math.random() * (window.innerWidth - 100) + 50;
@@ -269,7 +312,7 @@ const App: React.FC = () => {
     
     const newTodo: TodoItem = {
       id: Date.now().toString() + Math.random().toString(),
-      text: text.trim(), // Store trimmed
+      text: text.trim(),
       completed: false,
       timestamp: Date.now(),
       x: canvasX, 
@@ -284,11 +327,9 @@ const App: React.FC = () => {
     setSavedTodos(prev => {
       const newTodos = prev.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
       
-      // Check for full completion reaction
       const allCompleted = newTodos.length > 0 && newTodos.every(t => t.completed);
       const wasAllCompleted = prev.every(t => t.completed) && prev.length > 0;
       
-      // Only trigger if we just transitioned to all completed
       if (allCompleted && !wasAllCompleted) {
         setTimeout(() => triggerReaction('completion'), 500);
       }
@@ -305,7 +346,6 @@ const App: React.FC = () => {
     setSavedTodos(prev => prev.map(t => t.id === id ? { ...t, x, y } : t));
   }
 
-  // Derived state
   const theme = CATEGORY_THEMES[currentCategory] || CATEGORY_THEMES.default;
 
   return (
@@ -327,7 +367,7 @@ const App: React.FC = () => {
         }`} />
       </div>
 
-      {/* Credits - Top Right */}
+      {/* Credits */}
       <div className="absolute top-3 right-3 sm:top-6 sm:right-8 z-0 text-right pointer-events-none select-none opacity-30 hover:opacity-60 transition-opacity duration-500">
         <p className="text-[9px] sm:text-[10px] text-stone-600 font-bold tracking-wide">Inspired by 武田有纪《高敏感人士幸福清单》</p>
         <p className="text-[9px] sm:text-[10px] text-stone-500 tracking-wider mt-0.5">Made by 范不着frank</p>
@@ -352,7 +392,6 @@ const App: React.FC = () => {
       >
         <div className="relative w-64 h-64 flex items-center justify-center">
           
-          {/* Sphere (Interactive Click) */}
           <div 
             className="relative z-10 pointer-events-auto cursor-pointer"
             onClick={() => triggerReaction('poke')}
@@ -369,7 +408,6 @@ const App: React.FC = () => {
             />
           </div>
 
-          {/* Speech Bubble Component */}
           <SpeechBubble 
             message={lastModelMessage || null}
             isLoading={isLoading}

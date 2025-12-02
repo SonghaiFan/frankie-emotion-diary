@@ -1,26 +1,43 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Message } from '../types';
 import { WAITING_MESSAGES } from '../constants';
 
 // Typewriter Effect Component
 const TypewriterText: React.FC<{ text: string; onComplete?: () => void }> = ({ text, onComplete }) => {
   const [displayedText, setDisplayedText] = useState('');
+  // Use a ref to track if onComplete has been called for this specific text to prevent double-firing
+  const isCompleteRef = useRef(false);
   
   useEffect(() => {
     setDisplayedText('');
-    let index = 0;
+    isCompleteRef.current = false;
+    
+    if (!text) {
+        if (onComplete && !isCompleteRef.current) {
+            isCompleteRef.current = true;
+            onComplete();
+        }
+        return;
+    }
+
+    let currentIndex = 0;
+    // Use slicing instead of appending to prevent duplication bugs
     const interval = setInterval(() => {
-      if (index < text.length) {
-        setDisplayedText(prev => prev + text.charAt(index));
-        index++;
+      currentIndex++;
+      if (currentIndex <= text.length) {
+        setDisplayedText(text.slice(0, currentIndex));
       } else {
         clearInterval(interval);
-        if (onComplete) onComplete();
+        if (onComplete && !isCompleteRef.current) {
+            isCompleteRef.current = true;
+            onComplete();
+        }
       }
-    }, 25); // Speed of typing
+    }, 20); // Slightly faster for smoother feel
+
     return () => clearInterval(interval);
-  }, [text]); 
+  }, [text]); // Re-run only when text changes
 
   return <span className="animate-fade-in">{displayedText}</span>;
 };

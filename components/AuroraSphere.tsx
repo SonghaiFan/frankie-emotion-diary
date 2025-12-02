@@ -4,7 +4,7 @@ import { Category, Emotion } from '../types';
 import { CATEGORY_THEMES } from '../constants';
 
 export type EyeType = 'dot' | 'happy' | 'closed' | 'wink' | 'wide' | 'cross' | 'hearts' | 'star' | 'teary' | 'neutral_line' | 'angry' | 'relaxed';
-export type MouthType = 'neutral' | 'smile' | 'bigSmile' | 'open' | 'sad' | 'cat' | 'tongue' | 'zigzag' | 'triangle' | 'frown' | 'smirk' | 'kiss';
+export type MouthType = 'neutral' | 'smile' | 'bigSmile' | 'open' | 'sad' | 'cat' | 'tongue' | 'zigzag' | 'triangle' | 'frown' | 'smirk' | 'kiss' | 'none';
 export type AccessoryType = 'none' | 'blush' | 'tear' | 'sweat' | 'shock' | 'sparkle' | 'halo' | 'question' | 'steam' | 'utensils';
 
 interface AuroraSphereProps {
@@ -192,6 +192,8 @@ const generateMouth = (type: MouthType, strokeProps: any, fillProps: any) => {
         return <path d={`M ${center.x-8} ${center.y} Q ${center.x} ${center.y+2} ${center.x+8} ${center.y-2}`} {...strokeProps} />;
     case 'kiss': // 3 shape rotated
         return <path d={`M ${center.x-4} ${center.y-3} Q ${center.x} ${center.y} ${center.x-4} ${center.y+3} M ${center.x+4} ${center.y-3} Q ${center.x} ${center.y} ${center.x+4} ${center.y+3}`} {...strokeProps} />;
+    case 'none':
+        return null;
     default: return null;
   }
 };
@@ -308,7 +310,7 @@ const AuroraSphere: React.FC<AuroraSphereProps> = ({
   if (forceSmile && !eyeOverride) {
     currentFace = { ...currentFace, eyes: 'happy', mouth: 'bigSmile', accessory: 'blush' };
   } else if (isInputFocused && !isThinking && !forceSmile && !eyeOverride) {
-     currentFace = { ...currentFace, eyes: 'dot', mouth: 'neutral', accessory: 'none' };
+     currentFace = { ...currentFace, eyes: 'dot', mouth: 'none', accessory: 'none' };
   }
 
   // --- Animation Logic ---
@@ -337,15 +339,15 @@ const AuroraSphere: React.FC<AuroraSphereProps> = ({
       const deltaX = (e.clientX - centerX);
       const deltaY = (e.clientY - centerY);
 
-      // Dampening
-      const x = deltaX / 30; 
-      const y = deltaY / 30;
-      const limit = 20;
+      // Dampening - increased sensitivity and range
+      const x = deltaX / 12; // Was 30
+      const y = deltaY / 12; // Was 30
+      const limit = 40; // Was 20
       const clampedX = Math.max(-limit, Math.min(limit, x));
       const clampedY = Math.max(-limit, Math.min(limit, y));
 
       if (isInputFocused) {
-          setFaceOffset({ x: clampedX * 0.3, y: 15 });
+          setFaceOffset({ x: clampedX * 0.3, y: 75 });
       } else {
           setFaceOffset({ x: clampedX, y: clampedY });
       }
