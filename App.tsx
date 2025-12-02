@@ -7,6 +7,7 @@ import DebugPanel from './components/DebugPanel';
 import SpeechBubble from './components/SpeechBubble';
 import AuthButton from './components/AuthButton';
 import EmotionCalendar from './components/EmotionCalendar';
+import LandingPage from './components/LandingPage';
 import { sendMessage, initializeChat } from './services/geminiService';
 import { Message, Category, Emotion, TodoItem, UserProfile } from './types';
 import { CATEGORY_THEMES, AVATAR_REACTIONS } from './constants';
@@ -21,8 +22,13 @@ import {
   getRecentChatHistory
 } from './services/firebase';
 
+const MANAGER_UID = "qv7LevpiYLhSA3jEI1nLyMtO5Rt1";
+
 const App: React.FC = () => {
   // --- State ---
+  // Landing Page State
+  const [showLanding, setShowLanding] = useState(true);
+
   // Initialize from LocalStorage if available, otherwise default
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -105,6 +111,10 @@ const App: React.FC = () => {
     // Auth Listener with Cloud Sync
     const unsubscribe = subscribeToAuthChanges(async (firebaseUser) => {
       if (firebaseUser) {
+        // If user logs in, we can optionally auto-dismiss landing page, 
+        // but it's nice to let them click "Begin".
+        // setShowLanding(false); 
+        
         setUser({
           uid: firebaseUser.uid,
           displayName: firebaseUser.displayName,
@@ -133,11 +143,10 @@ const App: React.FC = () => {
         if (cloudHistory.length > 0) {
             setMessages(cloudHistory);
             reinitializeGemini(cloudHistory);
-            setIsBubbleVisible(true);
+            // Don't show bubble immediately on load if it's old history
+            // setIsBubbleVisible(true); 
         } else {
              // New User or Empty History -> Keep current Guest Messages but now they are tied to user
-             // Optionally, clear messages for a fresh start if we want strict separation
-             // For now, let's allow guest messages to carry over if cloud is empty
              if (messages.length > 0) {
                  messages.forEach(m => saveChatMessage(firebaseUser.uid, m));
              }
@@ -145,8 +154,6 @@ const App: React.FC = () => {
 
       } else {
         setUser(null);
-        // On logout, fallback to LocalStorage or Default
-        // We will just reload page state logic below handles it
       }
     });
 
@@ -156,14 +163,16 @@ const App: React.FC = () => {
         const storedTodos = localStorage.getItem('aurora_todos');
         const storedCategory = localStorage.getItem('aurora_category');
         const storedEmotion = localStorage.getItem('aurora_emotion');
+        const hasVisited = localStorage.getItem('aurora_visited');
 
-        // Only load local messages if we aren't waiting on a user login to overwrite it
-        // But since auth is async, we load local first, then auth overwrites if needed.
+        // Optional: If user has visited before, maybe skip landing?
+        // For now, let's always show it for the vibe, or check session logic.
+        // if (hasVisited) setShowLanding(false);
+
         if (storedMessages) {
           const parsedMsgs = JSON.parse(storedMessages) as Message[];
           setMessages(parsedMsgs);
           reinitializeGemini(parsedMsgs);
-          setIsBubbleVisible(true); 
         } else {
           // New User: Greeting
           const rawGreeting = "你好啊。我是阿朵拉。今天感觉怎么样？\nHello. I am Aurora. How are you feeling today?\n[CALM] [DEFAULT] <TODO>深呼吸 Deep Breath</TODO> <TODO>喝杯水 Drink Water</TODO>";
@@ -176,7 +185,6 @@ const App: React.FC = () => {
             suggestions: parsed.suggestions
           };
           setMessages([greeting]);
-          setIsBubbleVisible(true);
           setCurrentCategory(parsed.category);
           setCurrentEmotion(parsed.emotion);
           initializeChat(); 
@@ -214,12 +222,25 @@ const App: React.FC = () => {
 
   // --- Logic: Bubble Visibility Management ---
   useEffect(() => {
+    // If landing page is shown, hide bubble
+    if (showLanding) {
+        setIsBubbleVisible(false);
+        return;
+    }
+
     if (isLoading) {
       setIsBubbleVisible(true);
       return;
     }
 
     if (!lastModelMessage) return;
+    
+    // On first load/enter, show the bubble if it's the greeting or recent
+    if (!isBubbleVisible && !showLanding) {
+       // Only if it was recently added? Or just show it.
+       // Let's show it.
+       setIsBubbleVisible(true);
+    }
 
     const hasSuggestions = lastModelMessage.suggestions && lastModelMessage.suggestions.length > 0;
     const allSuggestionsSaved = hasSuggestions && lastModelMessage.suggestions?.every(s => isTodoSaved(s));
@@ -238,12 +259,12 @@ const App: React.FC = () => {
     }
     
     setIsBubbleVisible(true);
-  }, [lastModelMessage, savedTodos, isLoading]);
+  }, [lastModelMessage, savedTodos, isLoading, showLanding]);
 
 
   // --- Logic: Avatar Reactions ---
   const triggerReaction = (type: keyof typeof AVATAR_REACTIONS) => {
-    if (isLoading) return;
+    if (isLoading || showLanding) return;
 
     const hasUnsavedSuggestions = lastModelMessage?.suggestions && lastModelMessage.suggestions.some(s => !isTodoSaved(s));
     if (hasUnsavedSuggestions) return;
@@ -283,7 +304,7 @@ const App: React.FC = () => {
     let time = Math.random() * 100;
 
     const animate = () => {
-      if (!isPaused) {
+      if (!isPaused && !showLanding) {
         time += 0.0015;
         const cx = window.innerWidth / 2;
         const isMobile = window.innerWidth < 640;
@@ -319,10 +340,17 @@ const App: React.FC = () => {
 
     animate();
     return () => cancelAnimationFrame(animationFrameId);
-  }, [isInputFocused, isPaused]);
+  }, [isInputFocused, isPaused, showLanding]);
 
 
   // --- Handlers ---
+
+  const handleEnterApp = () => {
+    setShowLanding(false);
+    localStorage.setItem('aurora_visited', 'true');
+    // Ensure bubble shows up when entering
+    setIsBubbleVisible(true);
+  };
 
   const handleSend = async (text: string) => {
     setIsLoading(true);
@@ -472,6 +500,8 @@ const App: React.FC = () => {
       style={{ background: theme.bgGradient }} 
     >
       
+      {showLanding && <LandingPage onEnter={handleEnterApp} />}
+
       {/* 1. Dynamic Background Orbs */}
       <div className="absolute inset-0 pointer-events-none opacity-30 mix-blend-multiply transition-colors duration-1000 z-0">
         <div className={`absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full blur-[120px] transition-colors duration-1000 ${
@@ -483,16 +513,6 @@ const App: React.FC = () => {
             currentCategory === 'creative' ? 'bg-purple-100' :
             'bg-cyan-50'
         }`} />
-      </div>
-
-      {/* Top Bar: Auth & Credits */}
-      <div className="absolute top-0 right-0 p-4 z-50 flex flex-col items-end gap-2">
-         <AuthButton user={user} onOpenCalendar={() => setShowCalendar(true)} />
-         
-         <div className="text-right pointer-events-none select-none opacity-30 hover:opacity-60 transition-opacity duration-500 mt-2">
-           <p className="text-[9px] sm:text-[10px] text-stone-600 font-bold tracking-wide">Inspired by 武田有纪《高敏感人士幸福清单》</p>
-           <p className="text-[9px] sm:text-[10px] text-stone-500 tracking-wider mt-0.5">Made by 范不着frank</p>
-         </div>
       </div>
 
       {/* 2. Memo Wall */}
@@ -508,7 +528,7 @@ const App: React.FC = () => {
 
       {/* 3. Avatar Container */}
       <div 
-        className="absolute z-30 transition-none will-change-transform pointer-events-none"
+        className={`absolute z-30 transition-all duration-700 ease-in-out pointer-events-none ${showLanding ? 'opacity-0 translate-y-20' : 'opacity-100 translate-y-0'}`}
         style={{ 
           transform: `translate(${avatarPos.x - 128}px, ${avatarPos.y - 128}px)`,
         }}
@@ -547,7 +567,7 @@ const App: React.FC = () => {
       </div>
 
       {/* 4. Input Layer */}
-      <div className="absolute bottom-0 left-0 w-full p-4 md:p-6 z-40 flex flex-col items-center pointer-events-none">
+      <div className={`absolute bottom-0 left-0 w-full p-4 md:p-6 z-40 flex flex-col items-center pointer-events-none transition-opacity duration-700 ${showLanding ? 'opacity-0 translate-y-10' : 'opacity-100 translate-y-0'}`}>
         <InputArea 
           onSend={handleSend} 
           isLoading={isLoading} 
@@ -556,6 +576,16 @@ const App: React.FC = () => {
           onTypingStart={() => triggerReaction('typing')}
           onIdle={() => triggerReaction('idle')}
         />
+      </div>
+
+      {/* Bottom Right: Auth & Credits */}
+      <div className={`absolute bottom-0 right-0 p-4 z-50 flex flex-col items-end gap-2 transition-opacity duration-500 ${showLanding ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+         <AuthButton user={user} onOpenCalendar={() => setShowCalendar(true)} />
+         
+         <div className="text-right pointer-events-none select-none opacity-30 hover:opacity-60 transition-opacity duration-500 mb-1">
+           <p className="text-[9px] sm:text-[10px] text-stone-600 font-bold tracking-wide">Inspired by 武田有纪《高敏感人士幸福清单》</p>
+           <p className="text-[9px] sm:text-[10px] text-stone-500 tracking-wider mt-0.5">Made by 范不着frank</p>
+         </div>
       </div>
 
       {/* 5. Modals & Overlays */}
@@ -580,15 +610,17 @@ const App: React.FC = () => {
         />
       )}
       
-      <button 
-        onClick={() => setShowDebug(true)}
-        className="fixed top-4 left-4 z-50 p-2 text-stone-300 hover:text-stone-500 hover:bg-white/50 rounded-full transition-all opacity-20 hover:opacity-100 pointer-events-auto"
-        title="Open Debug Panel"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c-.836-1.372.734-2.942 2.106-2.106a1.532 1.532 0 012.287.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-        </svg>
-      </button>
+      {(!showLanding && (process.env.NODE_ENV === 'development' || user?.uid === MANAGER_UID)) && (
+        <button 
+          onClick={() => setShowDebug(true)}
+          className="fixed top-4 left-4 z-50 p-2 text-stone-300 hover:text-stone-500 hover:bg-white/50 rounded-full transition-all opacity-20 hover:opacity-100 pointer-events-auto"
+          title="Open Debug Panel"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c-.836-1.372.734-2.942 2.106-2.106a1.532 1.532 0 012.287.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+          </svg>
+        </button>
+      )}
     </div>
   );
 };

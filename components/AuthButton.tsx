@@ -33,8 +33,8 @@ const AuthButton: React.FC<AuthButtonProps> = ({ user, onOpenCalendar }) => {
             )}
           </button>
           
-          {/* Dropdown for Logout */}
-          <div className="absolute right-0 top-full mt-2 w-32 bg-white rounded-lg shadow-lg py-1 border border-stone-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+          {/* Dropdown for Logout - Opens UPWARDS now */}
+          <div className="absolute right-0 bottom-full mb-2 w-32 bg-white rounded-lg shadow-lg py-1 border border-stone-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
              <button 
                 onClick={signOut}
                 className="w-full text-left px-4 py-2 text-xs text-red-400 hover:bg-red-50 hover:text-red-500 transition-colors"
