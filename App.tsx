@@ -48,7 +48,7 @@ const App: React.FC = () => {
     const greeting: Message = {
       id: 'init',
       role: 'model',
-      text: "你好。我是你的心灵陪伴者。今天感觉怎么样？\nHello. I am Aurora. How are you feeling today?",
+      text: "你好啊。我是阿朵拉。今天感觉怎么样？\nHello. I am Aurora. How are you feeling today?",
       timestamp: Date.now(),
       suggestions: ["深呼吸 Deep Breath", "喝杯水 Drink Water"]
     };
@@ -325,6 +325,12 @@ const App: React.FC = () => {
             currentCategory === 'creative' ? 'bg-purple-100' :
             'bg-cyan-50'
         }`} />
+      </div>
+
+      {/* Credits - Top Right */}
+      <div className="absolute top-3 right-3 sm:top-6 sm:right-8 z-0 text-right pointer-events-none select-none opacity-30 hover:opacity-60 transition-opacity duration-500">
+        <p className="text-[9px] sm:text-[10px] text-stone-600 font-bold tracking-wide">Inspired by 武田有纪《高敏感人士幸福清单》</p>
+        <p className="text-[9px] sm:text-[10px] text-stone-500 tracking-wider mt-0.5">Made by 范不着frank</p>
       </div>
 
       {/* 2. Memo Wall */}

@@ -206,12 +206,6 @@ const MemoWall: React.FC<MemoWallProps> = ({ todos, onUpdateTodoPosition, onDele
         />
       ))}
       
-       {/* Hint text */}
-      {todos.length > 0 && (
-         <div className="absolute top-4 left-1/2 -translate-x-1/2 text-stone-300 text-xs font-medium pointer-events-none opacity-50 select-none">
-            Drag background to pan
-         </div>
-      )}
     </div>
   );
 };
