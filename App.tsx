@@ -578,8 +578,8 @@ const App: React.FC = () => {
         />
       </div>
 
-      {/* Bottom Right: Auth & Credits */}
-      <div className={`absolute bottom-0 right-0 p-4 z-50 flex flex-col items-end gap-2 transition-opacity duration-500 ${showLanding ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+      {/* Top Right: Auth & Credits */}
+      <div className={`absolute top-0 right-0 p-4 z-50 flex flex-col items-end gap-2 transition-opacity duration-500 ${showLanding ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
          <AuthButton user={user} onOpenCalendar={() => setShowCalendar(true)} />
          
          <div className="text-right pointer-events-none select-none opacity-30 hover:opacity-60 transition-opacity duration-500 mb-1">

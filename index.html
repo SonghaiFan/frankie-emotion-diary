@@ -1,82 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Aurora - Therapy Mentor</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@300;400;500&display=swap" rel="stylesheet">
-    <style>
-      body {
-        font-family: 'Zen Maru Gothic', sans-serif;
-        background-color: #FAFAF9; /* warm off-white */
-      }
-      /* Custom Animations */
-      @keyframes float {
-        0%, 100% { transform: translateY(0px); }
-        50% { transform: translateY(-20px); }
-      }
-      
-      @keyframes slideUpFade {
-        from {
-          opacity: 0;
-          transform: translate(-50%, 20px) scale(0.9);
-        }
-        to {
-          opacity: 1;
-          transform: translate(-50%, 0) scale(1);
-        }
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aurora - Therapy Mentor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      background-color: #FAFAF9;
+      /* warm off-white */
+    }
+
+    /* Custom Animations */
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0px);
       }
 
-      @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
+      50% {
+        transform: translateY(-20px);
+      }
+    }
+
+    @keyframes slideUpFade {
+      from {
+        opacity: 0;
+        transform: translate(-50%, 20px) scale(0.9);
       }
 
-      @keyframes popIn {
-        0% { transform: scale(0.5); opacity: 0; }
-        70% { transform: scale(1.1); }
-        100% { transform: scale(1); opacity: 1; }
+      to {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1);
       }
-      
-      .animate-slide-up-fade {
-        animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-      }
-      
-      .animate-pop-in {
-        animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    @keyframes slideUpFadeIn {
+      from {
+        opacity: 0;
+        transform: translate(0, 20px) scale(0.9);
       }
 
-      /* Sticker Animations */
-      @keyframes stickerAppear {
-        0% { transform: scale(0.5) translateY(20px); opacity: 0; }
-        60% { transform: scale(1.05); opacity: 1; }
-        100% { transform: scale(1) translateY(0); opacity: 1; }
+      to {
+        opacity: 1;
+        transform: translate(0, 0) scale(1);
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
       }
 
-      @keyframes stickerDisappear {
-        0% { transform: scale(1); opacity: 1; }
-        100% { transform: scale(0.8) translateY(20px); opacity: 0; }
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes popIn {
+      0% {
+        transform: scale(0.5);
+        opacity: 0;
       }
 
-      .animate-sticker-appear {
-        animation: stickerAppear 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      70% {
+        transform: scale(1.1);
       }
 
-      .animate-sticker-disappear {
-        animation: stickerDisappear 0.3s ease-in forwards;
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .animate-slide-up-fade {
+      animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .animate-slide-up-fade-in {
+      animation: slideUpFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .animate-pop-in {
+      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    /* Sticker Animations */
+    @keyframes stickerAppear {
+      0% {
+        transform: scale(0.5) translateY(20px);
+        opacity: 0;
       }
 
-      .hide-scrollbar::-webkit-scrollbar {
-        display: none;
+      60% {
+        transform: scale(1.05);
+        opacity: 1;
       }
-      .hide-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
+
+      100% {
+        transform: scale(1) translateY(0);
+        opacity: 1;
       }
-    </style>
+    }
+
+    @keyframes stickerDisappear {
+      0% {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      100% {
+        transform: scale(0.8) translateY(20px);
+        opacity: 0;
+      }
+    }
+
+    .animate-sticker-appear {
+      animation: stickerAppear 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    .animate-sticker-disappear {
+      animation: stickerDisappear 0.3s ease-in forwards;
+    }
+
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
   <script type="importmap">
 {
   "imports": {
@@ -92,8 +153,10 @@
 }
 </script>
 </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
-  </body>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+
 </html>
