@@ -3,19 +3,21 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Category, Emotion } from '../types';
 import { CATEGORY_THEMES } from '../constants';
 
+export type EyeType = 'dot' | 'happy' | 'closed' | 'wink' | 'wide' | 'cross' | 'hearts' | 'star' | 'teary' | 'neutral_line' | 'angry' | 'relaxed';
+export type MouthType = 'neutral' | 'smile' | 'bigSmile' | 'open' | 'sad' | 'cat' | 'tongue' | 'zigzag' | 'triangle' | 'frown' | 'smirk' | 'kiss';
+export type AccessoryType = 'none' | 'blush' | 'tear' | 'sweat' | 'shock' | 'sparkle' | 'halo' | 'question' | 'steam' | 'utensils';
+
 interface AuroraSphereProps {
   isThinking: boolean;
   category: Category;
   emotion: Emotion;
   isInputFocused: boolean;
   forceSmile: boolean;
+  // Overrides for Debugging
+  eyeOverride?: EyeType;
+  mouthOverride?: MouthType;
+  accessoryOverride?: AccessoryType;
 }
-
-// --- Richer Face System ---
-
-type EyeType = 'dot' | 'happy' | 'closed' | 'wink' | 'wide' | 'cross' | 'hearts' | 'star' | 'teary' | 'neutral_line';
-type MouthType = 'neutral' | 'smile' | 'bigSmile' | 'open' | 'sad' | 'cat' | 'tongue' | 'zigzag' | 'triangle' | 'frown';
-type AccessoryType = 'none' | 'blush' | 'tear' | 'sweat' | 'shock' | 'sparkle';
 
 interface FaceConfig {
   eyes: EyeType;
@@ -33,12 +35,20 @@ const EMOTION_PRESETS: Record<Emotion | 'thinking' | 'sleeping', FaceConfig> = {
   sad:       { eyes: 'cross', mouth: 'zigzag', accessory: 'sweat' },
   surprised: { eyes: 'wide', mouth: 'open', accessory: 'shock' },
   focused:   { eyes: 'dot', mouth: 'cat', accessory: 'none' },
+  
+  // New Emotions
+  confused:  { eyes: 'dot', mouth: 'zigzag', accessory: 'question' },
+  tired:     { eyes: 'relaxed', mouth: 'neutral', accessory: 'sweat' },
+  angry:     { eyes: 'angry', mouth: 'frown', accessory: 'steam' },
+  love:      { eyes: 'hearts', mouth: 'smile', accessory: 'blush' },
+  grateful:  { eyes: 'teary', mouth: 'smile', accessory: 'blush' },
+  hungry:    { eyes: 'dot', mouth: 'tongue', accessory: 'utensils' },
+
   thinking:  { eyes: 'dot', mouth: 'open', accessory: 'sweat', animation: 'pulse' },
-  sleeping:  { eyes: 'closed', mouth: 'neutral', accessory: 'none' } // Fallback
+  sleeping:  { eyes: 'closed', mouth: 'neutral', accessory: 'none' }
 };
 
 // --- SVG Path Generators ---
-// (Reusing existing path generators)
 const generateEyes = (type: EyeType, strokeProps: any, fillProps: any) => {
   const leftCenter = { x: 165, y: 195 };
   const rightCenter = { x: 235, y: 195 }; 
@@ -83,10 +93,8 @@ const generateEyes = (type: EyeType, strokeProps: any, fillProps: any) => {
       const size = 7;
       return (
         <>
-          {/* Left */}
           <path d={`M ${leftCenter.x-size} ${leftCenter.y-size} L ${leftCenter.x+size} ${leftCenter.y+size}`} {...strokeProps} />
           <path d={`M ${leftCenter.x+size} ${leftCenter.y-size} L ${leftCenter.x-size} ${leftCenter.y+size}`} {...strokeProps} />
-          {/* Right */}
           <path d={`M ${rightCenter.x-size} ${rightCenter.y-size} L ${rightCenter.x+size} ${rightCenter.y+size}`} {...strokeProps} />
           <path d={`M ${rightCenter.x+size} ${rightCenter.y-size} L ${rightCenter.x-size} ${rightCenter.y+size}`} {...strokeProps} />
         </>
@@ -131,6 +139,20 @@ const generateEyes = (type: EyeType, strokeProps: any, fillProps: any) => {
            <path d={`M ${rightCenter.x-4} ${rightCenter.y+2} Q ${rightCenter.x} ${rightCenter.y+8} ${rightCenter.x+4} ${rightCenter.y+2}`} fill="white" />
         </>
       );
+    case 'angry': // / \
+       return (
+         <>
+            <line x1={leftCenter.x - 8} y1={leftCenter.y - 4} x2={leftCenter.x + 8} y2={leftCenter.y + 4} {...strokeProps} />
+            <line x1={rightCenter.x - 8} y1={rightCenter.y + 4} x2={rightCenter.x + 8} y2={rightCenter.y - 4} {...strokeProps} />
+         </>
+       );
+    case 'relaxed': // U U
+       return (
+        <>
+           <path d={`M ${leftCenter.x-8} ${leftCenter.y} Q ${leftCenter.x} ${leftCenter.y+8} ${leftCenter.x+8} ${leftCenter.y}`} {...strokeProps} />
+           <path d={`M ${rightCenter.x-8} ${rightCenter.y} Q ${rightCenter.x} ${rightCenter.y+8} ${rightCenter.x+8} ${rightCenter.y}`} {...strokeProps} />
+        </>
+       );
     default: return null;
   }
 };
@@ -164,6 +186,10 @@ const generateMouth = (type: MouthType, strokeProps: any, fillProps: any) => {
       );
     case 'frown':
         return <path d={`M ${center.x-6} ${center.y+4} Q ${center.x} ${center.y} ${center.x+6} ${center.y+4}`} {...strokeProps} />;
+    case 'smirk':
+        return <path d={`M ${center.x-8} ${center.y} Q ${center.x} ${center.y+2} ${center.x+8} ${center.y-2}`} {...strokeProps} />;
+    case 'kiss':
+        return <path d={`M ${center.x-4} ${center.y} L ${center.x-2} ${center.y+4} L ${center.x+2} ${center.y+4} L ${center.x+4} ${center.y} Z`} {...strokeProps} />;
     default: return null;
   }
 };
@@ -207,13 +233,37 @@ const generateAccessory = (type: AccessoryType, strokeProps: any) => {
            <path d="M 10 0 L 12 8 L 20 10 L 12 12 L 10 20 L 8 12 L 0 10 L 8 8 Z" />
         </g>
       );
+    case 'halo':
+       return (
+        <ellipse cx="200" cy="155" rx="30" ry="8" fill="none" stroke="#FEF08A" strokeWidth="4" />
+       );
+    case 'question':
+       return (
+        <text x="250" y="170" fontFamily="sans-serif" fontSize="30" fill={strokeProps.stroke} opacity="0.7">?</text>
+       );
+    case 'steam':
+       return (
+         <g stroke={strokeProps.stroke} strokeWidth="2" fill="none" opacity="0.6">
+           <path d="M 230 160 Q 240 150 230 140" />
+           <path d="M 240 165 Q 250 155 240 145" />
+         </g>
+       );
+    case 'utensils':
+       return (
+         <g transform="translate(250, 180)" stroke={strokeProps.stroke} strokeWidth="2" fill="none">
+           <path d="M 0 0 L 0 10 M -4 0 L -4 10 M 4 0 L 4 10 M 0 10 L 0 20" /> {/* Fork-ish */}
+         </g>
+       );
     default: return null;
   }
 }
 
 // --- Main Component ---
 
-const AuroraSphere: React.FC<AuroraSphereProps> = ({ isThinking, category, emotion, isInputFocused, forceSmile }) => {
+const AuroraSphere: React.FC<AuroraSphereProps> = ({ 
+  isThinking, category, emotion, isInputFocused, forceSmile,
+  eyeOverride, mouthOverride, accessoryOverride
+}) => {
   const style = CATEGORY_THEMES[category] || CATEGORY_THEMES.default;
   const [currentCategory, setCurrentCategory] = useState(category);
   const [animating, setAnimating] = useState(false);
@@ -240,10 +290,15 @@ const AuroraSphere: React.FC<AuroraSphereProps> = ({ isThinking, category, emoti
     ? EMOTION_PRESETS.thinking 
     : EMOTION_PRESETS[emotion] || EMOTION_PRESETS.neutral;
 
-  // Interaction Overrides
-  if (forceSmile) {
-    currentFace = { eyes: 'happy', mouth: 'bigSmile', accessory: 'blush' };
-  } else if (isInputFocused && !isThinking) {
+  // Apply Manual Overrides
+  if (eyeOverride) currentFace = { ...currentFace, eyes: eyeOverride };
+  if (mouthOverride) currentFace = { ...currentFace, mouth: mouthOverride };
+  if (accessoryOverride) currentFace = { ...currentFace, accessory: accessoryOverride };
+
+  // Interaction Overrides (Lower priority than debug overrides usually, but let's keep logic simple)
+  if (forceSmile && !eyeOverride) {
+    currentFace = { ...currentFace, eyes: 'happy', mouth: 'bigSmile', accessory: 'blush' };
+  } else if (isInputFocused && !isThinking && !forceSmile && !eyeOverride) {
      currentFace = { ...currentFace, eyes: 'dot', mouth: 'neutral', accessory: 'none' };
   }
 
@@ -294,7 +349,7 @@ const AuroraSphere: React.FC<AuroraSphereProps> = ({ isThinking, category, emoti
   // Face Style Props
   const strokeProps = {
     stroke: style.faceColor,
-    strokeWidth: "3", // Thicker lines for cute aesthetic
+    strokeWidth: "3", 
     strokeLinecap: "round" as const,
     strokeLinejoin: "round" as const,
     fill: "none",
@@ -319,7 +374,7 @@ const AuroraSphere: React.FC<AuroraSphereProps> = ({ isThinking, category, emoti
         style={{ overflow: 'visible' }}
       >
         <defs>
-          {/* Main Aurora Filter: Flowing, misty, and diffused */}
+          {/* Main Aurora Filter */}
           <filter id={filterId} x="-50%" y="-50%" width="200%" height="200%" colorInterpolationFilters="sRGB">
             <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur" />
             <feTurbulence type="turbulence" baseFrequency="0.012" numOctaves="3" result="noise" seed="5">

@@ -1,7 +1,8 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Category, Emotion } from '../types';
 import { CATEGORY_THEMES } from '../constants';
+import { EyeType, MouthType, AccessoryType } from './AuroraSphere';
 
 interface DebugPanelProps {
   currentCategory: Category;
@@ -14,17 +15,44 @@ interface DebugPanelProps {
   onThinkingChange: (t: boolean) => void;
   onSmileChange: (s: boolean) => void;
   onFocusChange: (f: boolean) => void;
+  // Overrides
+  onOverrideChange?: (eyes: EyeType | undefined, mouth: MouthType | undefined, acc: AccessoryType | undefined) => void;
   onClose: () => void;
 }
 
-const EMOTIONS: Emotion[] = ['neutral', 'happy', 'calm', 'excited', 'sad', 'surprised', 'focused'];
+const EMOTIONS: Emotion[] = [
+  'neutral', 'happy', 'calm', 'excited', 'sad', 'surprised', 'focused',
+  'confused', 'tired', 'angry', 'love', 'grateful', 'hungry'
+];
+
+// Lists for Dropdowns
+const EYES: EyeType[] = ['dot', 'happy', 'closed', 'wink', 'wide', 'cross', 'hearts', 'star', 'teary', 'neutral_line', 'angry', 'relaxed'];
+const MOUTHS: MouthType[] = ['neutral', 'smile', 'bigSmile', 'open', 'sad', 'cat', 'tongue', 'zigzag', 'triangle', 'frown', 'smirk', 'kiss'];
+const ACCESSORIES: AccessoryType[] = ['none', 'blush', 'tear', 'sweat', 'shock', 'sparkle', 'halo', 'question', 'steam', 'utensils'];
 
 const DebugPanel: React.FC<DebugPanelProps> = ({
   currentCategory, currentEmotion, isThinking, forceSmile, isInputFocused,
-  onCategoryChange, onEmotionChange, onThinkingChange, onSmileChange, onFocusChange, onClose
+  onCategoryChange, onEmotionChange, onThinkingChange, onSmileChange, onFocusChange, onOverrideChange, onClose
 }) => {
+  const [selectedEye, setSelectedEye] = useState<EyeType | 'default'>('default');
+  const [selectedMouth, setSelectedMouth] = useState<MouthType | 'default'>('default');
+  const [selectedAcc, setSelectedAcc] = useState<AccessoryType | 'default'>('default');
+
+  const handleOverride = (e: EyeType | 'default', m: MouthType | 'default', a: AccessoryType | 'default') => {
+    setSelectedEye(e);
+    setSelectedMouth(m);
+    setSelectedAcc(a);
+    if (onOverrideChange) {
+      onOverrideChange(
+        e === 'default' ? undefined : e,
+        m === 'default' ? undefined : m,
+        a === 'default' ? undefined : a
+      );
+    }
+  };
+
   return (
-    <div className="fixed top-4 right-4 z-50 bg-white/95 backdrop-blur-xl border border-stone-200 shadow-2xl rounded-2xl p-5 w-72 max-h-[90vh] overflow-y-auto text-xs font-mono pointer-events-auto transition-all animate-in slide-in-from-right-10">
+    <div className="fixed top-4 right-4 z-50 bg-white/95 backdrop-blur-xl border border-stone-200 shadow-2xl rounded-2xl p-5 w-80 max-h-[90vh] overflow-y-auto text-xs font-mono pointer-events-auto transition-all animate-in slide-in-from-right-10">
       <div className="flex justify-between items-center mb-6 pb-2 border-b border-stone-100">
         <h3 className="font-bold text-stone-800 text-sm">Aurora Debugger</h3>
         <button onClick={onClose} className="text-stone-400 hover:text-stone-800 transition-colors p-1">
@@ -52,6 +80,47 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
            <span className="text-stone-600 group-hover:text-stone-900">Input Focused</span>
            <input type="checkbox" className="accent-stone-800" checked={isInputFocused} onChange={e => onFocusChange(e.target.checked)} />
         </label>
+      </div>
+      
+      {/* Custom Face Builder (Overrides) */}
+      <div className="mb-6 p-3 bg-stone-50 rounded-lg border border-stone-100">
+        <h4 className="font-bold text-stone-500 uppercase tracking-wider text-[10px] mb-3">Custom Face Builder</h4>
+        
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+             <label className="text-stone-500">Eyes</label>
+             <select 
+               className="bg-white border border-stone-200 rounded px-2 py-1 w-32"
+               value={selectedEye}
+               onChange={e => handleOverride(e.target.value as any, selectedMouth, selectedAcc)}
+             >
+               <option value="default">Default</option>
+               {EYES.map(t => <option key={t} value={t}>{t}</option>)}
+             </select>
+          </div>
+          <div className="flex justify-between items-center">
+             <label className="text-stone-500">Mouth</label>
+             <select 
+               className="bg-white border border-stone-200 rounded px-2 py-1 w-32"
+               value={selectedMouth}
+               onChange={e => handleOverride(selectedEye, e.target.value as any, selectedAcc)}
+             >
+               <option value="default">Default</option>
+               {MOUTHS.map(t => <option key={t} value={t}>{t}</option>)}
+             </select>
+          </div>
+          <div className="flex justify-between items-center">
+             <label className="text-stone-500">Accessory</label>
+             <select 
+               className="bg-white border border-stone-200 rounded px-2 py-1 w-32"
+               value={selectedAcc}
+               onChange={e => handleOverride(selectedEye, selectedMouth, e.target.value as any)}
+             >
+               <option value="default">Default</option>
+               {ACCESSORIES.map(t => <option key={t} value={t}>{t}</option>)}
+             </select>
+          </div>
+        </div>
       </div>
 
       {/* Emotions */}

@@ -1,3 +1,4 @@
+
 export type Category = 
   | 'default'
   | 'sensory'
@@ -15,7 +16,13 @@ export type Emotion =
   | 'excited'
   | 'sad'
   | 'surprised'
-  | 'focused';
+  | 'focused'
+  | 'confused'
+  | 'tired'
+  | 'angry'
+  | 'love'
+  | 'grateful'
+  | 'hungry';
 
 export interface TodoItem {
   id: string;

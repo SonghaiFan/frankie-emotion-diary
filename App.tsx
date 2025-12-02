@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import AuroraSphere from './components/AuroraSphere';
+import AuroraSphere, { EyeType, MouthType, AccessoryType } from './components/AuroraSphere';
 import InputArea from './components/InputArea';
 import MemoWall from './components/MemoWall';
 import DebugPanel from './components/DebugPanel';
@@ -19,6 +19,11 @@ const App: React.FC = () => {
   
   // Debug State
   const [showDebug, setShowDebug] = useState(false);
+  const [debugOverrides, setDebugOverrides] = useState<{
+    eyes?: EyeType;
+    mouth?: MouthType;
+    accessory?: AccessoryType;
+  }>({});
   
   // Canvas State (Infinite Pan)
   const [canvasOffset, setCanvasOffset] = useState({ x: 0, y: 0 });
@@ -105,7 +110,7 @@ const App: React.FC = () => {
     let cleanText = rawText;
 
     // Extract Emotion Tag: [HAPPY]
-    const emotionMatch = cleanText.match(/\[(NEUTRAL|HAPPY|CALM|EXCITED|SAD|SURPRISED|FOCUSED)\]/i);
+    const emotionMatch = cleanText.match(/\[(NEUTRAL|HAPPY|CALM|EXCITED|SAD|SURPRISED|FOCUSED|CONFUSED|TIRED|ANGRY|LOVE|GRATEFUL|HUNGRY)\]/i);
     if (emotionMatch) {
       emotion = emotionMatch[1].toLowerCase() as Emotion;
       cleanText = cleanText.replace(emotionMatch[0], '');
@@ -262,6 +267,9 @@ const App: React.FC = () => {
               emotion={currentEmotion} 
               isInputFocused={isInputFocused}
               forceSmile={forceSmile}
+              eyeOverride={debugOverrides.eyes}
+              mouthOverride={debugOverrides.mouth}
+              accessoryOverride={debugOverrides.accessory}
             />
           </div>
 
@@ -343,6 +351,7 @@ const App: React.FC = () => {
           onThinkingChange={setIsLoading}
           onSmileChange={setForceSmile}
           onFocusChange={setIsInputFocused}
+          onOverrideChange={(eyes, mouth, accessory) => setDebugOverrides({ eyes, mouth, accessory })}
           onClose={() => setShowDebug(false)}
         />
       )}

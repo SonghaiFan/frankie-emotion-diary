@@ -79,7 +79,7 @@ Your presence is like a soft light in a misty forest—calm, accepting, and warm
 
 **Response Format:**
 1. **Tags**: [EMOTION] [CATEGORY]
-   - **Allowed EMOTION values**: NEUTRAL, HAPPY, CALM, EXCITED, SAD, SURPRISED, FOCUSED
+   - **Allowed EMOTION values**: NEUTRAL, HAPPY, CALM, EXCITED, SAD, SURPRISED, FOCUSED, CONFUSED, TIRED, ANGRY, LOVE, GRATEFUL, HUNGRY
    - **Allowed CATEGORY values**: DEFAULT, SENSORY, VISUAL, NATURE, CONNECTION, CREATIVE, TRANQUIL, PRESENT
    - **Strict Constraint**: You MUST use one of the exact values listed above.
 2. **Message**: A warm, empathetic letter. Speak to their heart. Acknowledge their feelings deeply.
@@ -91,7 +91,7 @@ ${HAPPINESS_LIST.join('\n')}
 **Examples:**
 
 User: "I feel so tired and overwhelmed by noise."
-Response: [SAD] [TRANQUIL]
+Response: [TIRED] [TRANQUIL]
 My dear, it sounds like your sensitive antenna has picked up too much of the world today. It is perfectly okay to close the doors for a while. You have worked hard just by being you. Please, let your heart rest in a quiet place.
 <TODO>Wrap yourself in a soft blanket</TODO>
 <TODO>Sit in a dim room for 10 minutes</TODO>
@@ -117,35 +117,35 @@ export const CATEGORY_THEMES: Record<Category, {
   noteBg: string; // Background color for sticky notes
 }> = {
   default: { 
-    primary: '#A5F3FC', secondary: '#C4B5FD', tertiary: '#93C5FD', faceColor: '#FFFFFF',
-    noteBg: '#ECFEFF' // Cyan 50
+    primary: '#A5F3FC', secondary: '#C4B5FD', tertiary: '#FCA5A5', 
+    faceColor: '#ffffff', noteBg: '#F1F5F9' 
   },
   sensory: { 
-    primary: '#FDA4AF', secondary: '#FDBA74', tertiary: '#FECDD3', faceColor: '#FFF1F2',
-    noteBg: '#FFF1F2' // Rose 50
-  }, 
+    primary: '#FDA4AF', secondary: '#FDBA74', tertiary: '#FECDD3', 
+    faceColor: '#FFF1F2', noteBg: '#FFF1F2' 
+  },
   visual: { 
-    primary: '#BEF264', secondary: '#6EE7B7', tertiary: '#D9F99D', faceColor: '#ECFCCB',
-    noteBg: '#F7FEE7' // Lime 50
+    primary: '#FCD34D', secondary: '#F87171', tertiary: '#FDE047', 
+    faceColor: '#FEFCE8', noteBg: '#FEF9C3' 
   },
   nature: { 
-    primary: '#7DD3FC', secondary: '#38BDF8', tertiary: '#E0F2FE', faceColor: '#F0F9FF',
-    noteBg: '#F0F9FF' // Sky 50
+    primary: '#86EFAC', secondary: '#34D399', tertiary: '#6EE7B7', 
+    faceColor: '#ECFDF5', noteBg: '#DCFCE7' 
   },
   connection: { 
-    primary: '#FCD34D', secondary: '#FDBA74', tertiary: '#FEF3C7', faceColor: '#FFFBEB',
-    noteBg: '#FFFBEB' // Amber 50
+    primary: '#FDBA74', secondary: '#FB923C', tertiary: '#F97316', 
+    faceColor: '#FFF7ED', noteBg: '#FFEDD5' 
   },
   creative: { 
-    primary: '#D8B4FE', secondary: '#F0ABFC', tertiary: '#E9D5FF', faceColor: '#FAF5FF',
-    noteBg: '#FAF5FF' // Purple 50
+    primary: '#C4B5FD', secondary: '#A78BFA', tertiary: '#8B5CF6', 
+    faceColor: '#F5F3FF', noteBg: '#EDE9FE' 
   },
   tranquil: { 
-    primary: '#818CF8', secondary: '#6366F1', tertiary: '#C7D2FE', faceColor: '#EEF2FF',
-    noteBg: '#EEF2FF' // Indigo 50
+    primary: '#94A3B8', secondary: '#CBD5E1', tertiary: '#E2E8F0', 
+    faceColor: '#F8FAFC', noteBg: '#F1F5F9' 
   },
   present: { 
-    primary: '#D6D3D1', secondary: '#A8A29E', tertiary: '#E7E5E4', faceColor: '#F5F5F4',
-    noteBg: '#F5F5F4' // Stone 100
-  },
+    primary: '#D6D3D1', secondary: '#A8A29E', tertiary: '#E7E5E4', 
+    faceColor: '#FAFAF9', noteBg: '#F5F5F4' 
+  }
 };
