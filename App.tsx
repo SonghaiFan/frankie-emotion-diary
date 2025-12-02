@@ -685,7 +685,21 @@ const App: React.FC = () => {
         />
       </div>
 
-      {/* Top Right: Auth & Credits */}
+      {/* Top Center: Credits */}
+      <div
+        className={`absolute top-4 left-1/2 -translate-x-1/2 z-50 text-center pointer-events-none select-none opacity-30 hover:opacity-60 transition-opacity duration-500 ${
+          showLanding ? "opacity-0" : "opacity-100"
+        }`}
+      >
+        <p className="text-[9px] sm:text-[10px] text-stone-600 font-bold tracking-wide">
+          Inspired by 武田友纪《高敏感人士幸福清单》
+        </p>
+        <p className="text-[9px] sm:text-[10px] text-stone-500 tracking-wider mt-0.5">
+          Made by 范不着frank
+        </p>
+      </div>
+
+      {/* Top Right: Auth */}
       <div
         className={`absolute top-0 right-0 p-4 z-50 flex flex-col items-end gap-2 transition-opacity duration-500 ${
           showLanding ? "opacity-0 pointer-events-none" : "opacity-100"
@@ -696,15 +710,6 @@ const App: React.FC = () => {
           onOpenCalendar={() => setShowCalendar(true)}
           onLogout={handleLogout}
         />
-
-        <div className="text-right pointer-events-none select-none opacity-30 hover:opacity-60 transition-opacity duration-500 mb-1">
-          <p className="text-[9px] sm:text-[10px] text-stone-600 font-bold tracking-wide">
-            Inspired by 武田友纪《高敏感人士幸福清单》
-          </p>
-          <p className="text-[9px] sm:text-[10px] text-stone-500 tracking-wider mt-0.5">
-            Made by 范不着frank
-          </p>
-        </div>
       </div>
 
       {/* 5. Modals & Overlays */}

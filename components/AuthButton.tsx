@@ -36,7 +36,7 @@ const AuthButton: React.FC<AuthButtonProps> = ({
         </button>
 
         <div className="relative group">
-          <button className="w-8 h-8 rounded-full overflow-hidden border border-stone-200 shadow-sm hover:shadow-md transition-all">
+          <button className="w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden border border-stone-200 shadow-sm hover:shadow-md transition-all">
             {user.photoURL ? (
               <img
                 src={user.photoURL}
