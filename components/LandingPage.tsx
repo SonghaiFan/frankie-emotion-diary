@@ -180,7 +180,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
             ) : (
               <button
                 onClick={handleStart}
-                className="group relative px-10 py-5 bg-stone-800 backdrop-blur-md text-white rounded-full text-base font-medium tracking-wide shadow-xl hover:shadow-2xl hover:bg-stone-700 transition-all duration-500 hover:-translate-y-1 active:scale-95 min-w-[240px]"
+                className="group relative px-10 py-5 bg-white/40 backdrop-blur-xl border border-white/50 text-stone-700 rounded-full text-base font-medium tracking-wide shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:bg-white/60 transition-all duration-500 hover:-translate-y-1 active:scale-95 min-w-[240px]"
               >
                 <span className="relative z-10 flex items-center justify-center gap-2">
                   {t.continueUser} {user.displayName?.split(" ")[0] || "User"}

@@ -586,7 +586,7 @@ const App: React.FC = () => {
 
   return (
     <div
-      className="relative w-full h-screen overflow-hidden touch-none transition-colors duration-1000 ease-in-out"
+      className="relative w-full h-[100dvh] overflow-hidden touch-none transition-colors duration-1000 ease-in-out"
       style={{ background: theme.bgGradient }}
     >
       {showLanding && (

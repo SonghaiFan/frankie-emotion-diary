@@ -145,7 +145,7 @@ const SpeechBubble: React.FC<SpeechBubbleProps> = ({
       onMouseLeave={onMouseLeave}
     >
       <div 
-        className="p-5 md:p-6 backdrop-blur-2xl transition-all duration-500 relative select-none"
+        className="p-5 md:p-6 backdrop-blur-2xl transition-all duration-500 relative select-none max-h-[60vh] overflow-y-auto hide-scrollbar"
         style={{
             backgroundColor: 'rgba(255, 255, 255, 0.4)',
             borderRadius: '2.5rem',
