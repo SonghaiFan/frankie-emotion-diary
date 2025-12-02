@@ -676,7 +676,7 @@ const AuroraSphere: React.FC<AuroraSphereProps> = ({
   return (
     <div
       ref={containerRef}
-      className={`relative transition-all duration-700 ease-out ${className} ${
+      className={`relative transition-all duration-200 ease-out ${className} ${
         animating ? "scale-90 opacity-80" : "scale-100 opacity-100"
       }`}
     >

@@ -633,17 +633,16 @@ const App: React.FC = () => {
           showLanding ? "opacity-0 translate-y-20" : "opacity-100 translate-y-0"
         }`}
         style={{
-          transform: `translate(${avatarPos.x - 128}px, ${
-            avatarPos.y - 128
-          }px)`,
+          transform: `translate(${avatarPos.x}px, ${avatarPos.y}px) translate(-50%, -50%)`,
         }}
       >
-        <div className="relative w-64 h-64 flex items-center justify-center">
+        <div className="relative w-64 h-64 lg:w-96 lg:h-96 flex items-center justify-center">
           <div
             className="relative z-10 pointer-events-auto cursor-pointer"
             onClick={() => triggerReaction("poke")}
           >
             <AuroraSphere
+              className="w-48 h-48 md:w-64 md:h-64 lg:w-96 lg:h-96"
               isThinking={isLoading}
               category={currentCategory}
               emotion={currentEmotion}
