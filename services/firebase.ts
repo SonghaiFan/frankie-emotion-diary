@@ -1,28 +1,26 @@
-
-import { initializeApp } from 'firebase/app';
-import { 
-  getAuth, 
-  signInWithPopup, 
-  GoogleAuthProvider, 
+import { initializeApp } from "firebase/app";
+import {
+  getAuth,
+  signInWithPopup,
+  GoogleAuthProvider,
   signOut as firebaseSignOut,
   onAuthStateChanged,
-  User 
-} from 'firebase/auth';
-import { 
-  getFirestore, 
-  collection, 
-  addDoc, 
+  User,
+} from "firebase/auth";
+import {
+  getFirestore,
+  collection,
+  addDoc,
   setDoc,
   deleteDoc,
   doc,
-  query, 
-  where, 
-  orderBy, 
-  limit, 
+  query,
+  orderBy,
+  limit,
   getDocs,
-  Timestamp 
-} from 'firebase/firestore';
-import { EmotionLog, Emotion, Category, TodoItem, Message } from '../types';
+  Timestamp,
+} from "firebase/firestore";
+import { EmotionLog, Emotion, Category, TodoItem, Message } from "../types";
 
 // TODO: Replace with your actual Firebase project configuration
 // Get this from: Firebase Console -> Project Settings -> General -> Your apps
@@ -33,7 +31,7 @@ const firebaseConfig = {
   storageBucket: "aurora-mental.firebasestorage.app",
   messagingSenderId: "448988354364",
   appId: "1:448988354364:web:de5983309381deb1b97039",
-  measurementId: "G-CPMN7RP66Q"
+  measurementId: "G-CPMN7RP66Q",
 };
 
 // Initialize Firebase
@@ -45,7 +43,9 @@ try {
   auth = getAuth(app);
   db = getFirestore(app);
 } catch (e) {
-  console.warn("Firebase not initialized. Make sure to replace firebaseConfig in services/firebase.ts with your own credentials.");
+  console.warn(
+    "Firebase not initialized. Make sure to replace firebaseConfig in services/firebase.ts with your own credentials."
+  );
 }
 
 export const signInWithGoogle = async () => {
@@ -55,11 +55,13 @@ export const signInWithGoogle = async () => {
     await signInWithPopup(auth, provider);
   } catch (error: any) {
     console.error("Error signing in with Google", error);
-    if (error.code === 'auth/unauthorized-domain') {
-        const domain = window.location.hostname;
-        alert(`Configuration Error: Domain not authorized.\n\nPlease go to Firebase Console -> Authentication -> Settings -> Authorized Domains and add:\n\n${domain}`);
+    if (error.code === "auth/unauthorized-domain") {
+      const domain = window.location.hostname;
+      alert(
+        `Configuration Error: Domain not authorized.\n\nPlease go to Firebase Console -> Authentication -> Settings -> Authorized Domains and add:\n\n${domain}`
+      );
     } else {
-        alert(`Login failed: ${error.message}`);
+      alert(`Login failed: ${error.message}`);
     }
   }
 };
@@ -73,25 +75,32 @@ export const signOut = async () => {
   }
 };
 
-export const subscribeToAuthChanges = (callback: (user: User | null) => void) => {
+export const subscribeToAuthChanges = (
+  callback: (user: User | null) => void
+) => {
   if (!auth) return () => {};
   return onAuthStateChanged(auth, callback);
 };
 
 // --- Emotion Logging (Sub-collection) ---
 
-export const logEmotion = async (uid: string, emotion: Emotion, category: Category, note?: string) => {
+export const logEmotion = async (
+  uid: string,
+  emotion: Emotion,
+  category: Category,
+  note?: string
+) => {
   if (!db) return;
   try {
     // Path: users/{uid}/emotionLogs/{logId}
-    const userEmotionColl = collection(db, 'users', uid, 'emotionLogs');
-    
+    const userEmotionColl = collection(db, "users", uid, "emotionLogs");
+
     await addDoc(userEmotionColl, {
       uid, // Keep uid in data for redundancy/export ease, though implied by path
       emotion,
       category,
       timestamp: Timestamp.now(),
-      note: note || ''
+      note: note || "",
     });
   } catch (error) {
     console.error("Error logging emotion", error);
@@ -102,16 +111,12 @@ export const getEmotionHistory = async (uid: string): Promise<EmotionLog[]> => {
   if (!db) return [];
   try {
     // Path: users/{uid}/emotionLogs
-    const userEmotionColl = collection(db, 'users', uid, 'emotionLogs');
-    
-    const q = query(
-      userEmotionColl,
-      orderBy("timestamp", "desc"),
-      limit(100)
-    );
+    const userEmotionColl = collection(db, "users", uid, "emotionLogs");
+
+    const q = query(userEmotionColl, orderBy("timestamp", "desc"), limit(100));
 
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => {
+    return querySnapshot.docs.map((doc) => {
       const data = doc.data();
       return {
         id: doc.id,
@@ -119,7 +124,7 @@ export const getEmotionHistory = async (uid: string): Promise<EmotionLog[]> => {
         emotion: data.emotion as Emotion,
         category: data.category as Category,
         timestamp: data.timestamp.toMillis(),
-        note: data.note
+        note: data.note,
       };
     });
   } catch (error) {
@@ -134,9 +139,9 @@ export const syncTodoToCloud = async (uid: string, todo: TodoItem) => {
   if (!db) return;
   try {
     // Path: users/{uid}/todos/{todoId}
-    const userTodoRef = doc(db, 'users', uid, 'todos', todo.id);
-    
-    // We strictly save the todo item. We don't need to manually inject 'uid' 
+    const userTodoRef = doc(db, "users", uid, "todos", todo.id);
+
+    // We strictly save the todo item. We don't need to manually inject 'uid'
     // for security anymore because the path secures it.
     await setDoc(userTodoRef, todo);
   } catch (error) {
@@ -148,7 +153,7 @@ export const deleteTodoFromCloud = async (uid: string, todoId: string) => {
   if (!db) return;
   try {
     // Path: users/{uid}/todos/{todoId}
-    await deleteDoc(doc(db, 'users', uid, 'todos', todoId));
+    await deleteDoc(doc(db, "users", uid, "todos", todoId));
   } catch (error) {
     console.error("Error deleting todo", error);
   }
@@ -158,13 +163,13 @@ export const getUserTodos = async (uid: string): Promise<TodoItem[]> => {
   if (!db) return [];
   try {
     // Path: users/{uid}/todos
-    const userTodosColl = collection(db, 'users', uid, 'todos');
-    
+    const userTodosColl = collection(db, "users", uid, "todos");
+
     // No need for 'where uid == ...' because we are querying that specific user's subcollection
     const q = query(userTodosColl);
-    
+
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => doc.data() as TodoItem);
+    return querySnapshot.docs.map((doc) => doc.data() as TodoItem);
   } catch (error) {
     console.error("Error fetching user todos", error);
     return [];
@@ -177,12 +182,12 @@ export const saveChatMessage = async (uid: string, message: Message) => {
   if (!db) return;
   try {
     // Path: users/{uid}/chats/{messageId}
-    const userChatRef = doc(db, 'users', uid, 'chats', message.id);
-    
+    const userChatRef = doc(db, "users", uid, "chats", message.id);
+
     await setDoc(userChatRef, {
       ...message,
       uid, // Optional redundancy
-      timestamp: Timestamp.fromMillis(message.timestamp)
+      timestamp: Timestamp.fromMillis(message.timestamp),
     });
   } catch (error) {
     console.error("Error saving chat message", error);
@@ -193,23 +198,19 @@ export const getRecentChatHistory = async (uid: string): Promise<Message[]> => {
   if (!db) return [];
   try {
     // Path: users/{uid}/chats
-    const userChatsColl = collection(db, 'users', uid, 'chats');
+    const userChatsColl = collection(db, "users", uid, "chats");
 
-    const q = query(
-      userChatsColl,
-      orderBy("timestamp", "asc"),
-      limit(50)
-    );
+    const q = query(userChatsColl, orderBy("timestamp", "asc"), limit(50));
 
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => {
+    return querySnapshot.docs.map((doc) => {
       const data = doc.data();
       return {
         id: doc.id,
         role: data.role,
         text: data.text,
         timestamp: data.timestamp.toMillis(),
-        suggestions: data.suggestions
+        suggestions: data.suggestions,
       } as Message;
     });
   } catch (error) {
