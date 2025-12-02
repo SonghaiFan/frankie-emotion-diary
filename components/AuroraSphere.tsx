@@ -1,10 +1,10 @@
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Category, Emotion } from '../types';
 import { CATEGORY_THEMES } from '../constants';
 
 export type EyeType = 'dot' | 'happy' | 'closed' | 'wink' | 'wide' | 'cross' | 'hearts' | 'star' | 'teary' | 'neutral_line' | 'angry' | 'relaxed';
-export type MouthType = 'neutral' | 'smile' | 'bigSmile' | 'open' | 'sad' | 'cat' | 'tongue' | 'zigzag' | 'triangle' | 'frown' | 'smirk' | 'kiss' | 'none';
+export type MouthType = 'neutral' | 'smile' | 'bigSmile' | 'open' | 'sad' | 'cat' | 'zigzag' | 'triangle' | 'frown' | 'smirk' | 'kiss' | 'none';
 export type AccessoryType = 'none' | 'blush' | 'tear' | 'sweat' | 'shock' | 'sparkle' | 'halo' | 'question' | 'steam' | 'utensils';
 
 interface AuroraSphereProps {
@@ -35,17 +35,13 @@ const EMOTION_PRESETS: Record<Emotion | 'thinking' | 'sleeping', FaceConfig> = {
   sad:       { eyes: 'cross', mouth: 'zigzag', accessory: 'sweat' },
   surprised: { eyes: 'wide', mouth: 'open', accessory: 'shock' },
   focused:   { eyes: 'dot', mouth: 'cat', accessory: 'none' },
-  
-  // New Emotions
   confused:  { eyes: 'dot', mouth: 'zigzag', accessory: 'question' },
   tired:     { eyes: 'relaxed', mouth: 'neutral', accessory: 'steam' },
   angry:     { eyes: 'angry', mouth: 'frown', accessory: 'shock' },
   love:      { eyes: 'hearts', mouth: 'smile', accessory: 'blush' },
   grateful:  { eyes: 'teary', mouth: 'smile', accessory: 'blush' },
-  hungry:    { eyes: 'dot', mouth: 'tongue', accessory: 'utensils' },
-
   thinking:  { eyes: 'dot', mouth: 'open', accessory: 'sweat' },
-  sleeping:  { eyes: 'closed', mouth: 'neutral', accessory: 'zz' } as any // zz is handled by sleep logic usually, but we map to none/sweat for now or add zz
+  sleeping:  { eyes: 'closed', mouth: 'neutral', accessory: 'none' } 
 };
 
 // --- SVG Path Generators ---
@@ -135,8 +131,8 @@ const generateEyes = (type: EyeType, strokeProps: any, fillProps: any) => {
         <>
            <circle cx={leftCenter.x} cy={leftCenter.y} r="6" {...fillProps} />
            <circle cx={rightCenter.x} cy={rightCenter.y} r="6" {...fillProps} />
-           <path d={`M ${leftCenter.x-4} ${leftCenter.y+2} Q ${leftCenter.x} ${leftCenter.y+8} ${leftCenter.x+4} ${leftCenter.y+2}`} fill="white" />
-           <path d={`M ${rightCenter.x-4} ${rightCenter.y+2} Q ${rightCenter.x} ${rightCenter.y+8} ${rightCenter.x+4} ${rightCenter.y+2}`} fill="white" />
+           <path d={`M ${leftCenter.x-4} ${leftCenter.y+2} Q ${leftCenter.x} ${leftCenter.y+8} ${leftCenter.x+4} ${leftCenter.y+2}`} fill="white" fillOpacity="0.5" />
+           <path d={`M ${rightCenter.x-4} ${rightCenter.y+2} Q ${rightCenter.x} ${rightCenter.y+8} ${rightCenter.x+4} ${rightCenter.y+2}`} fill="white" fillOpacity="0.5" />
         </>
       );
     case 'angry': // / \
@@ -177,15 +173,6 @@ const generateMouth = (type: MouthType, strokeProps: any, fillProps: any) => {
       return <path d={`M ${center.x-10} ${center.y+1} Q ${center.x-5} ${center.y-3} ${center.x} ${center.y+1} Q ${center.x+5} ${center.y+5} ${center.x+10} ${center.y+1}`} {...strokeProps} />;
     case 'triangle': // Triangle open
       return <path d={`M ${center.x-8} ${center.y+5} L ${center.x+8} ${center.y+5} L ${center.x} ${center.y-5} Z`} {...strokeProps} />;
-    case 'tongue': // :P style
-      return (
-        <g>
-           {/* Mouth line */}
-          <path d={`M ${center.x-12} ${center.y-2} Q ${center.x} ${center.y+6} ${center.x+12} ${center.y-2}`} {...strokeProps} />
-           {/* Tongue - bigger, U shape */}
-          <path d={`M ${center.x-6} ${center.y+3} Q ${center.x} ${center.y+15} ${center.x+6} ${center.y+3}`} {...strokeProps} fill={strokeProps.stroke} fillOpacity="0.1" />
-        </g>
-      );
     case 'frown':
         return <path d={`M ${center.x-6} ${center.y+4} Q ${center.x} ${center.y} ${center.x+6} ${center.y+4}`} {...strokeProps} />;
     case 'smirk':
@@ -283,6 +270,9 @@ const AuroraSphere: React.FC<AuroraSphereProps> = ({
   const [faceOffset, setFaceOffset] = useState({ x: 0, y: 0 });
   const [isBlinking, setIsBlinking] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Ref to track mouse position even when not moving
+  const lastMousePos = useRef({ x: 0, y: 0 });
 
   // Handle Category Transitions
   useEffect(() => {
@@ -327,106 +317,128 @@ const AuroraSphere: React.FC<AuroraSphereProps> = ({
     return () => clearTimeout(timer);
   }, []);
 
-  // Mouse/Eye Tracking
+  // Update Face Offset Logic (Decoupled)
+  const updateFaceOffset = useCallback(() => {
+    if (!containerRef.current) return;
+    
+    // If input is focused, immediately force the "looking down" pose
+    if (isInputFocused) {
+        // We can keep a little bit of X-axis movement if we want, based on last mouse pos
+        // Or just center it. Let's keep slight tracking for liveliness.
+        const rect = containerRef.current.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const deltaX = lastMousePos.current.x - centerX;
+        
+        const x = deltaX / 12; 
+        const limit = 40;
+        const clampedX = Math.max(-limit, Math.min(limit, x));
+
+        setFaceOffset({ x: clampedX * 0.3, y: 75 });
+    } else {
+        // Normal tracking behavior
+        const rect = containerRef.current.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        const deltaX = lastMousePos.current.x - centerX;
+        const deltaY = lastMousePos.current.y - centerY;
+
+        const x = deltaX / 12; 
+        const y = deltaY / 12; 
+        const limit = 40;
+        const clampedX = Math.max(-limit, Math.min(limit, x));
+        const clampedY = Math.max(-limit, Math.min(limit, y));
+
+        setFaceOffset({ x: clampedX, y: clampedY });
+    }
+  }, [isInputFocused]);
+
+  // Trigger update immediately when focus state changes
+  useEffect(() => {
+    updateFaceOffset();
+  }, [updateFaceOffset]);
+
+  // Mouse Tracking Listener
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (!containerRef.current) return;
-      
-      const rect = containerRef.current.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-
-      const deltaX = (e.clientX - centerX);
-      const deltaY = (e.clientY - centerY);
-
-      // Dampening - increased sensitivity and range
-      const x = deltaX / 12; // Was 30
-      const y = deltaY / 12; // Was 30
-      const limit = 40; // Was 20
-      const clampedX = Math.max(-limit, Math.min(limit, x));
-      const clampedY = Math.max(-limit, Math.min(limit, y));
-
-      if (isInputFocused) {
-          setFaceOffset({ x: clampedX * 0.3, y: 75 });
-      } else {
-          setFaceOffset({ x: clampedX, y: clampedY });
-      }
+      lastMousePos.current = { x: e.clientX, y: e.clientY };
+      updateFaceOffset();
     };
 
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [isInputFocused]);
+  }, [updateFaceOffset]);
 
   // Face Style Props
   const strokeProps = {
-    stroke: style.faceColor,
-    strokeWidth: "3", 
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-    fill: "none",
-    style: { filter: "url(#face-glow)" }
+    stroke: 'white',
+    strokeWidth: 8,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+    fill: 'none'
   };
 
   const fillProps = {
-    fill: style.faceColor,
-    style: { filter: "url(#face-glow)" }
+    fill: 'white'
   };
-
-  const filterId = "aurora-flow";
 
   return (
     <div 
       ref={containerRef}
-      className={`relative w-40 h-40 sm:w-48 sm:h-48 md:w-64 md:h-64 transition-transform duration-700 ease-in-out pointer-events-none`}
+      className={`relative w-40 h-40 sm:w-64 sm:h-64 transition-all duration-700 ease-out ${
+        animating ? 'scale-90 opacity-80' : 'scale-100 opacity-100'
+      }`}
     >
       <svg 
         viewBox="0 0 400 400" 
-        className={`w-full h-full drop-shadow-2xl transition-opacity duration-500 ${animating ? 'opacity-80' : 'opacity-100'}`}
-        style={{ overflow: 'visible' }}
+        className="w-full h-full overflow-visible"
+        style={{ filter: 'drop-shadow(0 0 20px rgba(255,255,255,0.2))' }}
       >
         <defs>
-          {/* Main Aurora Filter */}
-          <filter id={filterId} x="-50%" y="-50%" width="200%" height="200%" colorInterpolationFilters="sRGB">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur" />
-            <feTurbulence type="turbulence" baseFrequency="0.012" numOctaves="3" result="noise" seed="5">
-              <animate attributeName="baseFrequency" values="0.012;0.008;0.012" dur="15s" repeatCount="indefinite" />
-            </feTurbulence>
-            <feDisplacementMap in="blur" in2="noise" scale="35" xChannelSelector="R" yChannelSelector="G" result="displaced" />
-          </filter>
-
-          <filter id="face-glow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur" />
-            <feOffset in="blur" dx="0" dy="1" result="offsetBlur" />
-            <feFlood floodColor="rgba(0,0,0,0.15)" result="color" />
-            <feComposite in="color" in2="offsetBlur" operator="in" result="shadow" />
-            <feMerge>
-              <feMergeNode in="shadow" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
+            <filter id="aurora-flow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="15" result="blur" />
+                <feTurbulence type="turbulence" baseFrequency="0.012" numOctaves="3" result="noise" seed="5">
+                  <animate attributeName="baseFrequency" values="0.012;0.008;0.012" dur="10s" repeatCount="indefinite" />
+                </feTurbulence>
+                <feDisplacementMap in="blur" in2="noise" scale="25" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+            
+            <radialGradient id="grad-core">
+                <stop offset="0%" stopColor={style.faceColor} stopOpacity="1" />
+                <stop offset="50%" stopColor={style.faceColor} stopOpacity="0.8" />
+                <stop offset="100%" stopColor={style.primary} stopOpacity="0" />
+            </radialGradient>
         </defs>
 
-        {/* Animated Glow Body */}
-        <g filter={`url(#${filterId})`}>
-          <circle cx="200" cy="200" r="130" fill={style.primary} className="animate-[pulse_4s_ease-in-out_infinite]" opacity="0.9" />
-          <circle cx="160" cy="180" r="90" fill={style.secondary} className="animate-[pulse_5s_ease-in-out_infinite_reverse]" opacity="0.8" />
-          <circle cx="240" cy="220" r="100" fill={style.tertiary} className="animate-[pulse_6s_ease-in-out_infinite]" opacity="0.8" />
-          <circle cx="200" cy="240" r="80" fill={style.primary} className="animate-[pulse_7s_ease-in-out_infinite]" opacity="0.7" />
+        {/* --- Background Aurora Body --- */}
+        <g filter="url(#aurora-flow)" opacity="0.9">
+             {/* Core Glow */}
+             <circle cx="200" cy="200" r="130" fill="url(#grad-core)" />
+             
+             {/* Orbiting Blobs for Color Flow */}
+             <circle cx="200" cy="200" r="100" fill={style.secondary} opacity="0.5">
+                  <animate attributeName="cx" values="200;220;180;200" dur="8s" repeatCount="indefinite" />
+                  <animate attributeName="cy" values="200;180;220;200" dur="9s" repeatCount="indefinite" />
+             </circle>
+             <circle cx="200" cy="200" r="110" fill={style.tertiary} opacity="0.5">
+                  <animate attributeName="cx" values="200;180;220;200" dur="11s" repeatCount="indefinite" />
+                  <animate attributeName="cy" values="200;220;180;200" dur="10s" repeatCount="indefinite" />
+             </circle>
         </g>
-        
-        {/* Face Group */}
+
+        {/* --- Face Layer --- */}
+        {/* Rendered without the heavy displacement filter so features stay recognizable */}
         <g 
-          style={{ 
-            transform: `translate(${faceOffset.x}px, ${faceOffset.y}px)`, 
-            transition: 'transform 0.1s ease-out' 
-          }}
+            style={{
+                transform: `translate(${faceOffset.x}px, ${faceOffset.y}px)`,
+                transition: 'transform 0.1s ease-out'
+            }}
+            // Gentle glow on features
+            filter="drop-shadow(0 0 2px rgba(255,255,255,0.5))"
         >
-          {isBlinking 
-             ? generateEyes('closed', strokeProps, fillProps) 
-             : generateEyes(currentFace.eyes, strokeProps, fillProps)
-          }
-          {generateMouth(currentFace.mouth, strokeProps, fillProps)}
-          {generateAccessory(currentFace.accessory, strokeProps)}
+            {generateEyes(currentFace.eyes, strokeProps, fillProps)}
+            {generateMouth(currentFace.mouth, strokeProps, fillProps)}
+            {generateAccessory(currentFace.accessory, strokeProps)}
         </g>
       </svg>
     </div>

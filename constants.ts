@@ -6,14 +6,15 @@ export const HAPPINESS_ITEMS: { text: string; category: Category }[] = [
   // 1. Sensory Pleasure (Sensory)
   { text: "感受到良好的触感。", category: 'sensory' },
   { text: "感受到怡人的香味（桂花的香味）。", category: 'sensory' },
-  { text: "穿舒适的内衣。", category: 'sensory' },
-  { text: "买好一点的袜子。", category: 'sensory' },
   { text: "通过瑜伽动作拉伸全身各处，放松身心。", category: 'sensory' },
-  
+  { text: "感受自己的心理状态（强烈感觉到开心、激动等心情）。", category: 'sensory' },
+  { text: "唱歌。", category: 'sensory' },
+
   // 2. Visual Delight (Visual)
   { text: "看到新鲜的蔬菜。", category: 'visual' },
   { text: "秋天拾起一片飘零的树叶，欣赏它由红色到黄色的美丽渐变。", category: 'visual' },
   { text: "买一枝花，感受花蕾一天天绽放。", category: 'visual' },
+  { text: "氛围友好的场合（校园文化节等）。", category: 'visual' },
 
   // 3. Nature's Embrace (Nature)
   { text: "好天气。", category: 'nature' },
@@ -22,6 +23,7 @@ export const HAPPINESS_ITEMS: { text: string; category: Category }[] = [
   { text: "归家路上邂逅美丽的夕阳。", category: 'nature' },
   { text: "家附近的小河，两岸有并排的樱花树，可以躺在树下。", category: 'nature' },
   { text: "想去海边。", category: 'nature' },
+  { text: "咖啡店的露台和有庭院的茶馆，能看到绿植的座位最佳。", category: 'nature' },
 
   // 4. Connection (Connection)
   { text: "身边人（店员、同事等）的微笑。", category: 'connection' },
@@ -38,7 +40,6 @@ export const HAPPINESS_ITEMS: { text: string; category: Category }[] = [
   { text: "看到好的作品会思考创作者的心情。", category: 'creative' },
   { text: "潜心创作作品。", category: 'creative' },
   { text: "对感兴趣的东西追求到极致。", category: 'creative' },
-  { text: "想去做点什么。", category: 'creative' },
 
   // 6. Tranquil (Tranquil)
   { text: "去一个喜欢的空间安静地坐10分钟。", category: 'tranquil' },
@@ -47,11 +48,13 @@ export const HAPPINESS_ITEMS: { text: string; category: Category }[] = [
   { text: "向内深度挖掘自己内心的感受。", category: 'tranquil' },
 
   // 7. Living in the Moment (Present)
-  { text: "咖啡馆露台座位。", category: 'present' },
-  { text: "收银台旁的万圣节装饰。", category: 'present' },
+  { text: "找一个咖啡馆露台座位坐一会儿。", category: 'present' },
+  { text: "观察收银台旁的节日装饰。", category: 'present' },
+  { text: "买好一点的袜子。", category: 'present' },
+  { text: "穿舒适的内衣。", category: 'present' },
   { text: "用木架子替换彩色收纳盒。", category: 'present' },
-  { text: "路过街边的广告牌的时候，看看上面关于跳蚤市场的介绍。", category: 'present' },
   { text: "研磨咖啡豆。", category: 'present' },
+  { text: "路过街边的广告牌的时候，看看上面关于跳蚤市场的介绍。", category: 'present' },
 ];
 
 export const HAPPINESS_LIST = HAPPINESS_ITEMS.map(item => item.text);

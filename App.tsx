@@ -44,42 +44,32 @@ const App: React.FC = () => {
   // Helper for safe comparison
   const isTodoSaved = (text: string) => savedTodos.some(t => t.text.trim() === text.trim());
 
-  // Parsing Helper
+  // Parsing Helper - Refactored for Robustness
   const parseResponse = (rawText: string): { text: string; emotion: Emotion; category: Category; suggestions: string[] } => {
     let emotion: Emotion = 'neutral';
     let category: Category = currentCategory; 
-    let cleanText = rawText;
-
-    // Use string.match instead of exec loop on global regex to avoid state issues
-    const emotionRegex = /\[(NEUTRAL|HAPPY|CALM|EXCITED|SAD|SURPRISED|FOCUSED|CONFUSED|TIRED|ANGRY|LOVE|GRATEFUL|HUNGRY)\]/gi;
-    const emotionMatches = cleanText.match(emotionRegex);
-    if (emotionMatches) {
-        // Take the last one found
-        const lastTag = emotionMatches[emotionMatches.length - 1];
-        // Strip brackets
-        emotion = lastTag.replace(/[\[\]]/g, '').toLowerCase() as Emotion;
-        // Remove all emotion tags
-        cleanText = cleanText.replace(emotionRegex, '');
-    }
-
-    const categoryRegex = /\[(DEFAULT|SENSORY|VISUAL|NATURE|CONNECTION|CREATIVE|TRANQUIL|PRESENT)\]/gi;
-    const categoryMatches = cleanText.match(categoryRegex);
-    if (categoryMatches) {
-        const lastTag = categoryMatches[categoryMatches.length - 1];
-        category = lastTag.replace(/[\[\]]/g, '').toLowerCase() as Category;
-        cleanText = cleanText.replace(categoryRegex, '');
-    }
-
+    let cleanText = rawText || ''; // Ensure string
     const suggestions: string[] = [];
-    const todoRegex = /<TODO>(.*?)<\/TODO>/gi;
-    const todoMatches = cleanText.match(todoRegex);
-    if (todoMatches) {
-        todoMatches.forEach(tag => {
-            const content = tag.replace(/<\/?TODO>/g, '').trim();
-            if (content) suggestions.push(content);
-        });
-        cleanText = cleanText.replace(todoRegex, '');
-    }
+
+    // 1. Extract Emotion Tags [HAPPY] - Callback approach allows single-pass removal
+    cleanText = cleanText.replace(/\[(NEUTRAL|HAPPY|CALM|EXCITED|SAD|SURPRISED|FOCUSED|CONFUSED|TIRED|ANGRY|LOVE|GRATEFUL|HUNGRY)\]/gi, (match, p1) => {
+      if (p1) emotion = p1.toUpperCase().toLowerCase() as Emotion;
+      return ''; // Remove tag from string
+    });
+
+    // 2. Extract Category Tags [NATURE]
+    cleanText = cleanText.replace(/\[(DEFAULT|SENSORY|VISUAL|NATURE|CONNECTION|CREATIVE|TRANQUIL|PRESENT)\]/gi, (match, p1) => {
+      if (p1) category = p1.toUpperCase().toLowerCase() as Category;
+      return ''; // Remove tag from string
+    });
+
+    // 3. Extract Todo Tags <TODO>...</TODO>
+    cleanText = cleanText.replace(/<TODO>(.*?)<\/TODO>/gi, (match, content) => {
+      if (content && content.trim()) {
+        suggestions.push(content.trim());
+      }
+      return ''; // Remove tag from string
+    });
 
     return { emotion, category, text: cleanText.trim(), suggestions };
   };

@@ -6,10 +6,10 @@ import { WAITING_MESSAGES } from '../constants';
 // Typewriter Effect Component
 const TypewriterText: React.FC<{ text: string; onComplete?: () => void }> = ({ text, onComplete }) => {
   const [displayedText, setDisplayedText] = useState('');
-  // Use a ref to track if onComplete has been called for this specific text to prevent double-firing
   const isCompleteRef = useRef(false);
   
   useEffect(() => {
+    // Reset state when text prop changes
     setDisplayedText('');
     isCompleteRef.current = false;
     
@@ -22,9 +22,11 @@ const TypewriterText: React.FC<{ text: string; onComplete?: () => void }> = ({ t
     }
 
     let currentIndex = 0;
-    // Use slicing instead of appending to prevent duplication bugs
+    
     const interval = setInterval(() => {
       currentIndex++;
+      // Set text slice from 0 to currentIndex
+      // This includes the character at index 0 immediately on the first tick (currentIndex=1)
       if (currentIndex <= text.length) {
         setDisplayedText(text.slice(0, currentIndex));
       } else {
@@ -34,12 +36,13 @@ const TypewriterText: React.FC<{ text: string; onComplete?: () => void }> = ({ t
             onComplete();
         }
       }
-    }, 20); // Slightly faster for smoother feel
+    }, 20);
 
     return () => clearInterval(interval);
-  }, [text]); // Re-run only when text changes
+  }, [text]);
 
-  return <span className="animate-fade-in">{displayedText}</span>;
+  // Removed animate-fade-in class to prevent first letters from being invisible during fade-in
+  return <span>{displayedText}</span>;
 };
 
 interface SpeechBubbleProps {
@@ -116,7 +119,7 @@ const SpeechBubble: React.FC<SpeechBubbleProps> = ({
             </div>
         ) : (
           <div className="flex flex-col gap-4">
-            <p className="text-stone-700 text-sm leading-relaxed whitespace-pre-wrap font-medium mix-blend-multiply break-words">
+            <p className="text-stone-700 text-xs md:text-sm leading-relaxed whitespace-pre-wrap font-medium mix-blend-multiply break-words">
               <TypewriterText 
                 text={message?.text || ''} 
                 onComplete={onTypingComplete} 

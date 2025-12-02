@@ -22,12 +22,12 @@ interface DebugPanelProps {
 
 const EMOTIONS: Emotion[] = [
   'neutral', 'happy', 'calm', 'excited', 'sad', 'surprised', 'focused',
-  'confused', 'tired', 'angry', 'love', 'grateful', 'hungry'
+  'confused', 'tired', 'angry', 'love', 'grateful'
 ];
 
 // Lists for Dropdowns
 const EYES: EyeType[] = ['dot', 'happy', 'closed', 'wink', 'wide', 'cross', 'hearts', 'star', 'teary', 'neutral_line', 'angry', 'relaxed'];
-const MOUTHS: MouthType[] = ['neutral', 'smile', 'bigSmile', 'open', 'sad', 'cat', 'tongue', 'zigzag', 'triangle', 'frown', 'smirk', 'kiss', 'none'];
+const MOUTHS: MouthType[] = ['neutral', 'smile', 'bigSmile', 'open', 'sad', 'cat', 'zigzag', 'triangle', 'frown', 'smirk', 'kiss', 'none'];
 const ACCESSORIES: AccessoryType[] = ['none', 'blush', 'tear', 'sweat', 'shock', 'sparkle', 'halo', 'question', 'steam', 'utensils'];
 
 const DebugPanel: React.FC<DebugPanelProps> = ({

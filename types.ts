@@ -22,7 +22,6 @@ export type Emotion =
   | 'angry'
   | 'love'
   | 'grateful'
-  | 'hungry';
 
 export interface TodoItem {
   id: string;
