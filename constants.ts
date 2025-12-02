@@ -112,6 +112,11 @@ export const HAPPINESS_ITEMS: { text: string; category: Category }[] = [
 
 export const HAPPINESS_LIST = HAPPINESS_ITEMS.map((item) => item.text);
 
+export const NEW_USER_GREETING =
+  "你好啊。我是阿朵拉。今天感觉怎么样？\n试着点击下面的小气泡，把它们贴在墙上吧。\n[CALM] [DEFAULT] <TODO>深呼吸 Deep Breath</TODO> <TODO>喝杯水 Drink Water</TODO>";
+
+export const GUEST_MESSAGE_LIMIT = 20;
+
 // ------------------------------------------------------------------
 // 3. System Instruction (The Prompt Truth)
 // ------------------------------------------------------------------
@@ -140,7 +145,10 @@ You MUST provide exactly 3 <TODO> tags following this mix:
    - **Allowed CATEGORY values (STRICT)**: DEFAULT, SENSORY, VISUAL, NATURE, CONNECTION, CREATIVE, TRANQUIL, PRESENT
    - **CRITICAL RULE**: You must ONLY use the exact uppercase values listed above. Do not invent new categories.
    
-2. **Message**: A soft, validating reply.
+2. **Message**: The response must have three distinct parts:
+   a. **Empathy & Validation**: Respond to the user's input with a soft, validating tone.
+   b. **Guidance**: Gently introduce the 3 small things (todos) below.
+   c. **Engagement**: End with a follow-up question. You can specifically ask about the user's "Completed Tasks" (from the context) to reflect on their progress (e.g. "How did it feel to...?"), or deepen the current topic. Do not let the conversation end.
    - *Tone Rule*: Use "Invitation" language ("Shall we...?") instead of "Command" language ("You should...").
    
 3. **Happiness List**: exactly 3 <TODO> tags.

@@ -14,7 +14,13 @@ import LandingPage from "./components/LandingPage";
 import { sendMessage, initializeChat } from "./services/geminiService";
 import { Message, TodoItem, UserProfile } from "./types";
 import { Category, Emotion } from "./constants";
-import { CATEGORY_THEMES, AVATAR_REACTIONS, EMOTIONS } from "./constants";
+import {
+  CATEGORY_THEMES,
+  AVATAR_REACTIONS,
+  EMOTIONS,
+  NEW_USER_GREETING,
+  GUEST_MESSAGE_LIMIT,
+} from "./constants";
 import { Content } from "@google/genai";
 import {
   subscribeToAuthChanges,
@@ -24,6 +30,8 @@ import {
   getUserTodos,
   saveChatMessage,
   getRecentChatHistory,
+  signInWithGoogle,
+  signOut,
 } from "./services/firebase";
 
 const MANAGER_UID = "qv7LevpiYLhSA3jEI1nLyMtO5Rt1";
@@ -110,11 +118,16 @@ const App: React.FC = () => {
     );
 
     // 3. Extract Todo Tags <TODO>...</TODO>
+    let hasInsertedMarker = false;
     cleanText = cleanText.replace(/<TODO>(.*?)<\/TODO>/gi, (match, content) => {
       if (content && content.trim()) {
         suggestions.push(content.trim());
       }
-      return ""; // Remove tag from string
+      if (!hasInsertedMarker) {
+        hasInsertedMarker = true;
+        return "[[TODO_SECTION]]";
+      }
+      return ""; // Remove subsequent tags
     });
 
     return { emotion, category, text: cleanText.trim(), suggestions };
@@ -201,8 +214,7 @@ const App: React.FC = () => {
           reinitializeGemini(parsedMsgs);
         } else {
           // New User: Greeting
-          const rawGreeting =
-            "你好啊。我是阿朵拉。今天感觉怎么样？\nHello. I am Aurora. How are you feeling today?\n[CALM] [DEFAULT] <TODO>深呼吸 Deep Breath</TODO> <TODO>喝杯水 Drink Water</TODO>";
+          const rawGreeting = NEW_USER_GREETING;
           const parsed = parseResponse(rawGreeting);
           const greeting: Message = {
             id: "init",
@@ -375,6 +387,12 @@ const App: React.FC = () => {
 
   // --- Handlers ---
 
+  const handleLogout = async () => {
+    await signOut();
+    localStorage.clear();
+    window.location.reload();
+  };
+
   const handleEnterApp = () => {
     setShowLanding(false);
     localStorage.setItem("aurora_visited", "true");
@@ -383,10 +401,6 @@ const App: React.FC = () => {
   };
 
   const handleSend = async (text: string) => {
-    setIsLoading(true);
-    setIsBubbleVisible(true);
-    setCurrentEmotion("focused");
-
     // Add user message immediately
     const userMsg: Message = {
       id: Date.now().toString(),
@@ -398,6 +412,28 @@ const App: React.FC = () => {
 
     // Save User Msg to Cloud
     if (user) saveChatMessage(user.uid, userMsg);
+
+    // Check Guest Limit
+    if (!user) {
+      const userMsgCount = messages.filter((m) => m.role === "user").length;
+      if (userMsgCount >= GUEST_MESSAGE_LIMIT) {
+        const limitMsg: Message = {
+          id: (Date.now() + 1).toString(),
+          role: "model",
+          text: "我们已经聊了很多啦。想要继续深入对话的话，请登录账号吧。\n(Guest limit reached: 20 messages)",
+          timestamp: Date.now(),
+          suggestions: [],
+        };
+        setMessages((prev) => [...prev, limitMsg]);
+        setIsBubbleVisible(true);
+        setCurrentEmotion("neutral");
+        return;
+      }
+    }
+
+    setIsLoading(true);
+    setIsBubbleVisible(true);
+    setCurrentEmotion("focused");
 
     try {
       // Pass complete history + new text implicitly via the Gemini session
@@ -541,7 +577,13 @@ const App: React.FC = () => {
       className="relative w-full h-screen overflow-hidden touch-none transition-colors duration-1000 ease-in-out"
       style={{ background: theme.bgGradient }}
     >
-      {showLanding && <LandingPage onEnter={handleEnterApp} />}
+      {showLanding && (
+        <LandingPage
+          onEnter={handleEnterApp}
+          onLogin={signInWithGoogle}
+          user={user}
+        />
+      )}
 
       {/* 1. Dynamic Background Orbs */}
       <div className="absolute inset-0 pointer-events-none opacity-30 mix-blend-multiply transition-colors duration-1000 z-0">
@@ -637,7 +679,11 @@ const App: React.FC = () => {
           showLanding ? "opacity-0 pointer-events-none" : "opacity-100"
         }`}
       >
-        <AuthButton user={user} onOpenCalendar={() => setShowCalendar(true)} />
+        <AuthButton
+          user={user}
+          onOpenCalendar={() => setShowCalendar(true)}
+          onLogout={handleLogout}
+        />
 
         <div className="text-right pointer-events-none select-none opacity-30 hover:opacity-60 transition-opacity duration-500 mb-1">
           <p className="text-[9px] sm:text-[10px] text-stone-600 font-bold tracking-wide">
