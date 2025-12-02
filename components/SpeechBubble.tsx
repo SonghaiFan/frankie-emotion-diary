@@ -41,7 +41,6 @@ const TypewriterText: React.FC<{ text: string; onComplete?: () => void }> = ({ t
     return () => clearInterval(interval);
   }, [text]);
 
-  // Removed animate-fade-in class to prevent first letters from being invisible during fade-in
   return <span>{displayedText}</span>;
 };
 
@@ -74,6 +73,7 @@ const SpeechBubble: React.FC<SpeechBubbleProps> = ({
   onMouseLeave
 }) => {
   const [waitingMessage, setWaitingMessage] = useState('');
+  const [firstPartComplete, setFirstPartComplete] = useState(false);
 
   // Randomize waiting message when loading starts
   useEffect(() => {
@@ -83,7 +83,58 @@ const SpeechBubble: React.FC<SpeechBubbleProps> = ({
     }
   }, [isLoading]);
   
+  // Reset split state when message changes
+  useEffect(() => {
+    setFirstPartComplete(false);
+  }, [message?.id]);
+
+  // Safe access to text to prevent crashes if message is null during loading
+  const text = message?.text || '';
+  
+  // Check for split marker and prepare text parts
+  const rawParts = text.split('[[TODO_SECTION]]');
+  const hasTodoSection = rawParts.length > 1;
+  
+  // Trim whitespace around the split to ensure compactness
+  const part1Text = rawParts[0]?.trimEnd() || '';
+  const part2Text = rawParts[1]?.trimStart() || '';
+
+  // Edge case: if part1 is empty after trim (e.g. message starts with todos), mark complete immediately
+  useEffect(() => {
+     if (hasTodoSection && !part1Text && !firstPartComplete) {
+         setFirstPartComplete(true);
+     }
+  }, [hasTodoSection, part1Text, firstPartComplete]);
+
   if (!message && !isLoading) return null;
+
+  const renderSuggestions = (animate: boolean) => {
+    if (!message?.suggestions || message.suggestions.length === 0) return null;
+    
+    return (
+      <div className="flex flex-wrap gap-2 overflow-hidden w-full">
+        {message.suggestions.map((suggestion, idx) => {
+          const saved = isTodoSaved(suggestion);
+          if (saved) return null; 
+          
+          return (
+            <button
+              key={idx}
+              onClick={(e) => { e.stopPropagation(); onSaveTodo(suggestion); }}
+              style={{ 
+                backgroundColor: theme.noteBg, 
+                color: '#44403C',
+                animationDelay: animate ? `${idx * 0.15}s` : '0s'
+              }}
+              className={`px-3 py-1.5 md:px-4 md:py-2 rounded-sm border border-black/5 hover:bg-white text-xs font-medium flex items-center gap-1 transition-all duration-300 transform active:scale-95 shadow-sm hover:shadow-md hover:ring-1 ring-white ${animate ? 'animate-pop-in opacity-0 fill-mode-forwards' : ''}`}
+            >
+              <span style={{ color: theme.secondary }}>+</span> {suggestion}
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
 
   return (
     <div 
@@ -94,10 +145,10 @@ const SpeechBubble: React.FC<SpeechBubbleProps> = ({
       onMouseLeave={onMouseLeave}
     >
       <div 
-        className="p-6 md:p-8 backdrop-blur-2xl transition-all duration-500 relative select-none"
+        className="p-5 md:p-6 backdrop-blur-2xl transition-all duration-500 relative select-none"
         style={{
             backgroundColor: 'rgba(255, 255, 255, 0.4)',
-            borderRadius: '3rem',
+            borderRadius: '2.5rem',
             borderBottomLeftRadius: '1rem',
             boxShadow: `
               0 0 30px -5px rgba(255, 255, 255, 0.9),
@@ -118,37 +169,42 @@ const SpeechBubble: React.FC<SpeechBubbleProps> = ({
               </div>
             </div>
         ) : (
-          <div className="flex flex-col gap-4">
-            <p className="text-stone-700 text-xs md:text-sm leading-relaxed whitespace-pre-wrap font-medium mix-blend-multiply break-words">
-              <TypewriterText 
-                text={message?.text || ''} 
-                onComplete={onTypingComplete} 
-              />
-            </p>
+          <div className="flex flex-col gap-1">
+             {/* Part 1 */}
+             {part1Text && (
+                <p className="text-stone-700 text-xs md:text-sm leading-relaxed whitespace-pre-wrap font-medium mix-blend-multiply break-words">
+                    <TypewriterText 
+                        text={part1Text} 
+                        onComplete={() => {
+                            if (hasTodoSection) {
+                                setFirstPartComplete(true);
+                            } else {
+                                onTypingComplete();
+                            }
+                        }} 
+                    />
+                </p>
+             )}
             
-            {message?.suggestions && message.suggestions.length > 0 && isTypingComplete && (
-              <div className="flex flex-wrap gap-2 overflow-hidden mt-1">
-                {message.suggestions.map((suggestion, idx) => {
-                  const saved = isTodoSaved(suggestion);
-                  if (saved) return null; 
-                  
-                  return (
-                    <button
-                      key={idx}
-                      onClick={(e) => { e.stopPropagation(); onSaveTodo(suggestion); }}
-                      style={{ 
-                        backgroundColor: theme.noteBg, 
-                        color: '#44403C',
-                        animationDelay: `${idx * 0.15}s`
-                      }}
-                      className="px-3 py-1.5 md:px-4 md:py-2 rounded-sm border border-black/5 hover:bg-white text-xs font-medium flex items-center gap-1 transition-all duration-300 transform active:scale-95 shadow-sm hover:shadow-md hover:ring-1 ring-white animate-pop-in opacity-0 fill-mode-forwards"
-                    >
-                      <span style={{ color: theme.secondary }}>+</span> {suggestion}
-                    </button>
-                  );
-                })}
-              </div>
+            {/* Middle Suggestions (if split) */}
+            {hasTodoSection && firstPartComplete && (
+               <div className="w-full animate-fade-in my-1">
+                   {renderSuggestions(true)}
+               </div>
             )}
+
+             {/* Part 2 */}
+            {hasTodoSection && firstPartComplete && part2Text && (
+                 <p className="text-stone-700 text-xs md:text-sm leading-relaxed whitespace-pre-wrap font-medium mix-blend-multiply break-words">
+                   <TypewriterText 
+                        text={part2Text} 
+                        onComplete={onTypingComplete} 
+                   />
+                 </p>
+            )}
+
+            {/* Bottom Suggestions (Legacy / Fallback) */}
+            {!hasTodoSection && isTypingComplete && renderSuggestions(true)}
           </div>
         )}
       </div>

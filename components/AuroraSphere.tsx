@@ -60,6 +60,7 @@ interface AuroraSphereProps {
     secondary: string;
     tertiary: string;
   };
+  smoothTransition?: boolean;
 }
 
 interface FaceConfig {
@@ -542,6 +543,7 @@ const AuroraSphere: React.FC<AuroraSphereProps> = ({
   accessoryOverride,
   className = "w-40 h-40 sm:w-64 sm:h-64",
   customColors,
+  smoothTransition = false,
 }) => {
   const themeStyle = CATEGORY_THEMES[category] || CATEGORY_THEMES.default;
   const style = customColors ? { ...themeStyle, ...customColors } : themeStyle;
@@ -559,14 +561,18 @@ const AuroraSphere: React.FC<AuroraSphereProps> = ({
   // Handle Category Transitions
   useEffect(() => {
     if (category !== currentCategory) {
-      setAnimating(true);
-      const timer = setTimeout(() => {
+      if (smoothTransition) {
         setCurrentCategory(category);
-        setAnimating(false);
-      }, 500);
-      return () => clearTimeout(timer);
+      } else {
+        setAnimating(true);
+        const timer = setTimeout(() => {
+          setCurrentCategory(category);
+          setAnimating(false);
+        }, 500);
+        return () => clearTimeout(timer);
+      }
     }
-  }, [category, currentCategory]);
+  }, [category, currentCategory, smoothTransition]);
 
   // Determine current face config
   let currentFace = isThinking
@@ -719,7 +725,14 @@ const AuroraSphere: React.FC<AuroraSphereProps> = ({
         {/* --- Background Aurora Body --- */}
         <g filter="url(#aurora-flow)" opacity="0.9">
           {/* Cluster 1: Primary */}
-          <circle cx="180" cy="180" r="110" fill={style.primary} opacity="0.7">
+          <circle
+            cx="180"
+            cy="180"
+            r="110"
+            fill={style.primary}
+            opacity="0.7"
+            style={{ transition: "fill 1.5s ease-in-out" }}
+          >
             <animate
               attributeName="cx"
               values="180;200;160;180"
@@ -747,6 +760,7 @@ const AuroraSphere: React.FC<AuroraSphereProps> = ({
             r="110"
             fill={style.secondary}
             opacity="0.7"
+            style={{ transition: "fill 1.5s ease-in-out" }}
           >
             <animate
               attributeName="cx"
@@ -769,7 +783,14 @@ const AuroraSphere: React.FC<AuroraSphereProps> = ({
           </circle>
 
           {/* Cluster 3: Tertiary */}
-          <circle cx="200" cy="230" r="110" fill={style.tertiary} opacity="0.7">
+          <circle
+            cx="200"
+            cy="230"
+            r="110"
+            fill={style.tertiary}
+            opacity="0.7"
+            style={{ transition: "fill 1.5s ease-in-out" }}
+          >
             <animate
               attributeName="cx"
               values="200;220;180;200"

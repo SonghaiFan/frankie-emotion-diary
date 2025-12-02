@@ -129,6 +129,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
               isInputFocused={false}
               forceSmile={false}
               className="w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-96 lg:h-96"
+              smoothTransition={true}
             />
           </div>
 

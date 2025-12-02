@@ -124,11 +124,17 @@ const App: React.FC = () => {
     );
 
     // 3. Extract Todo Tags <TODO>...</TODO>
+    // Insert a marker for the UI to know where to split the message
+    let markerInserted = false;
     cleanText = cleanText.replace(/<TODO>(.*?)<\/TODO>/gi, (match, content) => {
       if (content && content.trim()) {
         suggestions.push(content.trim());
       }
-      return ""; // Remove tags from text
+      if (!markerInserted) {
+        markerInserted = true;
+        return "[[TODO_SECTION]]";
+      }
+      return ""; // Remove subsequent tags
     });
 
     return { emotion, category, text: cleanText.trim(), suggestions };
