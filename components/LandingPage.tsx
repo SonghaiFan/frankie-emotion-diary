@@ -1,102 +1,46 @@
-import React, { useState, useEffect } from "react";
-import AuroraSphere from "./AuroraSphere";
-import { Emotion, Category } from "../types";
-import { CATEGORY_THEMES } from "../constants";
+import React, { useState } from "react";
 
 interface LandingPageProps {
   onEnter: () => void;
 }
 
-const DEMO_EMOTIONS: Emotion[] = [
-  "happy",
-  "surprised",
-  "love",
-  "excited",
-  "calm",
-  "grateful",
-];
-
 const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
-  const [currentEmotion, setCurrentEmotion] = useState<Emotion>("neutral");
   const [isLeaving, setIsLeaving] = useState(false);
-
-  // Cycle through emotions to show personality
-  useEffect(() => {
-    let index = 0;
-    const interval = setInterval(() => {
-      setCurrentEmotion(DEMO_EMOTIONS[index]);
-      index = (index + 1) % DEMO_EMOTIONS.length;
-    }, 2500);
-
-    // Initial distinct start
-    setTimeout(() => setCurrentEmotion("happy"), 500);
-
-    return () => clearInterval(interval);
-  }, []);
 
   const handleStart = () => {
     setIsLeaving(true);
     setTimeout(onEnter, 800); // Wait for animation
   };
 
-  const theme = CATEGORY_THEMES.default;
-
   return (
     <div
-      className={`fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#FAFAF9] transition-opacity duration-1000 ${
-        isLeaving ? "opacity-0 pointer-events-none" : "opacity-100"
+      className={`relative w-full h-full flex flex-col items-center justify-center transition-all duration-1000 ${
+        isLeaving ? "opacity-0 scale-105" : "opacity-100 scale-100"
       }`}
     >
-      {/* Background Ambience */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div
-          className="absolute top-[-10%] left-[-10%] w-[70%] h-[70%] bg-blue-50/80 rounded-full blur-[100px] animate-pulse"
-          style={{ animationDuration: "8s" }}
-        />
-        <div
-          className="absolute bottom-[-10%] right-[-10%] w-[70%] h-[70%] bg-pink-50/80 rounded-full blur-[100px] animate-pulse"
-          style={{ animationDuration: "10s" }}
-        />
-      </div>
-
-      <div
-        className={`relative z-10 flex flex-col items-center max-w-md px-6 text-center transition-all duration-1000 transform ${
-          isLeaving ? "scale-110" : "scale-100"
-        }`}
-      >
+      {/* Text Container */}
+      <div className="relative z-10 flex flex-col items-center max-w-md px-6 text-center">
         {/* Animated Title */}
         <h1
-          className="text-4xl md:text-5xl font-bold text-stone-700 tracking-tight mb-2 animate-slide-up-fade-in"
+          className="text-4xl md:text-5xl font-bold text-stone-700 tracking-tight mb-2 animate-slide-up-fade-in font-['Zen_Maru_Gothic']"
           style={{ animationDelay: "0.1s" }}
         >
           Aurora
         </h1>
         <p
-          className="text-stone-400 text-sm font-medium tracking-widest uppercase mb-10 animate-slide-up-fade-in"
+          className="text-stone-400 text-sm font-medium tracking-widest uppercase mb-4 animate-slide-up-fade-in"
           style={{ animationDelay: "0.2s" }}
         >
           Therapy Mentor
         </p>
 
-        {/* The Avatar */}
-        <div
-          className="relative w-64 h-64 md:w-80 md:h-80 mb-10 animate-pop-in flex items-center justify-center"
-          style={{ animationDelay: "0.3s" }}
-        >
-          <div className="absolute inset-0 bg-white/30 rounded-full blur-3xl scale-90"></div>
-          <AuroraSphere
-            isThinking={false}
-            category="default"
-            emotion={currentEmotion}
-            isInputFocused={false}
-            forceSmile={false}
-          />
-        </div>
+        {/* Spacer for the Avatar that lives in App.tsx */}
+        <div className="w-64 h-64 md:w-80 md:h-80 mb-6 shrink-0" />
 
         {/* Intro Text */}
         <div
-          className="space-y-4 mb-12 animate-slide-up-fade-in"
-          style={{ animationDelay: "0.5s" }}
+          className="space-y-4 mb-10 animate-slide-up-fade-in"
+          style={{ animationDelay: "0.4s" }}
         >
           <p className="text-lg md:text-xl text-stone-600 font-medium leading-relaxed">
             Your gentle companion for moments of <br />
@@ -104,16 +48,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
             <span className="text-pink-300">connection</span>, and{" "}
             <span className="text-blue-300">clarity</span>.
           </p>
-          <p className="text-stone-400 text-sm max-w-xs mx-auto">
-            Inspired by Yuki Takeda's <i>Happiness List</i>.
-          </p>
         </div>
 
         {/* CTA Button */}
         <button
           onClick={handleStart}
-          className="group relative px-8 py-4 bg-stone-800 text-white rounded-full text-sm font-bold tracking-wide shadow-lg hover:shadow-xl hover:bg-stone-700 transition-all duration-300 hover:-translate-y-1 active:scale-95 animate-slide-up-fade-in"
-          style={{ animationDelay: "0.7s" }}
+          className="group relative px-8 py-4 bg-stone-800 text-white rounded-full text-sm font-bold tracking-wide shadow-lg hover:shadow-xl hover:bg-stone-700 transition-all duration-300 hover:-translate-y-1 active:scale-95 animate-slide-up-fade-in overflow-hidden"
+          style={{ animationDelay: "0.6s" }}
         >
           <span className="relative z-10 flex items-center gap-2">
             Begin Journey
@@ -136,7 +77,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
       {/* Footer */}
       <div
         className="absolute bottom-6 text-stone-300 text-[10px] animate-slide-up-fade-in"
-        style={{ animationDelay: "1s" }}
+        style={{ animationDelay: "0.8s" }}
       >
         Designed for Highly Sensitive People (HSP)
       </div>

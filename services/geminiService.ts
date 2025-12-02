@@ -1,9 +1,7 @@
 
 import { GoogleGenAI, Chat, GenerateContentResponse, Content } from "@google/genai";
 import { SYSTEM_INSTRUCTION } from '../constants';
-import { TodoItem } from '../types';
-
-let chatSession: Chat | null = null;
+import { TodoItem, Message } from '../types';
 
 const getClient = () => {
   const apiKey = process.env.API_KEY;
@@ -13,9 +11,26 @@ const getClient = () => {
   return new GoogleGenAI({ apiKey });
 };
 
-export const initializeChat = (history: Content[] = []) => {
+/**
+ * Sends a message to Gemini with the specific context provided.
+ * This is stateless: it creates a new chat session for every turn to ensure
+ * strict adherence to the provided history context.
+ */
+export const sendMessage = async (
+  text: string, 
+  contextTodos: TodoItem[] = [],
+  historyMessages: Message[] = []
+): Promise<string> => {
+  
   const ai = getClient();
-  chatSession = ai.chats.create({
+
+  // Convert app Messages to Gemini Content objects
+  const history: Content[] = historyMessages.map(m => ({
+    role: m.role,
+    parts: [{ text: m.text }]
+  }));
+
+  const chatSession = ai.chats.create({
     model: 'gemini-2.5-flash',
     config: {
       systemInstruction: SYSTEM_INSTRUCTION,
@@ -23,17 +38,6 @@ export const initializeChat = (history: Content[] = []) => {
     },
     history: history
   });
-};
-
-export const sendMessage = async (text: string, contextTodos: TodoItem[] = []): Promise<string> => {
-  // If session doesn't exist (and wasn't initialized with history), init empty
-  if (!chatSession) {
-    initializeChat();
-  }
-
-  if (!chatSession) {
-     throw new Error("Failed to initialize chat session.");
-  }
 
   try {
     // Format the wall context
