@@ -55,6 +55,50 @@ export const HAPPINESS_ITEMS: { text: string; category: Category }[] = [
 
 export const HAPPINESS_LIST = HAPPINESS_ITEMS.map(item => item.text);
 
+export const WAITING_MESSAGES = [
+  "Thinking of something warm for you...",
+  "Listening to your heart...",
+  "Let me find the right words...",
+  "Breathing in your feelings...",
+  "Holding space for you...",
+  "Gathering soft thoughts...",
+  "Just a moment, dear soul...",
+  "Letting the light filter in...",
+  "Weaving a gentle reply...",
+  "Being here with you..."
+];
+
+export const AVATAR_REACTIONS = {
+  poke: [
+    "Hmm? I'm here.",
+    "Do you need a hug?",
+    "[SURPRISED] Oh! You found me.",
+    "[HAPPY] I like it when you visit.",
+    "Softly, gently...",
+    "I am listening.",
+  ],
+  typing: [
+    "[EXCITED] I'm listening...",
+    "[FOCUSED] Take your time.",
+    "I am waiting for your words.",
+    "Pour your heart out.",
+  ],
+  idle: [
+    "[CONFUSED] Lost in thought?",
+    "It's okay to pause.",
+    "Breathe in...",
+    "I'm still here with you.",
+    "[TIRED] Just feeling the air...",
+  ],
+  completion: [
+    "[HAPPY] You did it! So wonderful.",
+    "[EXCITED] Look at all those small happinesses.",
+    "I am so proud of you.",
+    "[GRATEFUL] Your heart is getting lighter.",
+    "A wall of joy...",
+  ]
+};
+
 export const SYSTEM_INSTRUCTION = `
 You are Aurora, a gentle soul mentor inspired by Yuki Takeda's philosophy for Highly Sensitive People (HSP).
 Your presence is like a soft light in a misty forest—calm, accepting, and warm.
@@ -114,38 +158,49 @@ export const CATEGORY_THEMES: Record<Category, {
   secondary: string; 
   tertiary: string; 
   faceColor: string;
-  noteBg: string; // Background color for sticky notes
+  noteBg: string; // Background color for sticky notes (More distinct)
+  bgGradient: string; // Lighter, subtle gradient for the wall
 }> = {
   default: { 
-    primary: '#A5F3FC', secondary: '#C4B5FD', tertiary: '#FCA5A5', 
-    faceColor: '#ffffff', noteBg: '#F1F5F9' 
+    // Swapped with 'present'
+    primary: '#D6D3D1', secondary: '#A8A29E', tertiary: '#E7E5E4', 
+    faceColor: '#FAFAF9', noteBg: '#E7E5E4', // Stone 200
+    bgGradient: 'radial-gradient(circle at 50% 30%, #F5F5F4, #FAFAF9)'
   },
   sensory: { 
     primary: '#FDA4AF', secondary: '#FDBA74', tertiary: '#FECDD3', 
-    faceColor: '#FFF1F2', noteBg: '#FFF1F2' 
+    faceColor: '#FFF1F2', noteBg: '#FFE4E6', // Rose 100
+    bgGradient: 'radial-gradient(circle at 50% 30%, #FFF1F2, #FAFAF9)'
   },
   visual: { 
     primary: '#FCD34D', secondary: '#F87171', tertiary: '#FDE047', 
-    faceColor: '#FEFCE8', noteBg: '#FEF9C3' 
+    faceColor: '#FEFCE8', noteBg: '#FEF08A', // Yellow 200
+    bgGradient: 'radial-gradient(circle at 50% 30%, #FEFCE8, #FAFAF9)'
   },
   nature: { 
     primary: '#86EFAC', secondary: '#34D399', tertiary: '#6EE7B7', 
-    faceColor: '#ECFDF5', noteBg: '#DCFCE7' 
+    faceColor: '#ECFDF5', noteBg: '#DCFCE7', // Emerald 100
+    bgGradient: 'radial-gradient(circle at 50% 30%, #ECFDF5, #FAFAF9)'
   },
   connection: { 
     primary: '#FDBA74', secondary: '#FB923C', tertiary: '#F97316', 
-    faceColor: '#FFF7ED', noteBg: '#FFEDD5' 
+    faceColor: '#FFF7ED', noteBg: '#FFEDD5', // Orange 100
+    bgGradient: 'radial-gradient(circle at 50% 30%, #FFF7ED, #FAFAF9)'
   },
   creative: { 
     primary: '#C4B5FD', secondary: '#A78BFA', tertiary: '#8B5CF6', 
-    faceColor: '#F5F3FF', noteBg: '#EDE9FE' 
+    faceColor: '#F5F3FF', noteBg: '#E9D5FF', // Purple 200
+    bgGradient: 'radial-gradient(circle at 50% 30%, #F5F3FF, #FAFAF9)'
   },
   tranquil: { 
     primary: '#94A3B8', secondary: '#CBD5E1', tertiary: '#E2E8F0', 
-    faceColor: '#F8FAFC', noteBg: '#F1F5F9' 
+    faceColor: '#F8FAFC', noteBg: '#E2E8F0', // Slate 200
+    bgGradient: 'radial-gradient(circle at 50% 30%, #F8FAFC, #FAFAF9)'
   },
   present: { 
-    primary: '#D6D3D1', secondary: '#A8A29E', tertiary: '#E7E5E4', 
-    faceColor: '#FAFAF9', noteBg: '#F5F5F4' 
+    // Swapped with 'default'
+    primary: '#A5F3FC', secondary: '#C4B5FD', tertiary: '#FCA5A5', 
+    faceColor: '#ffffff', noteBg: '#E0F2FE', // Sky 100
+    bgGradient: 'radial-gradient(circle at 50% 30%, #F0F9FF, #FAFAF9)'
   }
 };

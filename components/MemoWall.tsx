@@ -11,6 +11,93 @@ interface MemoWallProps {
   onPanChange: React.Dispatch<React.SetStateAction<{ x: number; y: number }>>;
 }
 
+// Sub-component for individual notes to manage their own exit animation state
+const MemoNote: React.FC<{
+  todo: TodoItem;
+  canvasOffset: { x: number; y: number };
+  isDragging: boolean;
+  isPanning: boolean;
+  onMouseDown: (e: React.MouseEvent | React.TouchEvent, todo: TodoItem) => void;
+  onDelete: (id: string) => void;
+  onToggle: (id: string) => void;
+}> = ({ todo, canvasOffset, isDragging, isPanning, onMouseDown, onDelete, onToggle }) => {
+  const [isExiting, setIsExiting] = useState(false);
+
+  const handleDeleteClick = (e: React.MouseEvent | React.TouchEvent) => {
+    e.stopPropagation();
+    setIsExiting(true);
+    // Wait for animation to finish before removing from state
+    setTimeout(() => {
+      onDelete(todo.id);
+    }, 300); // Matches .animate-sticker-disappear duration
+  };
+
+  return (
+    <div
+      className={`absolute w-36 md:w-48 cursor-grab active:cursor-grabbing pointer-events-auto select-none`}
+      style={{
+        left: `${todo.x + canvasOffset.x}px`,
+        top: `${todo.y + canvasOffset.y}px`,
+        transform: `rotate(${todo.rotation}deg)`,
+        zIndex: isDragging ? 100 : 10,
+        // Disable transition during drag OR pan to prevent lag
+        transition: (isDragging || isPanning) ? 'none' : 'top 0.1s, left 0.1s', 
+      }}
+      onMouseDown={(e) => onMouseDown(e, todo)}
+      onTouchStart={(e) => onMouseDown(e, todo)}
+    >
+      {/* Inner visual container for scale/opacity animations */}
+      <div 
+        className={`relative p-4 shadow-sm transition-shadow duration-300 hover:shadow-lg group rounded-sm ${
+          isExiting ? 'animate-sticker-disappear' : 'animate-sticker-appear'
+        } ${isDragging ? 'scale-105 shadow-xl' : ''}`}
+        style={{
+          backgroundColor: todo.color,
+          fontFamily: '"Zen Maru Gothic", sans-serif',
+        }}
+      >
+        {/* Visual tape/pin */}
+        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 w-3 md:w-4 h-6 md:h-8 bg-white/30 backdrop-blur-sm rotate-2 pointer-events-none"></div>
+
+        <p className="text-stone-700 text-xs md:text-sm leading-relaxed pointer-events-none break-words">
+          <span className={todo.completed ? 'line-through opacity-50' : ''}>{todo.text}</span>
+        </p>
+
+        {/* DELETE BUTTON */}
+        <button 
+          onClick={handleDeleteClick}
+          className="absolute -top-2 -right-2 w-6 h-6 bg-white rounded-full text-stone-400 opacity-0 group-hover:opacity-100 shadow-sm flex items-center justify-center hover:text-red-400 transition-opacity"
+          title="Remove note"
+          onMouseDown={(e) => e.stopPropagation()} 
+          onTouchStart={(e) => e.stopPropagation()}
+        >
+          ×
+        </button>
+        
+        {/* TOGGLE BUTTON */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggle(todo.id);
+          }}
+          className={`absolute -bottom-2 -right-2 w-6 h-6 bg-white rounded-full shadow-sm flex items-center justify-center transition-all duration-200 opacity-0 group-hover:opacity-100 ${
+            todo.completed 
+              ? 'text-green-500' 
+              : 'text-stone-300 hover:text-green-400'
+          }`}
+          title={todo.completed ? "Mark as incomplete" : "Mark as complete"}
+          onMouseDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const MemoWall: React.FC<MemoWallProps> = ({ todos, onUpdateTodoPosition, onDeleteTodo, onToggleTodo, canvasOffset, onPanChange }) => {
   const [draggingNoteId, setDraggingNoteId] = useState<string | null>(null);
   const [isPanning, setIsPanning] = useState(false);
@@ -107,61 +194,16 @@ const MemoWall: React.FC<MemoWallProps> = ({ todos, onUpdateTodoPosition, onDele
       />
 
       {todos.map((todo) => (
-        <div
+        <MemoNote
           key={todo.id}
-          className={`absolute p-4 w-36 md:w-48 shadow-sm transition-shadow duration-300 hover:shadow-lg cursor-grab active:cursor-grabbing pointer-events-auto group rounded-sm select-none`}
-          style={{
-            left: `${todo.x + canvasOffset.x}px`,
-            top: `${todo.y + canvasOffset.y}px`,
-            transform: `rotate(${todo.rotation}deg) scale(${draggingNoteId === todo.id ? 1.05 : 1})`,
-            backgroundColor: todo.color,
-            fontFamily: '"Zen Maru Gothic", sans-serif',
-            zIndex: draggingNoteId === todo.id ? 100 : 10,
-          }}
-          onMouseDown={(e) => handleNoteDragStart(e, todo)}
-          onTouchStart={(e) => handleNoteDragStart(e, todo)}
-        >
-           {/* Visual tape/pin */}
-           <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 w-3 md:w-4 h-6 md:h-8 bg-white/30 backdrop-blur-sm rotate-2 pointer-events-none"></div>
-
-           <p className={`text-stone-700 text-xs md:text-sm leading-relaxed pointer-events-none ${todo.completed ? 'line-through opacity-50' : ''}`}>
-             {todo.text}
-           </p>
-
-           {/* DELETE BUTTON */}
-           <button 
-             onClick={(e) => { 
-                e.stopPropagation(); 
-                onDeleteTodo(todo.id); 
-             }}
-             className="absolute -top-2 -right-2 w-6 h-6 bg-white rounded-full text-stone-400 opacity-0 group-hover:opacity-100 shadow-sm flex items-center justify-center hover:text-red-400 transition-opacity"
-             title="Remove note"
-             onMouseDown={(e) => e.stopPropagation()} 
-             onTouchStart={(e) => e.stopPropagation()}
-           >
-             ×
-           </button>
-           
-           {/* TOGGLE BUTTON */}
-           <button
-             onClick={(e) => {
-                e.stopPropagation();
-                onToggleTodo(todo.id);
-             }}
-             className={`absolute -bottom-2 -right-2 w-6 h-6 bg-white rounded-full shadow-sm flex items-center justify-center transition-all duration-200 opacity-0 group-hover:opacity-100 ${
-                todo.completed 
-                  ? 'text-green-500' 
-                  : 'text-stone-300 hover:text-green-400'
-             }`}
-             title={todo.completed ? "Mark as incomplete" : "Mark as complete"}
-             onMouseDown={(e) => e.stopPropagation()}
-             onTouchStart={(e) => e.stopPropagation()}
-           >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-              </svg>
-           </button>
-        </div>
+          todo={todo}
+          canvasOffset={canvasOffset}
+          isDragging={draggingNoteId === todo.id}
+          isPanning={isPanning}
+          onMouseDown={handleNoteDragStart}
+          onDelete={onDeleteTodo}
+          onToggle={onToggleTodo}
+        />
       ))}
       
        {/* Hint text */}

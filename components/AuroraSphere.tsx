@@ -31,21 +31,21 @@ const EMOTION_PRESETS: Record<Emotion | 'thinking' | 'sleeping', FaceConfig> = {
   neutral:   { eyes: 'dot', mouth: 'neutral', accessory: 'none' },
   happy:     { eyes: 'happy', mouth: 'smile', accessory: 'blush' },
   calm:      { eyes: 'closed', mouth: 'smile', accessory: 'none' },
-  excited:   { eyes: 'star', mouth: 'bigSmile', accessory: 'sparkle', animation: 'bounce' },
+  excited:   { eyes: 'star', mouth: 'bigSmile', accessory: 'sparkle' },
   sad:       { eyes: 'cross', mouth: 'zigzag', accessory: 'sweat' },
   surprised: { eyes: 'wide', mouth: 'open', accessory: 'shock' },
   focused:   { eyes: 'dot', mouth: 'cat', accessory: 'none' },
   
   // New Emotions
   confused:  { eyes: 'dot', mouth: 'zigzag', accessory: 'question' },
-  tired:     { eyes: 'relaxed', mouth: 'neutral', accessory: 'sweat' },
-  angry:     { eyes: 'angry', mouth: 'frown', accessory: 'steam' },
+  tired:     { eyes: 'relaxed', mouth: 'neutral', accessory: 'steam' },
+  angry:     { eyes: 'angry', mouth: 'frown', accessory: 'shock' },
   love:      { eyes: 'hearts', mouth: 'smile', accessory: 'blush' },
   grateful:  { eyes: 'teary', mouth: 'smile', accessory: 'blush' },
   hungry:    { eyes: 'dot', mouth: 'tongue', accessory: 'utensils' },
 
-  thinking:  { eyes: 'dot', mouth: 'open', accessory: 'sweat', animation: 'pulse' },
-  sleeping:  { eyes: 'closed', mouth: 'neutral', accessory: 'none' }
+  thinking:  { eyes: 'dot', mouth: 'open', accessory: 'sweat' },
+  sleeping:  { eyes: 'closed', mouth: 'neutral', accessory: 'zz' } as any // zz is handled by sleep logic usually, but we map to none/sweat for now or add zz
 };
 
 // --- SVG Path Generators ---
@@ -90,7 +90,7 @@ const generateEyes = (type: EyeType, strokeProps: any, fillProps: any) => {
         </>
       );
     case 'cross': // X X
-      const size = 7;
+      const size = 6;
       return (
         <>
           <path d={`M ${leftCenter.x-size} ${leftCenter.y-size} L ${leftCenter.x+size} ${leftCenter.y+size}`} {...strokeProps} />
@@ -142,15 +142,15 @@ const generateEyes = (type: EyeType, strokeProps: any, fillProps: any) => {
     case 'angry': // / \
        return (
          <>
-            <line x1={leftCenter.x - 8} y1={leftCenter.y - 4} x2={leftCenter.x + 8} y2={leftCenter.y + 4} {...strokeProps} />
-            <line x1={rightCenter.x - 8} y1={rightCenter.y + 4} x2={rightCenter.x + 8} y2={rightCenter.y - 4} {...strokeProps} />
+            <line x1={leftCenter.x - 7} y1={leftCenter.y - 3} x2={leftCenter.x + 7} y2={leftCenter.y + 3} {...strokeProps} />
+            <line x1={rightCenter.x - 7} y1={rightCenter.y + 3} x2={rightCenter.x + 7} y2={rightCenter.y - 3} {...strokeProps} />
          </>
        );
     case 'relaxed': // U U
        return (
         <>
-           <path d={`M ${leftCenter.x-8} ${leftCenter.y} Q ${leftCenter.x} ${leftCenter.y+8} ${leftCenter.x+8} ${leftCenter.y}`} {...strokeProps} />
-           <path d={`M ${rightCenter.x-8} ${rightCenter.y} Q ${rightCenter.x} ${rightCenter.y+8} ${rightCenter.x+8} ${rightCenter.y}`} {...strokeProps} />
+           <path d={`M ${leftCenter.x-7} ${leftCenter.y} Q ${leftCenter.x} ${leftCenter.y+7} ${leftCenter.x+7} ${leftCenter.y}`} {...strokeProps} />
+           <path d={`M ${rightCenter.x-7} ${rightCenter.y} Q ${rightCenter.x} ${rightCenter.y+7} ${rightCenter.x+7} ${rightCenter.y}`} {...strokeProps} />
         </>
        );
     default: return null;
@@ -166,92 +166,101 @@ const generateMouth = (type: MouthType, strokeProps: any, fillProps: any) => {
     case 'smile': // u
       return <path d={`M ${center.x-10} ${center.y-2} Q ${center.x} ${center.y+8} ${center.x+10} ${center.y-2}`} {...strokeProps} />;
     case 'bigSmile': // D shape
-      return <path d={`M ${center.x-12} ${center.y-2} Q ${center.x} ${center.y+15} ${center.x+12} ${center.y-2} Z`} {...strokeProps} fill={strokeProps.stroke} fillOpacity="0.2" />;
+      return <path d={`M ${center.x-12} ${center.y-2} Q ${center.x} ${center.y+15} ${center.x+12} ${center.y-2} Z`} {...strokeProps} fill={strokeProps.stroke} fillOpacity="0.1" />;
     case 'open': // o
        return <circle cx={center.x} cy={center.y+2} r="6" {...strokeProps} />;
     case 'sad': // n
       return <path d={`M ${center.x-8} ${center.y+5} Q ${center.x} ${center.y-2} ${center.x+8} ${center.y+5}`} {...strokeProps} />;
     case 'cat': // :3
-      return <path d={`M ${center.x-12} ${center.y} Q ${center.x-6} ${center.y+8} ${center.x} ${center.y} Q ${center.x+6} ${center.y+8} ${center.x+12} ${center.y}`} {...strokeProps} />;
-    case 'zigzag': // ~
-      return <path d={`M ${center.x-10} ${center.y+2} L ${center.x-5} ${center.y-2} L ${center.x} ${center.y+2} L ${center.x+5} ${center.y-2} L ${center.x+10} ${center.y+2}`} {...strokeProps} />;
+      return <path d={`M ${center.x-10} ${center.y} Q ${center.x-5} ${center.y+6} ${center.x} ${center.y} Q ${center.x+5} ${center.y+6} ${center.x+10} ${center.y}`} {...strokeProps} />;
+    case 'zigzag': // ~ (smoother)
+      return <path d={`M ${center.x-10} ${center.y+1} Q ${center.x-5} ${center.y-3} ${center.x} ${center.y+1} Q ${center.x+5} ${center.y+5} ${center.x+10} ${center.y+1}`} {...strokeProps} />;
     case 'triangle': // Triangle open
       return <path d={`M ${center.x-8} ${center.y+5} L ${center.x+8} ${center.y+5} L ${center.x} ${center.y-5} Z`} {...strokeProps} />;
-    case 'tongue':
+    case 'tongue': // :P style
       return (
         <g>
-          <path d={`M ${center.x-10} ${center.y-2} Q ${center.x} ${center.y+8} ${center.x+10} ${center.y-2}`} {...strokeProps} />
-          <path d={`M ${center.x-4} ${center.y+3} Q ${center.x} ${center.y+10} ${center.x+4} ${center.y+3}`} {...fillProps} stroke="none" fill="#FF8ba0" />
+           {/* Mouth line */}
+          <path d={`M ${center.x-12} ${center.y-2} Q ${center.x} ${center.y+6} ${center.x+12} ${center.y-2}`} {...strokeProps} />
+           {/* Tongue - bigger, U shape */}
+          <path d={`M ${center.x-6} ${center.y+3} Q ${center.x} ${center.y+15} ${center.x+6} ${center.y+3}`} {...strokeProps} fill={strokeProps.stroke} fillOpacity="0.1" />
         </g>
       );
     case 'frown':
         return <path d={`M ${center.x-6} ${center.y+4} Q ${center.x} ${center.y} ${center.x+6} ${center.y+4}`} {...strokeProps} />;
     case 'smirk':
         return <path d={`M ${center.x-8} ${center.y} Q ${center.x} ${center.y+2} ${center.x+8} ${center.y-2}`} {...strokeProps} />;
-    case 'kiss':
-        return <path d={`M ${center.x-4} ${center.y} L ${center.x-2} ${center.y+4} L ${center.x+2} ${center.y+4} L ${center.x+4} ${center.y} Z`} {...strokeProps} />;
+    case 'kiss': // 3 shape rotated
+        return <path d={`M ${center.x-4} ${center.y-3} Q ${center.x} ${center.y} ${center.x-4} ${center.y+3} M ${center.x+4} ${center.y-3} Q ${center.x} ${center.y} ${center.x+4} ${center.y+3}`} {...strokeProps} />;
     default: return null;
   }
 };
 
 const generateAccessory = (type: AccessoryType, strokeProps: any) => {
+  // Styles for "sketchy" look
+  const sketchStyle = { ...strokeProps, strokeWidth: 2.5, opacity: 0.8, fill: 'none' };
+  
   switch (type) {
-    case 'blush':
-      const blushStyle = { ...strokeProps, strokeWidth: 2, opacity: 0.6 };
+    case 'blush': // Simple hatching
       return (
         <>
-          <g transform="translate(155, 208)">
-             <line x1="0" y1="0" x2="8" y2="-8" {...blushStyle} />
-             <line x1="6" y1="0" x2="14" y2="-8" {...blushStyle} />
+          <g transform="translate(155, 210)">
+             <line x1="0" y1="0" x2="6" y2="-6" {...sketchStyle} opacity="0.4" />
+             <line x1="6" y1="0" x2="12" y2="-6" {...sketchStyle} opacity="0.4" />
           </g>
-          <g transform="translate(225, 208)">
-             <line x1="0" y1="0" x2="8" y2="-8" {...blushStyle} />
-             <line x1="6" y1="0" x2="14" y2="-8" {...blushStyle} />
+          <g transform="translate(230, 210)">
+             <line x1="0" y1="0" x2="6" y2="-6" {...sketchStyle} opacity="0.4" />
+             <line x1="6" y1="0" x2="12" y2="-6" {...sketchStyle} opacity="0.4" />
           </g>
         </>
       );
-    case 'sweat':
+    case 'sweat': // Perfect water drop 💧
       return (
-        <path d="M 255 180 Q 250 170 260 175 Q 265 185 255 190 Q 245 185 255 180" fill="#A5F3FC" stroke="none" opacity="0.8" />
+        <g transform="translate(250, 175) rotate(-10)">
+           <path d="M 0 0 C -5 6 -5 13 0 13 C 5 13 5 6 0 0" {...sketchStyle} fill={sketchStyle.stroke} fillOpacity="0.15" />
+        </g>
       );
-    case 'tear':
+    case 'tear': // Perfect water drop 💧
       return (
-        <path d="M 170 205 Q 165 215 170 220 Q 175 215 170 205" fill="#A5F3FC" stroke="none" opacity="0.8" />
+        <g transform="translate(160, 215)">
+           <path d="M 0 0 C -4 5 -4 10 0 10 C 4 10 4 5 0 0" {...sketchStyle} fill={sketchStyle.stroke} fillOpacity="0.15" />
+        </g>
       );
     case 'shock': // || lines
-      const shockStyle = { ...strokeProps, strokeWidth: 2 };
       return (
-        <g transform="translate(250, 160)">
-          <line x1="0" y1="0" x2="0" y2="15" {...shockStyle} />
-          <line x1="10" y1="0" x2="10" y2="15" {...shockStyle} />
-          <line x1="20" y1="0" x2="20" y2="15" {...shockStyle} />
+        <g transform="translate(255, 160)">
+          <line x1="0" y1="0" x2="0" y2="12" {...sketchStyle} />
+          <line x1="8" y1="0" x2="8" y2="12" {...sketchStyle} />
         </g>
       );
-    case 'sparkle':
+    case 'sparkle': // Simple cross stars
       return (
-        <g transform="translate(250, 170)" fill="#FEF08A">
-           <path d="M 10 0 L 12 8 L 20 10 L 12 12 L 10 20 L 8 12 L 0 10 L 8 8 Z" />
+        <g transform="translate(260, 170)">
+           <path d="M 5 0 L 5 10 M 0 5 L 10 5" {...sketchStyle} />
+           <path d="M 20 15 L 20 20 M 17.5 17.5 L 22.5 17.5" {...sketchStyle} strokeWidth="1.5" />
         </g>
       );
-    case 'halo':
+    case 'halo': // Simple ellipse loop
        return (
-        <ellipse cx="200" cy="155" rx="30" ry="8" fill="none" stroke="#FEF08A" strokeWidth="4" />
+        <ellipse cx="200" cy="155" rx="25" ry="6" {...sketchStyle} />
        );
-    case 'question':
+    case 'question': // Hand drawn ?
        return (
-        <text x="250" y="170" fontFamily="sans-serif" fontSize="30" fill={strokeProps.stroke} opacity="0.7">?</text>
+        <path d="M 255 170 Q 265 160 270 170 Q 270 180 260 180 L 260 185 M 260 192 L 260 194" {...sketchStyle} strokeWidth="3" />
        );
-    case 'steam':
+    case 'steam': // Simple curves
        return (
-         <g stroke={strokeProps.stroke} strokeWidth="2" fill="none" opacity="0.6">
-           <path d="M 230 160 Q 240 150 230 140" />
-           <path d="M 240 165 Q 250 155 240 145" />
+         <g {...sketchStyle}>
+           <path d="M 240 160 Q 245 155 240 150" />
+           <path d="M 250 165 Q 255 160 250 155" />
          </g>
        );
-    case 'utensils':
+    case 'utensils': // Abstract knife/fork lines
        return (
-         <g transform="translate(250, 180)" stroke={strokeProps.stroke} strokeWidth="2" fill="none">
-           <path d="M 0 0 L 0 10 M -4 0 L -4 10 M 4 0 L 4 10 M 0 10 L 0 20" /> {/* Fork-ish */}
+         <g transform="translate(260, 180)" {...sketchStyle}>
+           <path d="M 0 0 L 0 12" />
+           <path d="M 6 0 L 6 12" />
+           <path d="M 12 0 L 12 12" />
          </g>
        );
     default: return null;
@@ -366,7 +375,7 @@ const AuroraSphere: React.FC<AuroraSphereProps> = ({
   return (
     <div 
       ref={containerRef}
-      className={`relative w-48 h-48 md:w-64 md:h-64 transition-transform duration-700 ease-in-out pointer-events-none`}
+      className={`relative w-40 h-40 sm:w-48 sm:h-48 md:w-64 md:h-64 transition-transform duration-700 ease-in-out pointer-events-none`}
     >
       <svg 
         viewBox="0 0 400 400" 

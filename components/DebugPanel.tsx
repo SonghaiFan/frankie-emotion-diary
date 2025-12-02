@@ -52,7 +52,7 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
   };
 
   return (
-    <div className="fixed top-4 right-4 z-50 bg-white/95 backdrop-blur-xl border border-stone-200 shadow-2xl rounded-2xl p-5 w-80 max-h-[90vh] overflow-y-auto text-xs font-mono pointer-events-auto transition-all animate-in slide-in-from-right-10">
+    <div className="fixed top-4 right-4 z-50 bg-white/95 backdrop-blur-xl border border-stone-200 shadow-2xl rounded-2xl p-5 w-80 max-w-[calc(100vw-2rem)] max-h-[90vh] overflow-y-auto text-xs font-mono pointer-events-auto transition-all animate-in slide-in-from-right-10">
       <div className="flex justify-between items-center mb-6 pb-2 border-b border-stone-100">
         <h3 className="font-bold text-stone-800 text-sm">Aurora Debugger</h3>
         <button onClick={onClose} className="text-stone-400 hover:text-stone-800 transition-colors p-1">
@@ -90,7 +90,7 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
           <div className="flex justify-between items-center">
              <label className="text-stone-500">Eyes</label>
              <select 
-               className="bg-white border border-stone-200 rounded px-2 py-1 w-32"
+               className="bg-white border border-stone-200 rounded px-2 py-1 w-24 md:w-32"
                value={selectedEye}
                onChange={e => handleOverride(e.target.value as any, selectedMouth, selectedAcc)}
              >
@@ -101,7 +101,7 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
           <div className="flex justify-between items-center">
              <label className="text-stone-500">Mouth</label>
              <select 
-               className="bg-white border border-stone-200 rounded px-2 py-1 w-32"
+               className="bg-white border border-stone-200 rounded px-2 py-1 w-24 md:w-32"
                value={selectedMouth}
                onChange={e => handleOverride(selectedEye, e.target.value as any, selectedAcc)}
              >
@@ -112,7 +112,7 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
           <div className="flex justify-between items-center">
              <label className="text-stone-500">Accessory</label>
              <select 
-               className="bg-white border border-stone-200 rounded px-2 py-1 w-32"
+               className="bg-white border border-stone-200 rounded px-2 py-1 w-24 md:w-32"
                value={selectedAcc}
                onChange={e => handleOverride(selectedEye, selectedMouth, e.target.value as any)}
              >
