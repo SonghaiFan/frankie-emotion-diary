@@ -403,7 +403,6 @@ const App: React.FC = () => {
   const handleEnterApp = () => {
     setShowLanding(false);
     localStorage.setItem("aurora_visited", "true");
-    // Ensure bubble shows up when entering
     setIsBubbleVisible(true);
   };
 
@@ -653,6 +652,7 @@ const App: React.FC = () => {
               eyeOverride={debugOverrides.eyes}
               mouthOverride={debugOverrides.mouth}
               accessoryOverride={debugOverrides.accessory}
+              isInBottle={false}
             />
           </div>
 

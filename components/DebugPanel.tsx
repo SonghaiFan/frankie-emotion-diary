@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Category, Emotion, EMOTIONS, CATEGORY_THEMES } from "../constants";
 import { EyeType, MouthType, AccessoryType } from "./AuroraSphere";

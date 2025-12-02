@@ -115,6 +115,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
               forceSmile={false}
               className="w-56 h-56 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-96 lg:h-96"
               smoothTransition={true}
+              isInBottle={true}
             />
           </div>
 
