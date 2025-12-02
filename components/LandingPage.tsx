@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import AuroraSphere from "./AuroraSphere";
 import { Emotion, Category } from "@/constants";
@@ -50,7 +51,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
       setCurrentEmotion(DEMO_EMOTIONS[index % DEMO_EMOTIONS.length]);
       setCurrentCategory(DEMO_CATEGORIES[index % DEMO_CATEGORIES.length]);
       index++;
-    }, 2500);
+    }, 3000); // Slower, more gentle transition
 
     // Initial distinct start
     setTimeout(() => {
@@ -66,8 +67,6 @@ const LandingPage: React.FC<LandingPageProps> = ({
     setTimeout(onEnter, 800); // Wait for animation
   };
 
-  const theme = CATEGORY_THEMES.default;
-
   return (
     <div
       className={`fixed inset-0 z-[100] bg-[#FAFAF9] transition-opacity duration-1000 overflow-y-auto overflow-x-hidden ${
@@ -77,12 +76,12 @@ const LandingPage: React.FC<LandingPageProps> = ({
       {/* Background Ambience */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div
-          className="absolute top-[-10%] left-[-10%] w-[70%] h-[70%] bg-blue-50/80 rounded-full blur-[100px] animate-pulse"
-          style={{ animationDuration: "8s" }}
+          className="absolute top-[-20%] left-[-10%] w-[80%] h-[80%] bg-blue-50/60 rounded-full blur-[120px] animate-pulse"
+          style={{ animationDuration: "12s" }}
         />
         <div
-          className="absolute bottom-[-10%] right-[-10%] w-[70%] h-[70%] bg-pink-50/80 rounded-full blur-[100px] animate-pulse"
-          style={{ animationDuration: "10s" }}
+          className="absolute bottom-[-20%] right-[-10%] w-[80%] h-[80%] bg-pink-50/60 rounded-full blur-[120px] animate-pulse"
+          style={{ animationDuration: "15s" }}
         />
       </div>
 
@@ -96,208 +95,146 @@ const LandingPage: React.FC<LandingPageProps> = ({
         </button>
       </div>
 
-      <div className="min-h-full w-full flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-full w-full flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative z-10">
         <div
-          className={`relative z-10 flex flex-col items-center w-full max-w-5xl text-center transition-all duration-1000 transform ${
-            isLeaving ? "scale-110" : "scale-100"
+          className={`flex flex-col items-center w-full max-w-4xl text-center transition-all duration-1000 transform ${
+            isLeaving ? "scale-105 opacity-0" : "scale-100 opacity-100"
           }`}
         >
-          {/* Animated Title */}
-          <h1
-            className="text-4xl sm:text-5xl md:text-6xl font-bold text-stone-700 tracking-tight mb-2 animate-slide-up-fade-in"
-            style={{ animationDelay: "0.1s" }}
-          >
-            Aurora
-          </h1>
-          <p
-            className="text-stone-400 text-xs sm:text-sm font-medium tracking-widest uppercase mb-8 md:mb-12 animate-slide-up-fade-in"
+          {/* 1. The Entity (Visual Center) */}
+          <div
+            className="relative animate-pop-in flex items-center justify-center mb-8 sm:mb-12"
             style={{ animationDelay: "0.2s" }}
           >
-            {t.slogan}
-          </p>
-
-          {/* The Avatar */}
-          <div
-            className="relative animate-pop-in flex items-center justify-center"
-            style={{ animationDelay: "0.3s" }}
-          >
-            <div className="absolute inset-0 bg-white/30 rounded-full blur-3xl scale-90"></div>
+            <div className="absolute inset-0 bg-white/40 rounded-full blur-3xl scale-95"></div>
             <AuroraSphere
               isThinking={false}
               category={currentCategory}
               emotion={currentEmotion}
               isInputFocused={false}
               forceSmile={false}
-              className="w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-96 lg:h-96"
+              className="w-56 h-56 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-96 lg:h-96"
               smoothTransition={true}
             />
           </div>
 
-          {/* Intro Text & Features */}
-          <div
-            className="space-y-10 animate-slide-up-fade-in w-full max-w-4xl mx-auto"
-            style={{ animationDelay: "0.5s" }}
+          {/* 2. The Identity (Title & Slogan) */}
+          <h1
+            className="text-4xl sm:text-5xl font-bold text-stone-700 tracking-tight mb-3 animate-slide-up-fade-in"
+            style={{ animationDelay: "0.1s" }}
           >
-            <p className="text-lg sm:text-xl md:text-2xl text-stone-600 font-medium leading-relaxed max-w-2xl mx-auto">
+            Aurora
+          </h1>
+          <p
+            className="text-stone-400 text-xs sm:text-sm font-medium tracking-widest uppercase mb-10 animate-slide-up-fade-in"
+            style={{ animationDelay: "0.2s" }}
+          >
+            {t.slogan}
+          </p>
+
+          {/* 3. The Intro (Poetic Description) */}
+          <div
+            className="max-w-2xl mx-auto space-y-8 animate-slide-up-fade-in mb-12"
+            style={{ animationDelay: "0.4s" }}
+          >
+            <p className="text-lg sm:text-xl md:text-2xl text-stone-600 leading-relaxed">
               {t.intro.part1} <br className="hidden sm:block" />
-              <span className="text-green-400">{t.intro.key1}</span>,{" "}
-              <span className="text-blue-300">{t.intro.key2}</span>,{" "}
-              {language === "en" ? "and " : "与 "}
-              <span className="text-pink-300">{t.intro.key3}</span>.
-            </p>
-
-            {/* CTA Buttons - Moved Up for Better Conversion */}
-            <div className="flex flex-col items-center gap-4 py-6">
-              {!user ? (
-                <>
-                  <button
-                    onClick={onLogin}
-                    className="group relative px-10 py-5 bg-white/80 backdrop-blur-md text-stone-600 rounded-full text-base font-medium tracking-wide shadow-lg hover:shadow-xl hover:bg-white transition-all duration-500 hover:-translate-y-1 active:scale-95 flex items-center gap-3 w-full sm:w-auto justify-center min-w-[240px] border border-white/60 ring-1 ring-stone-100"
-                  >
-                    <svg
-                      className="w-5 h-5 opacity-80 group-hover:opacity-100 transition-opacity"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <path
-                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                        fill="#4285F4"
-                      />
-                      <path
-                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                        fill="#34A853"
-                      />
-                      <path
-                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                        fill="#FBBC05"
-                      />
-                      <path
-                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                        fill="#EA4335"
-                      />
-                    </svg>
-                    <span className="group-hover:text-stone-800 transition-colors">
-                      {t.startGoogle}
-                    </span>
-                  </button>
-                  <button
-                    onClick={handleStart}
-                    className="text-stone-400 text-sm font-medium hover:text-stone-600 transition-all duration-300 hover:tracking-wider"
-                  >
-                    {t.continueGuest}
-                  </button>
-                </>
-              ) : (
-                <button
-                  onClick={handleStart}
-                  className="group relative px-10 py-5 bg-white/80 backdrop-blur-md text-stone-600 rounded-full text-base font-medium tracking-wide shadow-lg hover:shadow-xl hover:bg-white transition-all duration-500 hover:-translate-y-1 active:scale-95 w-full sm:w-auto justify-center min-w-[240px] border border-white/60 ring-1 ring-stone-100"
-                >
-                  <span className="relative z-10 flex items-center justify-center gap-2 group-hover:text-stone-800 transition-colors">
-                    {t.continueUser} {user.displayName?.split(" ")[0] || "User"}
-                    <svg
-                      className="w-5 h-5 transition-transform duration-500 group-hover:translate-x-1 text-stone-400 group-hover:text-stone-600"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </span>
-                </button>
-              )}
-            </div>
-
-            {/* Feature Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 text-left max-w-3xl mx-auto pt-8 border-t border-stone-100">
-              <div className="bg-white/60 backdrop-blur-sm p-5 md:p-6 rounded-2xl border border-white/50 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 flex flex-col h-full">
-                <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-50 rounded-full flex items-center justify-center mb-3 md:mb-4 text-blue-400 shrink-0">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 md:h-6 md:w-6"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-stone-700 font-bold text-sm md:text-base mb-1 md:mb-2">
-                  {t.features.chat.title}
-                </h3>
-                <p className="text-stone-500 text-xs md:text-sm leading-relaxed">
-                  {t.features.chat.desc}
-                </p>
-              </div>
-
-              <div className="bg-white/60 backdrop-blur-sm p-5 md:p-6 rounded-2xl border border-white/50 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 flex flex-col h-full">
-                <div className="w-10 h-10 md:w-12 md:h-12 bg-pink-50 rounded-full flex items-center justify-center mb-3 md:mb-4 text-pink-400 shrink-0">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 md:h-6 md:w-6"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 5a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0v-1H3a1 1 0 010-2h1V8a1 1 0 011-1zm5-5a1 1 0 011 1v1h1a1 1 0 010 2h-1v1a1 1 0 01-2 0V6h-1a1 1 0 010-2h1V3a1 1 0 011-1z"
-                      clipRule="evenodd"
-                    />
-                    <path d="M9 11a1 1 0 011-1h8a1 1 0 011 1v8a1 1 0 01-1 1h-8a1 1 0 01-1-1v-8z" />
-                  </svg>
-                </div>
-                <h3 className="text-stone-700 font-bold text-sm md:text-base mb-1 md:mb-2">
-                  {t.features.joy.title}
-                </h3>
-                <p className="text-stone-500 text-xs md:text-sm leading-relaxed">
-                  {t.features.joy.desc}
-                </p>
-              </div>
-
-              <div className="bg-white/60 backdrop-blur-sm p-5 md:p-6 rounded-2xl border border-white/50 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 flex flex-col h-full">
-                <div className="w-10 h-10 md:w-12 md:h-12 bg-green-50 rounded-full flex items-center justify-center mb-3 md:mb-4 text-green-400 shrink-0">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 md:h-6 md:w-6"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-stone-700 font-bold text-sm md:text-base mb-1 md:mb-2">
-                  {t.features.mood.title}
-                </h3>
-                <p className="text-stone-500 text-xs md:text-sm leading-relaxed">
-                  {t.features.mood.desc}
-                </p>
-              </div>
-            </div>
-
-            <p className="text-stone-400 text-xs max-w-xs mx-auto pt-4">
-              {t.inspiration}
+              <span className="font-bold mx-1">
+                <span className="text-rose-400">{t.intro.key1}</span>
+                <span className="text-stone-300">, </span>
+                <span className="text-violet-400">{t.intro.key2}</span>
+                <span className="text-stone-300">, </span>
+                <span className="text-sky-400">{t.intro.key3}</span>
+              </span>
+              <br className="hidden sm:block" />
+              {t.intro.part2}
             </p>
           </div>
-        </div>
 
-        {/* Footer */}
-        <div
-          className="w-full text-center py-6 text-stone-300 text-[10px] animate-slide-up-fade-in mt-auto"
-          style={{ animationDelay: "1s" }}
-        >
-          {t.footer}
+          {/* 4. The Action (CTA) */}
+          <div
+            className="flex flex-col items-center gap-5 animate-slide-up-fade-in mb-16"
+            style={{ animationDelay: "0.6s" }}
+          >
+            {!user ? (
+              <>
+                <button
+                  onClick={onLogin}
+                  className="group relative px-8 py-4 bg-white/80 backdrop-blur-md text-stone-600 rounded-full text-sm font-medium tracking-wide shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:bg-white transition-all duration-500 hover:-translate-y-1 active:scale-95 flex items-center gap-3 min-w-[220px] justify-center border border-white/60"
+                >
+                  <span className="opacity-80 group-hover:opacity-100 transition-opacity">
+                    ✨
+                  </span>
+                  <span className="group-hover:text-stone-800 transition-colors">
+                    {t.startGoogle}
+                  </span>
+                </button>
+                <button
+                  onClick={handleStart}
+                  className="text-stone-400 text-xs font-medium hover:text-stone-600 transition-all duration-300 border-b border-transparent hover:border-stone-300 pb-0.5"
+                >
+                  {t.continueGuest}
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={handleStart}
+                className="group relative px-10 py-5 bg-stone-800 backdrop-blur-md text-white rounded-full text-base font-medium tracking-wide shadow-xl hover:shadow-2xl hover:bg-stone-700 transition-all duration-500 hover:-translate-y-1 active:scale-95 min-w-[240px]"
+              >
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  {t.continueUser} {user.displayName?.split(" ")[0] || "User"}
+                </span>
+              </button>
+            )}
+          </div>
+
+          {/* 5. The Lore (Narrative Cards) */}
+          <div
+            className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl w-full border-t border-stone-100 pt-12 animate-slide-up-fade-in"
+            style={{ animationDelay: "0.8s" }}
+          >
+            {/* Origin */}
+            <div className="text-left px-4 group">
+              <h3 className="text-stone-800 text-lg mb-2 group-hover:text-sky-400 transition-colors">
+                {t.story.origin.title}
+              </h3>
+              <p className="text-stone-500 text-sm leading-relaxed font-light">
+                {t.story.origin.desc}
+              </p>
+            </div>
+
+            {/* Resonance (The Sticker Logic) */}
+            <div className="text-left px-4 md:border-l md:border-stone-100 group">
+              <h3 className="text-stone-800 text-lg mb-2 group-hover:text-rose-400 transition-colors">
+                {t.story.resonance.title}
+              </h3>
+              <p className="text-stone-500 text-sm leading-relaxed font-light">
+                {t.story.resonance.desc}
+              </p>
+            </div>
+
+            {/* Memory */}
+            <div className="text-left px-4 md:border-l md:border-stone-100 group">
+              <h3 className="text-stone-800 text-lg mb-2 group-hover:text-violet-400 transition-colors">
+                {t.story.memory.title}
+              </h3>
+              <p className="text-stone-500 text-sm leading-relaxed font-light">
+                {t.story.memory.desc}
+              </p>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div
+            className="w-full text-center pt-16 pb-6 text-stone-300 text-[10px] animate-slide-up-fade-in"
+            style={{ animationDelay: "1.2s" }}
+          >
+            {t.footer}
+          </div>
         </div>
       </div>
     </div>
   );
 };
+
 export default LandingPage;

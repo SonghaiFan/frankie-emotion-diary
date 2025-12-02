@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { EmotionLog } from "../types";
 import { Emotion, Category } from "@/constants";
@@ -86,7 +87,7 @@ const EmotionCalendar: React.FC<EmotionCalendarProps> = ({ uid, onClose }) => {
         <div className="p-6 border-b border-stone-100 flex justify-between items-center bg-white/50">
           <div>
             <h2 className="text-lg font-bold text-stone-700">Mood Calendar</h2>
-            <p className="text-xs text-stone-400">Your emotional journey</p>
+            <p className="text-xs text-stone-400">The shapes I took with you</p>
           </div>
           <button
             onClick={onClose}
@@ -104,8 +105,8 @@ const EmotionCalendar: React.FC<EmotionCalendarProps> = ({ uid, onClose }) => {
             </div>
           ) : sortedDates.length === 0 ? (
             <div className="text-center py-10 text-stone-400 text-sm">
-              No moods recorded yet. <br /> Talk to Aurora to start your
-              journal.
+              <p>The calendar is waiting to be filled.</p>
+              <p className="mt-2 text-xs opacity-70">Talk to Aurora to create your first cloud.</p>
             </div>
           ) : (
             sortedDates.map((date) => {
@@ -149,7 +150,7 @@ const EmotionCalendar: React.FC<EmotionCalendarProps> = ({ uid, onClose }) => {
                     {/* Stats */}
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-bold text-stone-700 capitalize mb-2">
-                        {dominantEmotion} Day
+                        {dominantEmotion} Form
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {topEmotions.map((emo) => (

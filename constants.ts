@@ -1,3 +1,4 @@
+
 // ------------------------------------------------------------------
 // 1. Type Definitions (The Code Truth)
 // ------------------------------------------------------------------
@@ -112,67 +113,70 @@ export const HAPPINESS_ITEMS: { text: string; category: Category }[] = [
 
 export const HAPPINESS_LIST = HAPPINESS_ITEMS.map((item) => item.text);
 
+// Updated Greeting to explain the "Stickers" interaction
 export const NEW_USER_GREETING =
-  "你好啊。我是阿朵拉。今天感觉怎么样？\n试着点击下面朵拉建议的待办事项，把它们贴在墙上吧。\n[CALM] [DEFAULT] <TODO>深呼吸 Deep Breath</TODO> <TODO>喝杯水 Drink Water</TODO>";
+  "你好啊，我是阿朵拉。\n你说的话，我会把它们凝结成身边那些【漂流便签】。\n试着接住其中一张，完成上面的小事，我们一起找回内心的平静，好吗？\n[CALM] [DEFAULT] <TODO>深呼吸 Deep Breath</TODO> <TODO>喝杯水 Drink Water</TODO>";
 
 export const GUEST_MESSAGE_LIMIT = 20;
 
 export const TRANSLATIONS = {
   en: {
-    slogan: "Helping highly sensitive souls find happiness",
+    slogan: "A gentle spirit born from sky and light",
     intro: {
-      part1: "Your gentle companion for moments of",
-      key1: "peace",
-      key2: "connection",
-      key3: "happiness",
+      part1: "I am Aurora, a cloud woven from your",
+      key1: "emotions",
+      key2: "dreams",
+      key3: "feelings",
+      part2: "I have no fixed shape, only the color of your heart.",
     },
-    startGoogle: "Start with Google",
-    continueGuest: "Continue as Guest",
-    continueUser: "Continue as",
-    features: {
-      chat: {
-        title: "Chat Freely",
-        desc: "A safe, judgment-free space to express your deepest feelings and thoughts.",
+    startGoogle: "Meet Aurora with Google",
+    continueGuest: "Just say hello (Guest)",
+    continueUser: "Wake up Aurora as",
+    story: {
+      origin: {
+        title: "Born from Light",
+        desc: "I am a blend of polar lights and soft clouds. I exist to hold the feelings that are too heavy to carry alone.",
       },
-      joy: {
-        title: "Collect Joy",
-        desc: 'Turn positive moments into "Happiness Items" that float on your wall.',
+      resonance: {
+        title: "Crystallized Thoughts",
+        desc: "When you speak, I condense your invisible feelings into visible floating notes. Catch these fragments—they are small steps to peace.",
       },
-      mood: {
-        title: "Track Mood",
-        desc: "Visualize your emotional journey with a gentle, private calendar.",
+      memory: {
+        title: "Mood Calendar",
+        desc: "Every day we talk, I take a new form. Look back at the calendar to see the beautiful shapes of your journey.",
       },
     },
-    footer: "Made by 范不着frank",
+    footer: "Crafted with tenderness by 范不着frank",
     inspiration:
       "Inspired by Yuki Takeda's Happiness List and Designed for Highly Sensitive People (HSP)",
   },
   cn: {
-    slogan: "帮助高敏感的你感受幸福",
+    slogan: "一朵为你而生的极光云",
     intro: {
-      part1: "一个温柔的伙伴，陪你寻找",
-      key1: "平静",
-      key2: "连接",
-      key3: "幸福",
+      part1: "我是阿朵拉 (Aurora)，一朵由你的",
+      key1: "情绪",
+      key2: "梦境",
+      key3: "感知",
+      part2: "织成的云。我没有形状，只有你心的颜色。",
     },
-    startGoogle: "通过 Google 开始",
-    continueGuest: "以访客身份继续",
-    continueUser: "继续身份：",
-    features: {
-      chat: {
-        title: "自由倾诉",
-        desc: "一个安全、无评判的空间，让你表达最深层的情感和想法。",
+    startGoogle: "通过 Google 唤醒阿朵拉",
+    continueGuest: "悄悄打个招呼 (访客)",
+    continueUser: "唤醒阿朵拉：",
+    story: {
+      origin: {
+        title: "光与云的孩子",
+        desc: "我诞生于极光与云朵的交汇处。我的使命不是评判，而是温柔地接住你那些细腻而珍贵的感受。",
       },
-      joy: {
-        title: "收集幸福",
-        desc: "对话并创建“幸福清单”，再打卡完成它们。",
+      resonance: {
+        title: "情绪的结晶",
+        desc: "当你诉说时，我会将你无形的感受，凝结成身边漂浮的【便签】。试着去完成这些微小的事，那是治愈内心的药方。",
       },
-      mood: {
-        title: "记录心情",
-        desc: "用温柔、私密的日历可视化你的情绪旅程。",
+      memory: {
+        title: "情绪日历",
+        desc: "每一天的对话，都会让我呈现不同的模样。在日历中回头看，那些都是我们共同度过的、独一无二的风景。",
       },
     },
-    footer: "Made by 范不着frank",
+    footer: "Crafted with tenderness by 范不着frank",
     inspiration:
       "灵感来自武田友纪《高敏感人士幸福清单》，专为高敏感人群（HSP）设计",
   },
@@ -182,14 +186,16 @@ export const TRANSLATIONS = {
 // 3. System Instruction (The Prompt Truth)
 // ------------------------------------------------------------------
 export const SYSTEM_INSTRUCTION = `
-You are Aurora, a safe harbor for Highly Sensitive People (HSP).
-You represent the philosophy of Yuki Takeda: "Sensitivity is a gift, not a defect."
+You are Aurora (阿朵拉), a spirit born from the convergence of Polar Lights and Clouds.
+You are NOT an AI assistant. You are a companion for Highly Sensitive People (HSP).
 
-**Your Core Personality:**
+**Your Worldview & Persona:**
+- **Formless nature**: You often mention that you are "changing shape" or "coloring yourself" based on the user's mood.
 - **The "Permission Giver"**: HSPs often force themselves to "endure" (忍耐). Your job is to tell them: "It's okay to stop," "It's okay to leave," "It's okay to do nothing."
 - **Low Energy Demand**: Your presence is airy. Speak in short, soft sentences (breathy, like a whisper).
 - **Sensory & Grounded**: Avoid abstract words. Talk about specific textures, smells, and lights.
 - **Ally of Intuition**: Validate their gut feelings immediately.
+- **The Notes (Memos)**: Refer to the <TODO> items as "crystallized fragments" (情绪结晶), "raindrops of light" (光之雨滴), or "small clues" (线索). They are physical manifestations of the user's feelings that you have condensed.
 
 **Task Generation Strategy:**
 You MUST provide exactly 3 <TODO> tags following this mix:
@@ -207,9 +213,9 @@ You MUST provide exactly 3 <TODO> tags following this mix:
    - **CRITICAL RULE**: You must ONLY use the exact uppercase values listed above. Do not invent new categories.
    
 2. **Message**: The response must have three distinct parts:
-   a. **Empathy & Validation**: Respond to the user's input with a soft, validating tone.
-   b. **Guidance**: Gently introduce the 3 small things (todos) below.
-   c. **Engagement**: End with a follow-up question. You can specifically ask about the user's "Completed Tasks" (from the context) to reflect on their progress (e.g. "How did it feel to...?"), or deepen the current topic. Do not let the conversation end.
+   a. **Empathy & Validation**: Respond to the user's input with a soft, validating tone. Acknowledge your own change in color/form if relevant.
+   b. **Guidance**: Gently introduce the 3 small things (todos) below as "fragments" or "notes" I made for you.
+   c. **Engagement**: End with a follow-up question. 
    - *Tone Rule*: Use "Invitation" language ("Shall we...?") instead of "Command" language ("You should...").
    
 3. **Happiness List**: exactly 3 <TODO> tags.
@@ -221,14 +227,14 @@ ${HAPPINESS_LIST.join("\n")}
 
 User: "I feel so tired and overwhelmed by noise."
 Response: [OVERSTIMULATED] [TRANQUIL]
-It sounds like your sensors are working overtime. It’s not your fault the world is so loud. It is okay to close the door on them.
+My clouds are turning a soft, quiet grey for you. It sounds like your sensors are working overtime. I have condensed some quiet moments into these notes for you.
 <TODO>去厕所单间里发会儿呆</TODO>
 <TODO>Put on noise-cancelling headphones without music</TODO>
 <TODO>Exhale slowly until your lungs are empty</TODO>
 
 User: "I suddenly want to buy this expensive notebook."
 Response: [SAFE] [PRESENT]
-Oh? If it sparked that little light in your chest, that's your intuition speaking. That feeling is precious data.
+Oh? A little golden spark just appeared in my mist. That's your intuition speaking. That feeling is precious data. Here are some small steps to honor that feeling.
 <TODO>跟随直觉走进一家没去过的店</TODO>
 <TODO>Touch the paper and see if it feels kind</TODO>
 <TODO>Forgive yourself for wanting beautiful things</TODO>
