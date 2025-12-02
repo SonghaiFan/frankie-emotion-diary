@@ -55,6 +55,11 @@ interface AuroraSphereProps {
   mouthOverride?: MouthType;
   accessoryOverride?: AccessoryType;
   className?: string;
+  customColors?: {
+    primary: string;
+    secondary: string;
+    tertiary: string;
+  };
 }
 
 interface FaceConfig {
@@ -536,8 +541,10 @@ const AuroraSphere: React.FC<AuroraSphereProps> = ({
   mouthOverride,
   accessoryOverride,
   className = "w-40 h-40 sm:w-64 sm:h-64",
+  customColors,
 }) => {
-  const style = CATEGORY_THEMES[category] || CATEGORY_THEMES.default;
+  const themeStyle = CATEGORY_THEMES[category] || CATEGORY_THEMES.default;
+  const style = customColors ? { ...themeStyle, ...customColors } : themeStyle;
   const [currentCategory, setCurrentCategory] = useState(category);
   const [animating, setAnimating] = useState(false);
 
@@ -682,76 +689,103 @@ const AuroraSphere: React.FC<AuroraSphereProps> = ({
           <filter id="aurora-flow" x="-50%" y="-50%" width="200%" height="200%">
             <feGaussianBlur
               in="SourceGraphic"
-              stdDeviation="15"
+              stdDeviation="20"
               result="blur"
             />
             <feTurbulence
               type="turbulence"
-              baseFrequency="0.012"
+              baseFrequency="0.015"
               numOctaves="3"
               result="noise"
               seed="5"
             >
               <animate
                 attributeName="baseFrequency"
-                values="0.012;0.008;0.012"
-                dur="10s"
+                values="0.015;0.01;0.015"
+                dur="15s"
                 repeatCount="indefinite"
               />
             </feTurbulence>
             <feDisplacementMap
               in="blur"
               in2="noise"
-              scale="25"
+              scale="30"
               xChannelSelector="R"
               yChannelSelector="G"
             />
           </filter>
-
-          <radialGradient id="grad-core">
-            <stop offset="0%" stopColor={style.faceColor} stopOpacity="1" />
-            <stop offset="50%" stopColor={style.faceColor} stopOpacity="0.8" />
-            <stop offset="100%" stopColor={style.primary} stopOpacity="0" />
-          </radialGradient>
         </defs>
 
         {/* --- Background Aurora Body --- */}
         <g filter="url(#aurora-flow)" opacity="0.9">
-          {/* Core Glow */}
-          <circle cx="200" cy="200" r="130" fill="url(#grad-core)" />
-
-          {/* Orbiting Blobs for Color Flow */}
-          <circle
-            cx="200"
-            cy="200"
-            r="100"
-            fill={style.secondary}
-            opacity="0.5"
-          >
+          {/* Cluster 1: Primary */}
+          <circle cx="180" cy="180" r="110" fill={style.primary} opacity="0.7">
             <animate
               attributeName="cx"
-              values="200;220;180;200"
-              dur="8s"
+              values="180;200;160;180"
+              dur="12s"
               repeatCount="indefinite"
             />
             <animate
               attributeName="cy"
-              values="200;180;220;200"
-              dur="9s"
+              values="180;160;200;180"
+              dur="14s"
+              repeatCount="indefinite"
+            />
+            <animate
+              attributeName="r"
+              values="110;120;100;110"
+              dur="10s"
               repeatCount="indefinite"
             />
           </circle>
-          <circle cx="200" cy="200" r="110" fill={style.tertiary} opacity="0.5">
+
+          {/* Cluster 2: Secondary */}
+          <circle
+            cx="220"
+            cy="180"
+            r="110"
+            fill={style.secondary}
+            opacity="0.7"
+          >
             <animate
               attributeName="cx"
-              values="200;180;220;200"
+              values="220;200;240;220"
+              dur="13s"
+              repeatCount="indefinite"
+            />
+            <animate
+              attributeName="cy"
+              values="180;200;160;180"
               dur="11s"
               repeatCount="indefinite"
             />
             <animate
-              attributeName="cy"
+              attributeName="r"
+              values="110;100;120;110"
+              dur="12s"
+              repeatCount="indefinite"
+            />
+          </circle>
+
+          {/* Cluster 3: Tertiary */}
+          <circle cx="200" cy="230" r="110" fill={style.tertiary} opacity="0.7">
+            <animate
+              attributeName="cx"
               values="200;220;180;200"
-              dur="10s"
+              dur="15s"
+              repeatCount="indefinite"
+            />
+            <animate
+              attributeName="cy"
+              values="230;210;250;230"
+              dur="13s"
+              repeatCount="indefinite"
+            />
+            <animate
+              attributeName="r"
+              values="110;115;105;110"
+              dur="14s"
               repeatCount="indefinite"
             />
           </circle>

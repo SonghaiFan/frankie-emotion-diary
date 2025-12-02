@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from "react";
 import AuroraSphere from "./AuroraSphere";
 import { Emotion, Category } from "@/constants";
-import { CATEGORY_THEMES } from "../constants";
+import { CATEGORY_THEMES, TRANSLATIONS } from "../constants";
 import { UserProfile } from "../types";
 
 interface LandingPageProps {
   onEnter: () => void;
   onLogin: () => void;
   user: UserProfile | null;
+  language: "en" | "cn";
+  setLanguage: (lang: "en" | "cn") => void;
 }
 
 const DEMO_EMOTIONS: Emotion[] = [
@@ -32,10 +34,14 @@ const LandingPage: React.FC<LandingPageProps> = ({
   onEnter,
   onLogin,
   user,
+  language,
+  setLanguage,
 }) => {
   const [currentEmotion, setCurrentEmotion] = useState<Emotion>("neutral");
   const [currentCategory, setCurrentCategory] = useState<Category>("default");
   const [isLeaving, setIsLeaving] = useState(false);
+
+  const t = TRANSLATIONS[language];
 
   // Cycle through emotions and categories to show personality
   useEffect(() => {
@@ -80,6 +86,16 @@ const LandingPage: React.FC<LandingPageProps> = ({
         />
       </div>
 
+      {/* Language Toggle */}
+      <div className="fixed top-6 right-6 z-50 animate-fade-in">
+        <button
+          onClick={() => setLanguage(language === "en" ? "cn" : "en")}
+          className="px-4 py-2 bg-white/50 backdrop-blur-md rounded-full text-stone-500 text-xs font-bold tracking-widest hover:bg-white hover:text-stone-800 transition-all duration-300 shadow-sm hover:shadow-md border border-white/40"
+        >
+          {language === "en" ? "CN" : "EN"}
+        </button>
+      </div>
+
       <div className="min-h-full w-full flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div
           className={`relative z-10 flex flex-col items-center w-full max-w-5xl text-center transition-all duration-1000 transform ${
@@ -97,7 +113,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
             className="text-stone-400 text-xs sm:text-sm font-medium tracking-widest uppercase mb-8 md:mb-12 animate-slide-up-fade-in"
             style={{ animationDelay: "0.2s" }}
           >
-            Therapy Mentor
+            {t.slogan}
           </p>
 
           {/* The Avatar */}
@@ -122,11 +138,11 @@ const LandingPage: React.FC<LandingPageProps> = ({
             style={{ animationDelay: "0.5s" }}
           >
             <p className="text-lg sm:text-xl md:text-2xl text-stone-600 font-medium leading-relaxed max-w-2xl mx-auto">
-              Your gentle companion for moments of{" "}
-              <br className="hidden sm:block" />
-              <span className="text-stone-400">peace</span>,{" "}
-              <span className="text-pink-300">connection</span>, and{" "}
-              <span className="text-blue-300">clarity</span>.
+              {t.intro.part1} <br className="hidden sm:block" />
+              <span className="text-green-400">{t.intro.key1}</span>,{" "}
+              <span className="text-blue-300">{t.intro.key2}</span>,{" "}
+              {language === "en" ? "and " : "与 "}
+              <span className="text-pink-300">{t.intro.key3}</span>.
             </p>
 
             {/* CTA Buttons - Moved Up for Better Conversion */}
@@ -160,14 +176,14 @@ const LandingPage: React.FC<LandingPageProps> = ({
                       />
                     </svg>
                     <span className="group-hover:text-stone-800 transition-colors">
-                      Start with Google
+                      {t.startGoogle}
                     </span>
                   </button>
                   <button
                     onClick={handleStart}
                     className="text-stone-400 text-sm font-medium hover:text-stone-600 transition-all duration-300 hover:tracking-wider"
                   >
-                    Continue as Guest
+                    {t.continueGuest}
                   </button>
                 </>
               ) : (
@@ -176,7 +192,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
                   className="group relative px-10 py-5 bg-white/80 backdrop-blur-md text-stone-600 rounded-full text-base font-medium tracking-wide shadow-lg hover:shadow-xl hover:bg-white transition-all duration-500 hover:-translate-y-1 active:scale-95 w-full sm:w-auto justify-center min-w-[240px] border border-white/60 ring-1 ring-stone-100"
                 >
                   <span className="relative z-10 flex items-center justify-center gap-2 group-hover:text-stone-800 transition-colors">
-                    Continue as {user.displayName?.split(" ")[0] || "User"}
+                    {t.continueUser} {user.displayName?.split(" ")[0] || "User"}
                     <svg
                       className="w-5 h-5 transition-transform duration-500 group-hover:translate-x-1 text-stone-400 group-hover:text-stone-600"
                       viewBox="0 0 20 20"
@@ -211,11 +227,10 @@ const LandingPage: React.FC<LandingPageProps> = ({
                   </svg>
                 </div>
                 <h3 className="text-stone-700 font-bold text-sm md:text-base mb-1 md:mb-2">
-                  Chat Freely
+                  {t.features.chat.title}
                 </h3>
                 <p className="text-stone-500 text-xs md:text-sm leading-relaxed">
-                  A safe, judgment-free space to express your deepest feelings
-                  and thoughts.
+                  {t.features.chat.desc}
                 </p>
               </div>
 
@@ -236,11 +251,10 @@ const LandingPage: React.FC<LandingPageProps> = ({
                   </svg>
                 </div>
                 <h3 className="text-stone-700 font-bold text-sm md:text-base mb-1 md:mb-2">
-                  Collect Joy
+                  {t.features.joy.title}
                 </h3>
                 <p className="text-stone-500 text-xs md:text-sm leading-relaxed">
-                  Turn positive moments into "Happiness Items" that float on
-                  your wall.
+                  {t.features.joy.desc}
                 </p>
               </div>
 
@@ -260,18 +274,16 @@ const LandingPage: React.FC<LandingPageProps> = ({
                   </svg>
                 </div>
                 <h3 className="text-stone-700 font-bold text-sm md:text-base mb-1 md:mb-2">
-                  Track Mood
+                  {t.features.mood.title}
                 </h3>
                 <p className="text-stone-500 text-xs md:text-sm leading-relaxed">
-                  Visualize your emotional journey with a gentle, private
-                  calendar.
+                  {t.features.mood.desc}
                 </p>
               </div>
             </div>
 
             <p className="text-stone-400 text-xs max-w-xs mx-auto pt-4">
-              Inspired by Yuki Takeda's <i>Happiness List</i> and Designed for
-              Highly Sensitive People (HSP)
+              {t.inspiration}
             </p>
           </div>
         </div>
@@ -281,7 +293,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
           className="w-full text-center py-6 text-stone-300 text-[10px] animate-slide-up-fade-in mt-auto"
           style={{ animationDelay: "1s" }}
         >
-          Made by 范不着frank
+          {t.footer}
         </div>
       </div>
     </div>

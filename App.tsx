@@ -40,6 +40,7 @@ const App: React.FC = () => {
   // --- State ---
   // Landing Page State
   const [showLanding, setShowLanding] = useState(true);
+  const [language, setLanguage] = useState<"en" | "cn">("cn");
 
   // Initialize from LocalStorage if available, otherwise default
   const [messages, setMessages] = useState<Message[]>([]);
@@ -592,6 +593,8 @@ const App: React.FC = () => {
           onEnter={handleEnterApp}
           onLogin={signInWithGoogle}
           user={user}
+          language={language}
+          setLanguage={setLanguage}
         />
       )}
 

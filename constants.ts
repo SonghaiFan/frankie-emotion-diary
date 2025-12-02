@@ -117,6 +117,67 @@ export const NEW_USER_GREETING =
 
 export const GUEST_MESSAGE_LIMIT = 20;
 
+export const TRANSLATIONS = {
+  en: {
+    slogan: "Helping highly sensitive souls find happiness",
+    intro: {
+      part1: "Your gentle companion for moments of",
+      key1: "peace",
+      key2: "connection",
+      key3: "happiness",
+    },
+    startGoogle: "Start with Google",
+    continueGuest: "Continue as Guest",
+    continueUser: "Continue as",
+    features: {
+      chat: {
+        title: "Chat Freely",
+        desc: "A safe, judgment-free space to express your deepest feelings and thoughts.",
+      },
+      joy: {
+        title: "Collect Joy",
+        desc: 'Turn positive moments into "Happiness Items" that float on your wall.',
+      },
+      mood: {
+        title: "Track Mood",
+        desc: "Visualize your emotional journey with a gentle, private calendar.",
+      },
+    },
+    footer: "Made by 范不着frank",
+    inspiration:
+      "Inspired by Yuki Takeda's Happiness List and Designed for Highly Sensitive People (HSP)",
+  },
+  cn: {
+    slogan: "帮助高敏感的你感受幸福",
+    intro: {
+      part1: "一个温柔的伙伴，陪你寻找",
+      key1: "平静",
+      key2: "连接",
+      key3: "幸福",
+    },
+    startGoogle: "通过 Google 开始",
+    continueGuest: "以访客身份继续",
+    continueUser: "继续身份：",
+    features: {
+      chat: {
+        title: "自由倾诉",
+        desc: "一个安全、无评判的空间，让你表达最深层的情感和想法。",
+      },
+      joy: {
+        title: "收集幸福",
+        desc: "对话并创建“幸福清单”，再打卡完成它们。",
+      },
+      mood: {
+        title: "记录心情",
+        desc: "用温柔、私密的日历可视化你的情绪旅程。",
+      },
+    },
+    footer: "Made by 范不着frank",
+    inspiration:
+      "灵感来自武田友纪《高敏感人士幸福清单》，专为高敏感人群（HSP）设计",
+  },
+};
+
 // ------------------------------------------------------------------
 // 3. System Instruction (The Prompt Truth)
 // ------------------------------------------------------------------
