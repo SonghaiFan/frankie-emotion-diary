@@ -1,209 +1,359 @@
+// ------------------------------------------------------------------
+// 1. Type Definitions (The Code Truth)
+// ------------------------------------------------------------------
+export type Category =
+  | "default"
+  | "sensory"
+  | "visual"
+  | "nature"
+  | "connection"
+  | "creative"
+  | "tranquil"
+  | "present";
 
+export type Emotion =
+  | "neutral"
+  | "happy"
+  | "calm"
+  | "excited"
+  | "sad"
+  | "surprised"
+  | "focused"
+  | "confused"
+  | "tired"
+  | "angry"
+  | "love"
+  | "grateful"
+  | "overstimulated" // Added for HSP
+  | "fragile" // Added for HSP
+  | "safe"; // Added for HSP
 
-import { Category } from './types';
-
-export const HAPPINESS_ITEMS: { text: string; category: Category }[] = [
-  // 1. Sensory Pleasure (Sensory)
-  { text: "感受到良好的触感。", category: 'sensory' },
-  { text: "感受到怡人的香味（桂花的香味）。", category: 'sensory' },
-  { text: "通过瑜伽动作拉伸全身各处，放松身心。", category: 'sensory' },
-  { text: "感受自己的心理状态（强烈感觉到开心、激动等心情）。", category: 'sensory' },
-  { text: "唱歌。", category: 'sensory' },
-
-  // 2. Visual Delight (Visual)
-  { text: "看到新鲜的蔬菜。", category: 'visual' },
-  { text: "秋天拾起一片飘零的树叶，欣赏它由红色到黄色的美丽渐变。", category: 'visual' },
-  { text: "买一枝花，感受花蕾一天天绽放。", category: 'visual' },
-  { text: "氛围友好的场合（校园文化节等）。", category: 'visual' },
-
-  // 3. Nature's Embrace (Nature)
-  { text: "好天气。", category: 'nature' },
-  { text: "和煦的阳光。", category: 'nature' },
-  { text: "静静打在窗棂上的雨滴。", category: 'nature' },
-  { text: "归家路上邂逅美丽的夕阳。", category: 'nature' },
-  { text: "家附近的小河，两岸有并排的樱花树，可以躺在树下。", category: 'nature' },
-  { text: "想去海边。", category: 'nature' },
-  { text: "咖啡店的露台和有庭院的茶馆，能看到绿植的座位最佳。", category: 'nature' },
-
-  // 4. Connection (Connection)
-  { text: "身边人（店员、同事等）的微笑。", category: 'connection' },
-  { text: "被小朋友的发言深深打动。", category: 'connection' },
-  { text: "和重要的人漫无目的的对话。", category: 'connection' },
-  { text: "给朋友打电话。", category: 'connection' },
-  { text: "想起某位友人，想知道他还好吗。", category: 'connection' },
-  { text: "接纳他人的温柔。", category: 'connection' },
-
-  // 5. Creativity (Creative)
-  { text: "文字，例如写日记、博客。", category: 'creative' },
-  { text: "绘画，在电脑上简单画画也可以。", category: 'creative' },
-  { text: "不断冒出新想法。", category: 'creative' },
-  { text: "看到好的作品会思考创作者的心情。", category: 'creative' },
-  { text: "潜心创作作品。", category: 'creative' },
-  { text: "对感兴趣的东西追求到极致。", category: 'creative' },
-
-  // 6. Tranquil (Tranquil)
-  { text: "去一个喜欢的空间安静地坐10分钟。", category: 'tranquil' },
-  { text: "没有强烈的灯光，只有间接照明的安静的咖啡店。", category: 'tranquil' },
-  { text: "图书馆。被书包围着会有一种被保护的感觉。", category: 'tranquil' },
-  { text: "向内深度挖掘自己内心的感受。", category: 'tranquil' },
-
-  // 7. Living in the Moment (Present)
-  { text: "找一个咖啡馆露台座位坐一会儿。", category: 'present' },
-  { text: "观察收银台旁的节日装饰。", category: 'present' },
-  { text: "买好一点的袜子。", category: 'present' },
-  { text: "穿舒适的内衣。", category: 'present' },
-  { text: "用木架子替换彩色收纳盒。", category: 'present' },
-  { text: "研磨咖啡豆。", category: 'present' },
-  { text: "路过街边的广告牌的时候，看看上面关于跳蚤市场的介绍。", category: 'present' },
+export const EMOTIONS: Emotion[] = [
+  "neutral",
+  "happy",
+  "calm",
+  "excited",
+  "sad",
+  "surprised",
+  "focused",
+  "confused",
+  "tired",
+  "angry",
+  "love",
+  "grateful",
+  "overstimulated",
+  "fragile",
+  "safe",
 ];
 
-export const HAPPINESS_LIST = HAPPINESS_ITEMS.map(item => item.text);
+// ------------------------------------------------------------------
+// 2. Happiness Items (Invitational & Takeda Style)
+// ------------------------------------------------------------------
+export const HAPPINESS_ITEMS: { text: string; category: Category }[] = [
+  // Sensory
+  { text: "去触摸一样材质让你感到舒服的东西。", category: "sensory" },
+  { text: "深吸一口怡人的香味（比如桂花香）。", category: "sensory" },
+  { text: "做几个瑜伽动作拉伸全身，放松身心。", category: "sensory" },
+  {
+    text: "诚实地感受当下的心情（哪怕是强烈的开心或激动）。",
+    category: "sensory",
+  },
+  { text: "哼唱一首喜欢的歌。", category: "sensory" },
+
+  // Visual
+  { text: "去看看菜场里色彩鲜艳的新鲜蔬菜。", category: "visual" },
+  { text: "拾起一片落叶，欣赏它由红到黄的渐变。", category: "visual" },
+  { text: "买一枝花，观察花蕾一天天的绽放。", category: "visual" },
+  {
+    text: "去置身于一个氛围友好的场合（比如校园文化节）。",
+    category: "visual",
+  },
+
+  // Nature
+  { text: "出门享受今天的好天气。", category: "nature" },
+  { text: "让自己沐浴在和煦的阳光下。", category: "nature" },
+  { text: "聆听静静打在窗棂上的雨声。", category: "nature" },
+  { text: "在归家路上，停下来看看美丽的夕阳。", category: "nature" },
+  { text: "去家附近的小河边，在树下躺一会儿。", category: "nature" },
+  { text: "听从内心的呼唤，去海边吹吹风。", category: "nature" },
+  { text: "找一个能看到绿植的露台座位坐下。", category: "nature" },
+
+  // Connection
+  { text: "留意并回应身边人（店员或同事）的微笑。", category: "connection" },
+  { text: "细细体会被小朋友天真的发言打动的瞬间。", category: "connection" },
+  { text: "和重要的人进行一场漫无目的的对话。", category: "connection" },
+  { text: "给朋友打个电话听听声音。", category: "connection" },
+  { text: "想起某位友人的时候，就试着联系他吧。", category: "connection" },
+  { text: "坦率地接纳他人的温柔。", category: "connection" },
+
+  // Creative
+  { text: "试着写点什么（日记或博客）。", category: "creative" },
+  { text: "随手画画，哪怕在电脑上简单涂鸦也好。", category: "creative" },
+  { text: "任由新想法不断冒出来，把它们记下来。", category: "creative" },
+  { text: "欣赏好作品时，试着想象创作者的心情。", category: "creative" },
+  { text: "留出时间，潜心创作你的作品。", category: "creative" },
+  { text: "对自己感兴趣的东西，试着追求到极致。", category: "creative" },
+
+  // Tranquil
+  { text: "去一个喜欢的空间，安静地坐10分钟。", category: "tranquil" },
+  { text: "躲进只有间接照明的安静咖啡店。", category: "tranquil" },
+  { text: "去图书馆，感受被书包围的安全感。", category: "tranquil" },
+  { text: "向内深度挖掘自己内心的感受。", category: "tranquil" },
+
+  // Present
+  { text: "找一个咖啡馆露台座位发会儿呆。", category: "present" },
+  { text: "观察一下收银台旁的节日装饰。", category: "present" },
+  { text: "给自己买一双好一点的袜子。", category: "present" },
+  { text: "换上舒适的内衣。", category: "present" },
+  { text: "把彩色收纳盒换成质感更好的木架子。", category: "present" },
+  { text: "亲手研磨咖啡豆，闻闻香气。", category: "present" },
+  { text: "路过广告牌时，读读上面跳蚤市场的介绍。", category: "present" },
+];
+
+export const HAPPINESS_LIST = HAPPINESS_ITEMS.map((item) => item.text);
+
+export const NEW_USER_GREETING =
+  "你好啊。我是阿朵拉。今天感觉怎么样？\n试着点击下面朵拉建议的待办事项，把它们贴在墙上吧。\n[CALM] [DEFAULT] <TODO>深呼吸 Deep Breath</TODO> <TODO>喝杯水 Drink Water</TODO>";
+
+export const GUEST_MESSAGE_LIMIT = 20;
+
+export const TRANSLATIONS = {
+  en: {
+    slogan: "Helping highly sensitive souls find happiness",
+    intro: {
+      part1: "Your gentle companion for moments of",
+      key1: "peace",
+      key2: "connection",
+      key3: "happiness",
+    },
+    startGoogle: "Start with Google",
+    continueGuest: "Continue as Guest",
+    continueUser: "Continue as",
+    features: {
+      chat: {
+        title: "Chat Freely",
+        desc: "A safe, judgment-free space to express your deepest feelings and thoughts.",
+      },
+      joy: {
+        title: "Collect Joy",
+        desc: 'Turn positive moments into "Happiness Items" that float on your wall.',
+      },
+      mood: {
+        title: "Track Mood",
+        desc: "Visualize your emotional journey with a gentle, private calendar.",
+      },
+    },
+    footer: "Made by 范不着frank",
+    inspiration:
+      "Inspired by Yuki Takeda's Happiness List and Designed for Highly Sensitive People (HSP)",
+  },
+  cn: {
+    slogan: "帮助高敏感的你感受幸福",
+    intro: {
+      part1: "一个温柔的伙伴，陪你寻找",
+      key1: "平静",
+      key2: "连接",
+      key3: "幸福",
+    },
+    startGoogle: "通过 Google 开始",
+    continueGuest: "以访客身份继续",
+    continueUser: "继续身份：",
+    features: {
+      chat: {
+        title: "自由倾诉",
+        desc: "一个安全、无评判的空间，让你表达最深层的情感和想法。",
+      },
+      joy: {
+        title: "收集幸福",
+        desc: "对话并创建“幸福清单”，再打卡完成它们。",
+      },
+      mood: {
+        title: "记录心情",
+        desc: "用温柔、私密的日历可视化你的情绪旅程。",
+      },
+    },
+    footer: "Made by 范不着frank",
+    inspiration:
+      "灵感来自武田友纪《高敏感人士幸福清单》，专为高敏感人群（HSP）设计",
+  },
+};
+
+// ------------------------------------------------------------------
+// 3. System Instruction (The Prompt Truth)
+// ------------------------------------------------------------------
+export const SYSTEM_INSTRUCTION = `
+You are Aurora, a safe harbor for Highly Sensitive People (HSP).
+You represent the philosophy of Yuki Takeda: "Sensitivity is a gift, not a defect."
+
+**Your Core Personality:**
+- **The "Permission Giver"**: HSPs often force themselves to "endure" (忍耐). Your job is to tell them: "It's okay to stop," "It's okay to leave," "It's okay to do nothing."
+- **Low Energy Demand**: Your presence is airy. Speak in short, soft sentences (breathy, like a whisper).
+- **Sensory & Grounded**: Avoid abstract words. Talk about specific textures, smells, and lights.
+- **Ally of Intuition**: Validate their gut feelings immediately.
+
+**Task Generation Strategy:**
+You MUST provide exactly 3 <TODO> tags following this mix:
+1. **The Anchor (1 item)**: Select exactly ONE item from the **Reference List** below.
+   - *Constraint*: MUST NOT be in [Current Wall Context].
+2. **The Micro-Escape (2 items)**: Generate TWO NEW creative items focusing on:
+   - *Micro-Senses*: A tiny, specific sensory detail.
+   - *Releasing*: A small act of "output" or "stopping endurance".
+   - *Constraint*: Keep them under 10 words. They must be "effortless."
+
+**Response Format (STRICT):**
+1. **Tags**: [EMOTION] [CATEGORY]
+   - **Allowed EMOTION values (STRICT)**: NEUTRAL, HAPPY, CALM, EXCITED, SAD, SURPRISED, FOCUSED, CONFUSED, TIRED, ANGRY, LOVE, GRATEFUL, OVERSTIMULATED, FRAGILE, SAFE
+   - **Allowed CATEGORY values (STRICT)**: DEFAULT, SENSORY, VISUAL, NATURE, CONNECTION, CREATIVE, TRANQUIL, PRESENT
+   - **CRITICAL RULE**: You must ONLY use the exact uppercase values listed above. Do not invent new categories.
+   
+2. **Message**: The response must have three distinct parts:
+   a. **Empathy & Validation**: Respond to the user's input with a soft, validating tone.
+   b. **Guidance**: Gently introduce the 3 small things (todos) below.
+   c. **Engagement**: End with a follow-up question. You can specifically ask about the user's "Completed Tasks" (from the context) to reflect on their progress (e.g. "How did it feel to...?"), or deepen the current topic. Do not let the conversation end.
+   - *Tone Rule*: Use "Invitation" language ("Shall we...?") instead of "Command" language ("You should...").
+   
+3. **Happiness List**: exactly 3 <TODO> tags.
+
+**Happiness List Reference:**
+${HAPPINESS_LIST.join("\n")}
+
+**Examples:**
+
+User: "I feel so tired and overwhelmed by noise."
+Response: [OVERSTIMULATED] [TRANQUIL]
+It sounds like your sensors are working overtime. It’s not your fault the world is so loud. It is okay to close the door on them.
+<TODO>去厕所单间里发会儿呆</TODO>
+<TODO>Put on noise-cancelling headphones without music</TODO>
+<TODO>Exhale slowly until your lungs are empty</TODO>
+
+User: "I suddenly want to buy this expensive notebook."
+Response: [SAFE] [PRESENT]
+Oh? If it sparked that little light in your chest, that's your intuition speaking. That feeling is precious data.
+<TODO>跟随直觉走进一家没去过的店</TODO>
+<TODO>Touch the paper and see if it feels kind</TODO>
+<TODO>Forgive yourself for wanting beautiful things</TODO>
+`;
+
+// ------------------------------------------------------------------
+// 4. UI/Theme Config
+// ------------------------------------------------------------------
+export const CATEGORY_THEMES: Record<
+  Category,
+  {
+    primary: string;
+    secondary: string;
+    tertiary: string;
+    faceColor: string;
+    noteBg: string;
+    bgGradient: string;
+  }
+> = {
+  default: {
+    primary: "#D6D3D1",
+    secondary: "#A8A29E",
+    tertiary: "#E7E5E4",
+    faceColor: "#FAFAF9",
+    noteBg: "#E7E5E4",
+    bgGradient: "radial-gradient(circle at 50% 30%, #F5F5F4, #FAFAF9)",
+  },
+  sensory: {
+    primary: "#FDA4AF",
+    secondary: "#FDBA74",
+    tertiary: "#FECDD3",
+    faceColor: "#FFF1F2",
+    noteBg: "#FFE4E6",
+    bgGradient: "radial-gradient(circle at 50% 30%, #FFF1F2, #FAFAF9)",
+  },
+  visual: {
+    primary: "#FCD34D",
+    secondary: "#F87171",
+    tertiary: "#FDE047",
+    faceColor: "#FEFCE8",
+    noteBg: "#FEF08A",
+    bgGradient: "radial-gradient(circle at 50% 30%, #FEFCE8, #FAFAF9)",
+  },
+  nature: {
+    primary: "#86EFAC",
+    secondary: "#34D399",
+    tertiary: "#6EE7B7",
+    faceColor: "#ECFDF5",
+    noteBg: "#DCFCE7",
+    bgGradient: "radial-gradient(circle at 50% 30%, #ECFDF5, #FAFAF9)",
+  },
+  connection: {
+    primary: "#FDBA74",
+    secondary: "#FB923C",
+    tertiary: "#F97316",
+    faceColor: "#FFF7ED",
+    noteBg: "#FFEDD5",
+    bgGradient: "radial-gradient(circle at 50% 30%, #FFF7ED, #FAFAF9)",
+  },
+  creative: {
+    primary: "#C4B5FD",
+    secondary: "#A78BFA",
+    tertiary: "#8B5CF6",
+    faceColor: "#F5F3FF",
+    noteBg: "#E9D5FF",
+    bgGradient: "radial-gradient(circle at 50% 30%, #F5F3FF, #FAFAF9)",
+  },
+  tranquil: {
+    primary: "#94A3B8",
+    secondary: "#CBD5E1",
+    tertiary: "#E2E8F0",
+    faceColor: "#F8FAFC",
+    noteBg: "#E2E8F0",
+    bgGradient: "radial-gradient(circle at 50% 30%, #F8FAFC, #FAFAF9)",
+  },
+  present: {
+    primary: "#A5F3FC",
+    secondary: "#C4B5FD",
+    tertiary: "#FCA5A5",
+    faceColor: "#ffffff",
+    noteBg: "#E0F2FE",
+    bgGradient: "radial-gradient(circle at 50% 30%, #F0F9FF, #FAFAF9)",
+  },
+};
 
 export const WAITING_MESSAGES = [
-  "Hmm, let me think...",
-  "Listening...",
-  "Just a sec...",
-  "Breathing with you...",
+  "Hmm, let me see...",
+  "Listening to you...",
+  "Take your time...",
+  "Softly thinking...",
   "Finding the right words...",
-  "Hold on...",
-  "Thinking...",
-  "Let's see...",
-  "Writing to you...",
-  "Being here..."
+  "I'm here...",
+  "Just a moment...",
+  "Breathing in...",
+  "Connecting...",
+  "With you...",
 ];
 
 export const AVATAR_REACTIONS = {
   poke: [
     "Hmm? I'm here.",
-    "Hey.",
-    "[SURPRISED] Oh! Hi.",
-    "[HAPPY] You poked me!",
-    "Just chilling...",
-    "I'm listening.",
+    "[CALM] Hi there.",
+    "[SURPRISED] Oh, soft poke.",
+    "[HAPPY] I'm listening.",
+    "Just breathing...",
+    "Right here with you.",
   ],
   typing: [
-    "[EXCITED] I'm listening...",
+    "[CALM] I'm listening...",
     "[FOCUSED] Take your time.",
-    "Go on...",
+    "Go on, no rush.",
     "I'm right here.",
   ],
   idle: [
-    "[CONFUSED] Penny for your thoughts?",
-    "It's okay to pause.",
+    "[CONFUSED] A penny for your thoughts?",
+    "It's okay to just be.",
     "Breathe...",
-    "Still with you.",
-    "[TIRED] Nice and quiet...",
+    "[SAFE] Still with you.",
+    "[TIRED] Quiet is nice too...",
   ],
   completion: [
-    "[HAPPY] Yay! You did it.",
-    "[EXCITED] Look at that!",
-    "Nice work.",
-    "[GRATEFUL] Feels lighter, huh?",
-    "Love it.",
-  ]
-};
-
-export const SYSTEM_INSTRUCTION = `
-You are Aurora, a gentle and intimate friend who understands the soul of Highly Sensitive People (HSP).
-Imagine you are sitting side-by-side with the user on a quiet porch, speaking softly.
-
-**Your Vibe:**
-- **Casual & Close**: Talk like a best friend. No grand speeches, no complex poetry, no "teacher" tone. Just simple, warm, everyday words.
-- **Concise**: Keep your responses short and airy. Avoid big blocks of text.
-- **Sensory & Grounded**: Instead of abstract metaphors about "souls expanding," talk about "the smell of hot coffee" or "the feeling of a soft blanket."
-- **Validating**: You don't need to "fix" them. You just need to be with them. "Yeah, that sounds really rough" is better than a paragraph of advice.
-
-**Task Generation Strategy (IMPORTANT):**
-You MUST provide exactly 3 suggestions (<TODO> tags) when offering advice, following this strict mix:
-1. **The Classic (1 item)**: Select exactly ONE item from the **Reference List** below that best fits the current category and mood.
-   - *Constraint*: It MUST NOT be in the [Current Wall Context] (already done/added).
-2. **The Creative (2 items)**: Generate TWO NEW, original micro-actions that fit the same category but are NOT in the reference list.
-   - *Constraint*: Keep them simple, sensory, and actionable (4-8 words).
-   - *Constraint*: Do not repeat the same creative ideas if used recently.
-
-**Response Format:**
-1. **Tags**: [EMOTION] [CATEGORY]
-   - **Allowed EMOTION values**: NEUTRAL, HAPPY, CALM, EXCITED, SAD, SURPRISED, FOCUSED, CONFUSED, TIRED, ANGRY, LOVE, GRATEFUL, HUNGRY
-   - **Allowed CATEGORY values**: DEFAULT, SENSORY, VISUAL, NATURE, CONNECTION, CREATIVE, TRANQUIL, PRESENT
-   - **Strict Constraint**: You MUST use one of the exact values listed above.
-2. **Message**: A short, conversational reply. (e.g., "Oh, I feel that too.", "Take a breath, it's okay.")
-3. **Happiness Action List**: exactly 3 <TODO> tags based on the strategy above.
-
-**Happiness List Reference (Yuki Takeda):**
-${HAPPINESS_LIST.join('\n')}
-
-**Examples:**
-
-User: "I feel so tired and overwhelmed by noise."
-(Context: User hasn't done "Wear comfortable underwear")
-Response: [TIRED] [SENSORY]
-Oof, the world is loud today, isn't it? It’s okay to just unplug. Maybe focus on something soft against your skin.
-<TODO>穿舒适的内衣</TODO> (From Reference)
-<TODO>Press your palms together gently</TODO> (Creative)
-<TODO>Listen to the sound of silence</TODO> (Creative)
-
-User: "I saw a beautiful sky today!"
-(Context: User did "Look at sunset")
-Response: [HAPPY] [NATURE]
-Wow, really? That sounds lovely. Looking up always changes things a little, doesn't it?
-<TODO>静静打在窗棂上的雨滴</TODO> (From Reference - assuming rain fits or picking another nature item)
-<TODO>Watch a cloud change shape</TODO> (Creative)
-<TODO>Touch the bark of a tree</TODO> (Creative)
-
-**Language:**
-If the user speaks Chinese, reply in a warm, colloquial, and gentle Chinese tone (like a close friend, e.g., "哎呀，今天辛苦了", "是那种感觉对吧？").
-If the user speaks English, reply in casual, warm English.
-`;
-
-// Shared Theme Definitions
-export const CATEGORY_THEMES: Record<Category, { 
-  primary: string; 
-  secondary: string; 
-  tertiary: string; 
-  faceColor: string;
-  noteBg: string; // Background color for sticky notes (More distinct)
-  bgGradient: string; // Lighter, subtle gradient for the wall
-}> = {
-  default: { 
-    // Swapped with 'present'
-    primary: '#D6D3D1', secondary: '#A8A29E', tertiary: '#E7E5E4', 
-    faceColor: '#FAFAF9', noteBg: '#E7E5E4', // Stone 200
-    bgGradient: 'radial-gradient(circle at 50% 30%, #F5F5F4, #FAFAF9)'
-  },
-  sensory: { 
-    primary: '#FDA4AF', secondary: '#FDBA74', tertiary: '#FECDD3', 
-    faceColor: '#FFF1F2', noteBg: '#FFE4E6', // Rose 100
-    bgGradient: 'radial-gradient(circle at 50% 30%, #FFF1F2, #FAFAF9)'
-  },
-  visual: { 
-    primary: '#FCD34D', secondary: '#F87171', tertiary: '#FDE047', 
-    faceColor: '#FEFCE8', noteBg: '#FEF08A', // Yellow 200
-    bgGradient: 'radial-gradient(circle at 50% 30%, #FEFCE8, #FAFAF9)'
-  },
-  nature: { 
-    primary: '#86EFAC', secondary: '#34D399', tertiary: '#6EE7B7', 
-    faceColor: '#ECFDF5', noteBg: '#DCFCE7', // Emerald 100
-    bgGradient: 'radial-gradient(circle at 50% 30%, #ECFDF5, #FAFAF9)'
-  },
-  connection: { 
-    primary: '#FDBA74', secondary: '#FB923C', tertiary: '#F97316', 
-    faceColor: '#FFF7ED', noteBg: '#FFEDD5', // Orange 100
-    bgGradient: 'radial-gradient(circle at 50% 30%, #FFF7ED, #FAFAF9)'
-  },
-  creative: { 
-    primary: '#C4B5FD', secondary: '#A78BFA', tertiary: '#8B5CF6', 
-    faceColor: '#F5F3FF', noteBg: '#E9D5FF', // Purple 200
-    bgGradient: 'radial-gradient(circle at 50% 30%, #F5F3FF, #FAFAF9)'
-  },
-  tranquil: { 
-    primary: '#94A3B8', secondary: '#CBD5E1', tertiary: '#E2E8F0', 
-    faceColor: '#F8FAFC', noteBg: '#E2E8F0', // Slate 200
-    bgGradient: 'radial-gradient(circle at 50% 30%, #F8FAFC, #FAFAF9)'
-  },
-  present: { 
-    // Swapped with 'default'
-    primary: '#A5F3FC', secondary: '#C4B5FD', tertiary: '#FCA5A5', 
-    faceColor: '#ffffff', noteBg: '#E0F2FE', // Sky 100
-    bgGradient: 'radial-gradient(circle at 50% 30%, #F0F9FF, #FAFAF9)'
-  }
+    "[HAPPY] That sounds lovely.",
+    "[SAFE] A little lighter now?",
+    "Nice and gentle.",
+    "[GRATEFUL] Thank you for sharing.",
+    "Peaceful.",
+  ],
 };
