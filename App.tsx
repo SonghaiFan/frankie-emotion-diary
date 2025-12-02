@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import AuroraSphere, {
   EyeType,
@@ -123,16 +124,11 @@ const App: React.FC = () => {
     );
 
     // 3. Extract Todo Tags <TODO>...</TODO>
-    let hasInsertedMarker = false;
     cleanText = cleanText.replace(/<TODO>(.*?)<\/TODO>/gi, (match, content) => {
       if (content && content.trim()) {
         suggestions.push(content.trim());
       }
-      if (!hasInsertedMarker) {
-        hasInsertedMarker = true;
-        return "[[TODO_SECTION]]";
-      }
-      return ""; // Remove subsequent tags
+      return ""; // Remove tags from text
     });
 
     return { emotion, category, text: cleanText.trim(), suggestions };
