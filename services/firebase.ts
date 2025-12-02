@@ -20,7 +20,8 @@ import {
   getDocs,
   Timestamp,
 } from "firebase/firestore";
-import { EmotionLog, Emotion, Category, TodoItem, Message } from "../types";
+import { EmotionLog, TodoItem, Message } from "../types";
+import { Emotion, Category } from "@/constants";
 
 // TODO: Replace with your actual Firebase project configuration
 // Get this from: Firebase Console -> Project Settings -> General -> Your apps

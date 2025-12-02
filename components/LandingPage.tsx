@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import AuroraSphere from "./AuroraSphere";
-import { Emotion, Category } from "../types";
+import { Emotion, Category } from "@/constants";
 import { CATEGORY_THEMES } from "../constants";
 
 interface LandingPageProps {

@@ -12,8 +12,9 @@ import AuthButton from "./components/AuthButton";
 import EmotionCalendar from "./components/EmotionCalendar";
 import LandingPage from "./components/LandingPage";
 import { sendMessage, initializeChat } from "./services/geminiService";
-import { Message, Category, Emotion, TodoItem, UserProfile } from "./types";
-import { CATEGORY_THEMES, AVATAR_REACTIONS } from "./constants";
+import { Message, TodoItem, UserProfile } from "./types";
+import { Category, Emotion } from "./constants";
+import { CATEGORY_THEMES, AVATAR_REACTIONS, EMOTIONS } from "./constants";
 import { Content } from "@google/genai";
 import {
   subscribeToAuthChanges,
@@ -90,13 +91,14 @@ const App: React.FC = () => {
     const suggestions: string[] = [];
 
     // 1. Extract Emotion Tags [HAPPY] - Callback approach allows single-pass removal
-    cleanText = cleanText.replace(
-      /\[(NEUTRAL|HAPPY|CALM|EXCITED|SAD|SURPRISED|FOCUSED|CONFUSED|TIRED|ANGRY|LOVE|GRATEFUL|HUNGRY)\]/gi,
-      (match, p1) => {
-        if (p1) emotion = p1.toUpperCase().toLowerCase() as Emotion;
-        return ""; // Remove tag from string
-      }
+    const emotionRegex = new RegExp(
+      `\\[(${EMOTIONS.join("|").toUpperCase()})\\]`,
+      "gi"
     );
+    cleanText = cleanText.replace(emotionRegex, (match, p1) => {
+      if (p1) emotion = p1.toUpperCase().toLowerCase() as Emotion;
+      return ""; // Remove tag from string
+    });
 
     // 2. Extract Category Tags [NATURE]
     cleanText = cleanText.replace(
@@ -413,7 +415,7 @@ const App: React.FC = () => {
 
       // Log emotion to Cloud
       if (user && emotion !== "neutral") {
-        logEmotion(user.uid, emotion, category, cleanText);
+        logEmotion(user.uid, emotion, category, text);
       }
 
       const modelMsg: Message = {
@@ -639,7 +641,7 @@ const App: React.FC = () => {
 
         <div className="text-right pointer-events-none select-none opacity-30 hover:opacity-60 transition-opacity duration-500 mb-1">
           <p className="text-[9px] sm:text-[10px] text-stone-600 font-bold tracking-wide">
-            Inspired by 武田有纪《高敏感人士幸福清单》
+            Inspired by 武田友纪《高敏感人士幸福清单》
           </p>
           <p className="text-[9px] sm:text-[10px] text-stone-500 tracking-wider mt-0.5">
             Made by 范不着frank

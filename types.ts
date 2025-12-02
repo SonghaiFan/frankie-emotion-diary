@@ -1,28 +1,4 @@
-
-export type Category = 
-  | 'default'
-  | 'sensory'
-  | 'visual'
-  | 'nature'
-  | 'connection'
-  | 'creative'
-  | 'tranquil'
-  | 'present';
-
-export type Emotion = 
-  | 'neutral'
-  | 'happy'
-  | 'calm'
-  | 'excited'
-  | 'sad'
-  | 'surprised'
-  | 'focused'
-  | 'confused'
-  | 'tired'
-  | 'angry'
-  | 'love'
-  | 'grateful'
-  | 'hungry';
+import { Category, Emotion } from "./constants";
 
 export interface TodoItem {
   id: string;
@@ -38,7 +14,7 @@ export interface TodoItem {
 
 export interface Message {
   id: string;
-  role: 'user' | 'model';
+  role: "user" | "model";
   text: string;
   timestamp: number;
   suggestions?: string[];
