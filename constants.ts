@@ -1,4 +1,5 @@
 
+
 // ------------------------------------------------------------------
 // 1. Type Definitions (The Code Truth)
 // ------------------------------------------------------------------
@@ -115,7 +116,7 @@ export const HAPPINESS_LIST = HAPPINESS_ITEMS.map((item) => item.text);
 
 // Updated Greeting
 export const NEW_USER_GREETING =
-  "你好啊，我是阿朵拉。\n我是你养在瓶子里的一抹极光云。你可以放心地把那些不为人知的情绪都告诉我，我会把它们好好储存在这个瓶子里。\n如果你觉得我给的建议有用，就请亲手写下来，把【便签】贴在我们身后的墙上。去完成上面的小事，我们一起寻找幸福，好吗？\n[CALM] [DEFAULT] <TODO>深呼吸 Deep Breath</TODO> <TODO>喝杯水 Drink Water</TODO>";
+  "你好啊，我是阿朵拉。\n我是你养在瓶子里的一抹极光云。你可以放心地把那些不为人知的情绪都告诉我，我会把它们好好储存在这个瓶子里。\n如果你觉得我给的建议有用，就请亲手写下来，把【便签】贴在我们身后的墙上。去完成上面的小事，我们一起寻找小确幸，好吗？\n[CALM] [DEFAULT] <TODO>深呼吸 Deep Breath</TODO> <TODO>喝杯水 Drink Water</TODO>";
 
 export const GUEST_MESSAGE_LIMIT = 20;
 
@@ -169,7 +170,7 @@ export const TRANSLATIONS = {
       },
       resonance: {
         title: "身后的墙",
-        desc: "我会给你一些获得幸福的小建议。如果你觉得好，就亲手把它们写成【便签】，贴在我们身后的墙上。那是由你创造的幸福痕迹。",
+        desc: "我会给你一些获得小确幸的建议。如果你觉得好，就亲手把它们写成【便签】，贴在我们身后的墙上。那是由你创造的小确幸痕迹。",
       },
       memory: {
         title: "心的光谱",

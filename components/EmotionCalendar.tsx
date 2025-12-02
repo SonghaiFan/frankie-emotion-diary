@@ -144,6 +144,7 @@ const EmotionCalendar: React.FC<EmotionCalendarProps> = ({ uid, onClose }) => {
                             EMOTION_COLORS[topEmotions[2]] ||
                             EMOTION_COLORS[topEmotions[0]],
                         }}
+                        isInBottle={true}
                       />
                     </div>
 
