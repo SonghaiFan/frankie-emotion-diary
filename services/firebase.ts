@@ -199,6 +199,16 @@ export const saveChatMessage = async (uid: string, message: Message) => {
   }
 };
 
+export const deleteChatMessage = async (uid: string, messageId: string) => {
+  if (!db) return;
+  try {
+    // Path: users/{uid}/chats/{messageId}
+    await deleteDoc(doc(db, "users", uid, "chats", messageId));
+  } catch (error) {
+    console.error("Error deleting chat message", error);
+  }
+};
+
 export const getRecentChatHistory = async (uid: string): Promise<Message[]> => {
   if (!db) return [];
   try {

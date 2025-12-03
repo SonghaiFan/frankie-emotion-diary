@@ -765,7 +765,7 @@ const App: React.FC = () => {
               onOpenChatHistory={() => setShowChatHistory(true)}
               onOpenMyDiary={() => setShowMyDiary(true)}
               onOpenDebug={() => setShowDebug(true)}
-              showDebugOption={
+              isManager={
                 process.env.NODE_ENV === "development" || user?.uid === MANAGER_UID
               }
               onLogout={handleLogout}

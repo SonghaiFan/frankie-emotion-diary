@@ -21,7 +21,9 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ user, onClose, initialDate })
   useEffect(() => {
     const fetchHistory = async () => {
       const history = await getFullChatHistory(user.uid);
-      setMessages(history);
+      // Filter out diary entries so they don't clutter the main chat history view
+      const chatOnly = history.filter(msg => msg.type !== 'diary');
+      setMessages(chatOnly);
       setLoading(false);
     };
     fetchHistory();

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Message, UserProfile } from "../types";
-import { getFullChatHistory } from "../services/firebase";
-import { Book, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { getFullChatHistory, saveChatMessage, deleteChatMessage } from "../services/firebase";
+import { Book, X, ChevronLeft, ChevronRight, Trash2, Edit2, Save, Check } from "lucide-react";
 import { CATEGORY_THEMES } from "../constants";
 
 interface MyDiaryProps {
@@ -13,6 +13,8 @@ const MyDiary: React.FC<MyDiaryProps> = ({ user, onClose }) => {
   const [entries, setEntries] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(0);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editText, setEditText] = useState("");
 
   useEffect(() => {
     const fetchEntries = async () => {
@@ -31,12 +33,58 @@ const MyDiary: React.FC<MyDiaryProps> = ({ user, onClose }) => {
   const totalPages = entries.length;
   const currentEntry = entries[currentPage];
 
+  // Reset edit state when page changes
+  useEffect(() => {
+    setIsEditing(false);
+    setEditText("");
+  }, [currentPage]);
+
   const handlePrev = () => {
     if (currentPage > 0) setCurrentPage((p) => p - 1);
   };
 
   const handleNext = () => {
     if (currentPage < totalPages - 1) setCurrentPage((p) => p + 1);
+  };
+
+  const handleUpdate = async () => {
+    if (!currentEntry || !editText.trim()) return;
+    
+    const updatedEntry = { ...currentEntry, text: editText };
+    
+    // Optimistic update
+    const updatedEntries = [...entries];
+    updatedEntries[currentPage] = updatedEntry;
+    setEntries(updatedEntries);
+    setIsEditing(false);
+
+    await saveChatMessage(user.uid, updatedEntry);
+  };
+
+  const handleDelete = async () => {
+    if (!currentEntry) return;
+    
+    if (window.confirm("Are you sure you want to delete this diary entry?")) {
+        const entryToDelete = currentEntry;
+        
+        // Optimistic update
+        const newEntries = entries.filter(e => e.id !== entryToDelete.id);
+        setEntries(newEntries);
+        
+        // Adjust page if needed
+        if (currentPage >= newEntries.length && newEntries.length > 0) {
+            setCurrentPage(newEntries.length - 1);
+        } else if (newEntries.length === 0) {
+            setCurrentPage(0);
+        }
+
+        await deleteChatMessage(user.uid, entryToDelete.id);
+    }
+  };
+
+  const startEditing = () => {
+    setEditText(currentEntry.text);
+    setIsEditing(true);
   };
 
   const theme = currentEntry 
@@ -57,13 +105,57 @@ const MyDiary: React.FC<MyDiaryProps> = ({ user, onClose }) => {
         }}
       >
         
-        {/* Close Button */}
-        <button
-            onClick={onClose}
-            className="absolute top-4 right-4 md:top-6 md:right-6 z-30 p-2 md:p-3 text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-full transition-all duration-300"
-        >
-            <X className="w-6 h-6" />
-        </button>
+        {/* Top Controls */}
+        <div className="absolute top-4 right-4 md:top-6 md:right-6 z-30 flex items-center gap-1 md:gap-2">
+            {!loading && currentEntry && (
+                <>
+                    {!isEditing ? (
+                        <>
+                            <button 
+                                onClick={startEditing}
+                                className="p-2 text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-full transition-colors"
+                                title="Edit Entry"
+                            >
+                                <Edit2 className="w-4 h-4 md:w-5 md:h-5" />
+                            </button>
+                            <button 
+                                onClick={handleDelete}
+                                className="p-2 text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                                title="Delete Entry"
+                            >
+                                <Trash2 className="w-4 h-4 md:w-5 md:h-5" />
+                            </button>
+                            <div className="w-px h-4 bg-stone-300/30 mx-1 md:mx-2"></div>
+                        </>
+                    ) : (
+                        <>
+                            <button 
+                                onClick={() => setIsEditing(false)}
+                                className="p-2 text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-full transition-colors"
+                                title="Cancel"
+                            >
+                                <X className="w-4 h-4 md:w-5 md:h-5" />
+                            </button>
+                            <button 
+                                onClick={handleUpdate}
+                                className="p-2 text-green-500 hover:text-green-600 hover:bg-green-50 rounded-full transition-colors"
+                                title="Save"
+                            >
+                                <Check className="w-4 h-4 md:w-5 md:h-5" />
+                            </button>
+                            <div className="w-px h-4 bg-stone-300/30 mx-1 md:mx-2"></div>
+                        </>
+                    )}
+                </>
+            )}
+            
+            <button
+                onClick={onClose}
+                className="p-2 text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-full transition-all duration-300"
+            >
+                <X className="w-5 h-5 md:w-6 md:h-6" />
+            </button>
+        </div>
 
         {/* Loading State */}
         {loading && (
@@ -88,7 +180,8 @@ const MyDiary: React.FC<MyDiaryProps> = ({ user, onClose }) => {
             <div className="flex flex-col h-full relative">
                 
                 {/* Header Section */}
-                <div className="px-6 pt-12 pb-4 md:px-12 md:pt-12 flex flex-col items-center text-center z-10 shrink-0">
+                <div className="px-6 pt-12 pb-4 md:px-12 md:pt-12 flex flex-col items-center text-center z-10 shrink-0 relative">
+                    
                     <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/60 border border-white/50 shadow-sm mb-4 md:mb-6">
                         <span className="w-2 h-2 rounded-full" style={{ backgroundColor: theme.primary }}></span>
                         <span className="text-xs font-bold tracking-widest uppercase text-stone-500">
@@ -117,10 +210,20 @@ const MyDiary: React.FC<MyDiaryProps> = ({ user, onClose }) => {
 
                 {/* Scrollable Text Area */}
                 <div className="flex-1 overflow-y-auto px-6 md:px-16 pb-28 md:pb-24 hide-scrollbar">
-                    <div className="prose prose-lg prose-stone max-w-none mx-auto">
-                        <p className="text-lg md:text-xl leading-loose text-stone-600 font-medium whitespace-pre-wrap text-center md:text-left">
-                            {currentEntry.text}
-                        </p>
+                    <div className="prose prose-lg prose-stone max-w-none mx-auto h-full">
+                        {isEditing ? (
+                            <textarea
+                                value={editText}
+                                onChange={(e) => setEditText(e.target.value)}
+                                className="w-full h-full min-h-[300px] bg-transparent border-none resize-none focus:ring-0 text-lg md:text-xl leading-loose text-stone-600 font-medium text-center md:text-left p-0"
+                                placeholder="Write your thoughts..."
+                                autoFocus
+                            />
+                        ) : (
+                            <p className="text-lg md:text-xl leading-loose text-stone-600 font-medium whitespace-pre-wrap text-center md:text-left">
+                                {currentEntry.text}
+                            </p>
+                        )}
                     </div>
                 </div>
 
