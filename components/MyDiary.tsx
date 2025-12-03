@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Message, UserProfile } from "../types";
 import { getFullChatHistory, saveChatMessage, deleteChatMessage } from "../services/firebase";
-import { Book, X, ChevronLeft, ChevronRight, Trash2, Edit2, Save, Check } from "lucide-react";
-import { CATEGORY_THEMES } from "../constants";
+import { Book, X, ChevronLeft, ChevronRight, Trash2, Edit2 } from "lucide-react";
+import { CATEGORY_THEMES, Emotion, Category } from "../constants";
+import ZenMode from "./ZenMode";
 
 interface MyDiaryProps {
   user: UserProfile;
@@ -13,8 +14,7 @@ const MyDiary: React.FC<MyDiaryProps> = ({ user, onClose }) => {
   const [entries, setEntries] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(0);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editText, setEditText] = useState("");
+  const [editingEntry, setEditingEntry] = useState<Message | null>(null);
 
   useEffect(() => {
     const fetchEntries = async () => {
@@ -22,7 +22,7 @@ const MyDiary: React.FC<MyDiaryProps> = ({ user, onClose }) => {
       // Filter for diary entries only
       const diaryEntries = history.filter(
         (msg) => msg.type === "diary" && msg.role === "user"
-      ).reverse(); // Newest first for the book? Or oldest? Let's do newest first.
+      ).reverse(); // Newest first for the book
       
       setEntries(diaryEntries);
       setLoading(false);
@@ -33,12 +33,6 @@ const MyDiary: React.FC<MyDiaryProps> = ({ user, onClose }) => {
   const totalPages = entries.length;
   const currentEntry = entries[currentPage];
 
-  // Reset edit state when page changes
-  useEffect(() => {
-    setIsEditing(false);
-    setEditText("");
-  }, [currentPage]);
-
   const handlePrev = () => {
     if (currentPage > 0) setCurrentPage((p) => p - 1);
   };
@@ -47,16 +41,21 @@ const MyDiary: React.FC<MyDiaryProps> = ({ user, onClose }) => {
     if (currentPage < totalPages - 1) setCurrentPage((p) => p + 1);
   };
 
-  const handleUpdate = async () => {
-    if (!currentEntry || !editText.trim()) return;
+  const handleUpdate = async (text: string, emotion: Emotion, category: Category) => {
+    if (!currentEntry || !text.trim()) return;
     
-    const updatedEntry = { ...currentEntry, text: editText };
+    const updatedEntry = { 
+        ...currentEntry, 
+        text,
+        emotion,
+        category
+    };
     
     // Optimistic update
     const updatedEntries = [...entries];
     updatedEntries[currentPage] = updatedEntry;
     setEntries(updatedEntries);
-    setIsEditing(false);
+    setEditingEntry(null);
 
     await saveChatMessage(user.uid, updatedEntry);
   };
@@ -83,16 +82,27 @@ const MyDiary: React.FC<MyDiaryProps> = ({ user, onClose }) => {
   };
 
   const startEditing = () => {
-    setEditText(currentEntry.text);
-    setIsEditing(true);
+    setEditingEntry(currentEntry);
   };
 
   const theme = currentEntry 
     ? CATEGORY_THEMES[currentEntry.category || 'default'] 
     : CATEGORY_THEMES.default;
 
-  // Animation variants could be added here if we were using framer-motion, 
-  // but for now we'll use standard CSS transitions and keyframes defined in index.html
+  if (editingEntry) {
+      return (
+          <ZenMode
+            onExit={() => setEditingEntry(null)}
+            onSave={handleUpdate}
+            theme={CATEGORY_THEMES[editingEntry.category || 'default']}
+            initialData={{
+                text: editingEntry.text,
+                emotion: editingEntry.emotion as Emotion,
+                category: editingEntry.category as Category
+            }}
+          />
+      );
+  }
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-0 md:p-8 bg-stone-900/20 backdrop-blur-md animate-fade-in">
@@ -109,43 +119,21 @@ const MyDiary: React.FC<MyDiaryProps> = ({ user, onClose }) => {
         <div className="absolute top-4 right-4 md:top-6 md:right-6 z-30 flex items-center gap-1 md:gap-2">
             {!loading && currentEntry && (
                 <>
-                    {!isEditing ? (
-                        <>
-                            <button 
-                                onClick={startEditing}
-                                className="p-2 text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-full transition-colors"
-                                title="Edit Entry"
-                            >
-                                <Edit2 className="w-4 h-4 md:w-5 md:h-5" />
-                            </button>
-                            <button 
-                                onClick={handleDelete}
-                                className="p-2 text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
-                                title="Delete Entry"
-                            >
-                                <Trash2 className="w-4 h-4 md:w-5 md:h-5" />
-                            </button>
-                            <div className="w-px h-4 bg-stone-300/30 mx-1 md:mx-2"></div>
-                        </>
-                    ) : (
-                        <>
-                            <button 
-                                onClick={() => setIsEditing(false)}
-                                className="p-2 text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-full transition-colors"
-                                title="Cancel"
-                            >
-                                <X className="w-4 h-4 md:w-5 md:h-5" />
-                            </button>
-                            <button 
-                                onClick={handleUpdate}
-                                className="p-2 text-green-500 hover:text-green-600 hover:bg-green-50 rounded-full transition-colors"
-                                title="Save"
-                            >
-                                <Check className="w-4 h-4 md:w-5 md:h-5" />
-                            </button>
-                            <div className="w-px h-4 bg-stone-300/30 mx-1 md:mx-2"></div>
-                        </>
-                    )}
+                    <button 
+                        onClick={startEditing}
+                        className="p-2 text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-full transition-colors"
+                        title="Edit Entry"
+                    >
+                        <Edit2 className="w-4 h-4 md:w-5 md:h-5" />
+                    </button>
+                    <button 
+                        onClick={handleDelete}
+                        className="p-2 text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                        title="Delete Entry"
+                    >
+                        <Trash2 className="w-4 h-4 md:w-5 md:h-5" />
+                    </button>
+                    <div className="w-px h-4 bg-stone-300/30 mx-1 md:mx-2"></div>
                 </>
             )}
             
@@ -211,19 +199,9 @@ const MyDiary: React.FC<MyDiaryProps> = ({ user, onClose }) => {
                 {/* Scrollable Text Area */}
                 <div className="flex-1 overflow-y-auto px-6 md:px-16 pb-28 md:pb-24 hide-scrollbar">
                     <div className="prose prose-lg prose-stone max-w-none mx-auto h-full">
-                        {isEditing ? (
-                            <textarea
-                                value={editText}
-                                onChange={(e) => setEditText(e.target.value)}
-                                className="w-full h-full min-h-[300px] bg-transparent border-none resize-none focus:ring-0 text-lg md:text-xl leading-loose text-stone-600 font-medium text-center md:text-left p-0"
-                                placeholder="Write your thoughts..."
-                                autoFocus
-                            />
-                        ) : (
-                            <p className="text-lg md:text-xl leading-loose text-stone-600 font-medium whitespace-pre-wrap text-center md:text-left">
-                                {currentEntry.text}
-                            </p>
-                        )}
+                        <p className="text-lg md:text-xl leading-loose text-stone-600 font-medium whitespace-pre-wrap text-center md:text-left">
+                            {currentEntry.text}
+                        </p>
                     </div>
                 </div>
 
