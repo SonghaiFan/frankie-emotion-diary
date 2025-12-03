@@ -14,7 +14,10 @@ interface ZenModeProps {
 }
 
 const ZenMode: React.FC<ZenModeProps> = ({ onExit, onSave, theme, initialData }) => {
-  const [text, setText] = useState(initialData?.text || "");
+  // Use ref for text to avoid re-rendering on every keystroke
+  const textRef = useRef(initialData?.text || "");
+  const [hasText, setHasText] = useState(!!(initialData?.text && initialData.text.trim().length > 0));
+  
   const [isExiting, setIsExiting] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -23,7 +26,12 @@ const ZenMode: React.FC<ZenModeProps> = ({ onExit, onSave, theme, initialData })
       textareaRef.current.focus();
       // If we have initial text, move cursor to end
       if (initialData?.text) {
-        textareaRef.current.setSelectionRange(initialData.text.length, initialData.text.length);
+        // Small timeout to ensure focus and selection works after mount
+        setTimeout(() => {
+            if (textareaRef.current) {
+                textareaRef.current.setSelectionRange(initialData.text.length, initialData.text.length);
+            }
+        }, 0);
       }
     }
   }, [initialData]);
@@ -37,10 +45,11 @@ const ZenMode: React.FC<ZenModeProps> = ({ onExit, onSave, theme, initialData })
   const [selectedCategory, setSelectedCategory] = useState<Category>(initialData?.category || "default");
 
   const handleSave = () => {
-    if (!text.trim()) return;
+    const currentText = textRef.current;
+    if (!currentText.trim()) return;
     setIsExiting(true);
     setTimeout(() => {
-      onSave(text, selectedEmotion, selectedCategory);
+      onSave(currentText, selectedEmotion, selectedCategory);
       onExit();
     }, 500);
   };
@@ -53,6 +62,16 @@ const ZenMode: React.FC<ZenModeProps> = ({ onExit, onSave, theme, initialData })
       
       if (e.key === 'Escape') {
           handleExit();
+      }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const newValue = e.target.value;
+      textRef.current = newValue;
+      
+      const hasContent = newValue.trim().length > 0;
+      if (hasContent !== hasText) {
+          setHasText(hasContent);
       }
   };
 
@@ -77,8 +96,8 @@ const ZenMode: React.FC<ZenModeProps> = ({ onExit, onSave, theme, initialData })
         background: theme.bgGradient, // Use the same gradient but maybe with a blur overlay if we wanted, but solid gradient is cleaner for "Zen"
       }}
     >
-      {/* Ambient Overlay to soften it further */}
-      <div className="absolute inset-0 bg-white/30 backdrop-blur-3xl pointer-events-none"></div>
+      {/* Ambient Overlay to soften it further - REMOVED for performance on mobile */}
+      {/* <div className="absolute inset-0 bg-white/30 backdrop-blur-3xl pointer-events-none"></div> */}
 
 
 
@@ -178,8 +197,8 @@ const ZenMode: React.FC<ZenModeProps> = ({ onExit, onSave, theme, initialData })
         {/* Writing Area */}
         <textarea
             ref={textareaRef}
-            value={text}
-            onChange={(e) => setText(e.target.value)}
+            defaultValue={initialData?.text || ""}
+            onChange={handleChange}
             onKeyDown={handleKeyDown}
             placeholder="What's on your mind?..."
             className="flex-1 w-full bg-transparent border-none resize-none outline-none text-lg md:text-2xl leading-relaxed md:leading-loose text-stone-700 placeholder-stone-300 font-serif text-left animate-slide-up-normal"
@@ -194,17 +213,17 @@ const ZenMode: React.FC<ZenModeProps> = ({ onExit, onSave, theme, initialData })
             
             <button
                 onClick={handleSave}
-                disabled={!text.trim()}
+                disabled={!hasText}
                 className={`
                     group relative px-8 py-3 rounded-full flex items-center gap-3 transition-all duration-500
-                    ${!text.trim() 
+                    ${!hasText 
                         ? 'bg-stone-200 text-stone-400 cursor-not-allowed opacity-50' 
                         : 'bg-white text-stone-600 shadow-lg hover:shadow-xl hover:-translate-y-1 cursor-pointer'
                     }
                 `}
             >
                 <span className="text-sm font-medium tracking-wide">Save to Diary</span>
-                <Check className={`w-4 h-4 ${text.trim() ? 'text-green-500' : ''}`} />
+                <Check className={`w-4 h-4 ${hasText ? 'text-green-500' : ''}`} />
             </button>
         </div>
 
