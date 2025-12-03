@@ -139,12 +139,12 @@ const SpeechBubble: React.FC<SpeechBubbleProps> = ({
 
   return (
     <div 
-      className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 sm:mb-4 w-[90vw] sm:w-80 max-w-[calc(100vw-2rem)] z-20 pointer-events-auto origin-bottom animate-slide-up-fade ${
+      className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 sm:mb-4 w-[90vw] sm:w-80 max-w-[calc(100vw-2rem)] z-20 pointer-events-auto origin-bottom animate-slide-up-fade group ${
         !isVisible ? '!opacity-0 !scale-95 !pointer-events-none transition-all duration-700 ease-in-out' : ''
       }`}
     >
       <div 
-        className="p-5 md:p-6 pb-12 backdrop-blur-2xl transition-all duration-500 relative select-none max-h-[60vh] overflow-y-auto hide-scrollbar group"
+        className="p-5 md:p-6 pb-12 backdrop-blur-2xl transition-all duration-500 relative select-none max-h-[60vh] overflow-y-auto hide-scrollbar"
         style={{
             backgroundColor: 'rgba(255, 255, 255, 0.4)',
             borderRadius: '2.5rem',
@@ -213,7 +213,7 @@ const SpeechBubble: React.FC<SpeechBubbleProps> = ({
       {/* Floating Close Button (Bottom Left) */}
       <button 
           onClick={(e) => { e.stopPropagation(); onClose(); }}
-          className="absolute -bottom-2 -left-2 p-2 bg-white text-stone-400 hover:text-stone-600 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-110 z-50 border border-stone-100"
+          className="absolute -bottom-2 -left-2 p-2 bg-white text-stone-400 hover:text-stone-600 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-110 z-50 border border-stone-100 opacity-0 group-hover:opacity-100 duration-300"
           title="Close"
       >
           <X className="w-4 h-4" />
@@ -223,7 +223,7 @@ const SpeechBubble: React.FC<SpeechBubbleProps> = ({
       {!isLoading && message?.suggestions && message.suggestions.length > 0 && (
             <button 
               onClick={(e) => { e.stopPropagation(); onSaveAllTodos(); }}
-              className="absolute -bottom-2 -right-2 p-2 bg-white text-green-500 hover:text-green-600 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-110 z-50 border border-stone-100"
+              className="absolute -bottom-2 -right-2 p-2 bg-white text-green-500 hover:text-green-600 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-110 z-50 border border-stone-100 opacity-0 group-hover:opacity-100 duration-300"
               title="Save All Suggestions"
           >
               <Check className="w-4 h-4" />

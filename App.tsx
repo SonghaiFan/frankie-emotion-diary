@@ -318,7 +318,9 @@ const App: React.FC = () => {
     const hasUnsavedSuggestions =
       lastModelMessage?.suggestions &&
       lastModelMessage.suggestions.some((s) => !isTodoSaved(s));
-    if (hasUnsavedSuggestions) return;
+    
+    // Only block if bubble is visible AND has unsaved suggestions
+    if (isBubbleVisible && hasUnsavedSuggestions) return;
 
     const phrases = AVATAR_REACTIONS[type];
     const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
