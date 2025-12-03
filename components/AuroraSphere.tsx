@@ -63,6 +63,7 @@ interface AuroraSphereProps {
   };
   smoothTransition?: boolean;
   isInBottle?: boolean;
+  reducedMotion?: boolean;
 }
 
 interface FaceConfig {
@@ -529,7 +530,7 @@ const generateAccessory = (type: AccessoryType, strokeProps: any) => {
 
 // --- Main Component ---
 
-const AuroraSphere: React.FC<AuroraSphereProps> = ({
+const AuroraSphereComponent: React.FC<AuroraSphereProps> = ({
   isThinking,
   category,
   emotion,
@@ -542,16 +543,20 @@ const AuroraSphere: React.FC<AuroraSphereProps> = ({
   customColors,
   smoothTransition = false,
   isInBottle = false,
+  reducedMotion = false,
 }) => {
   const themeStyle = CATEGORY_THEMES[category] || CATEGORY_THEMES.default;
   const style = customColors ? { ...themeStyle, ...customColors } : themeStyle;
   const [currentCategory, setCurrentCategory] = useState(category);
   const [animating, setAnimating] = useState(false);
 
-  const [faceOffset, setFaceOffset] = useState({ x: 0, y: 0 });
-  const [isBlinking, setIsBlinking] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  // Performance Optimization: Use refs for face movement instead of state
+  const faceGroupRef = useRef<SVGGElement | null>(null);
   const lastMousePos = useRef({ x: 0, y: 0 });
+  const pendingAnimationFrame = useRef<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const [isBlinking, setIsBlinking] = useState(false);
 
   useEffect(() => {
     if (category !== currentCategory) {
@@ -593,61 +598,58 @@ const AuroraSphere: React.FC<AuroraSphereProps> = ({
     };
   }
 
+  // Blinking Logic - Optimized to avoid timer leaks
   useEffect(() => {
-    const blinkLoop = () => {
+    const interval = setInterval(() => {
       setIsBlinking(true);
       setTimeout(() => setIsBlinking(false), 150);
-      const nextBlink = Math.random() * 4000 + 2000;
-      setTimeout(blinkLoop, nextBlink);
-    };
-    const timer = setTimeout(blinkLoop, 3000);
-    return () => clearTimeout(timer);
+    }, 3000 + Math.random() * 2000);
+    return () => clearInterval(interval);
   }, []);
 
-  const updateFaceOffset = useCallback(() => {
-    if (!containerRef.current) return;
-
-    if (isInputFocused) {
-      const rect = containerRef.current.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const deltaX = lastMousePos.current.x - centerX;
-
-      const x = deltaX / 12;
-      const limit = 40;
-      const clampedX = Math.max(-limit, Math.min(limit, x));
-
-      setFaceOffset({ x: clampedX * 0.3, y: 75 });
-    } else {
+  // Face Movement Logic - Optimized with requestAnimationFrame
+  useEffect(() => {
+    const updateFaceOffset = () => {
+      if (!containerRef.current || !faceGroupRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
-
-      const deltaX = lastMousePos.current.x - centerX;
-      const deltaY = lastMousePos.current.y - centerY;
-
-      const x = deltaX / 12;
-      const y = deltaY / 12;
+      const { x: mouseX, y: mouseY } = lastMousePos.current;
+  
+      let x = (mouseX - centerX) / 12;
+      let y: number;
       const limit = 40;
-      const clampedX = Math.max(-limit, Math.min(limit, x));
-      const clampedY = Math.max(-limit, Math.min(limit, y));
-
-      setFaceOffset({ x: clampedX, y: clampedY });
-    }
-  }, [isInputFocused]);
-
-  useEffect(() => {
-    updateFaceOffset();
-  }, [updateFaceOffset]);
-
-  useEffect(() => {
+  
+      if (isInputFocused) {
+        x = Math.max(-limit, Math.min(limit, x)) * 0.3;
+        y = 75;
+      } else {
+        y = (mouseY - centerY) / 12;
+        x = Math.max(-limit, Math.min(limit, x));
+        y = Math.max(-limit, Math.min(limit, y));
+      }
+  
+      faceGroupRef.current.style.transform = `translate(${x}px, ${y}px)`;
+    };
+  
     const handleMouseMove = (e: MouseEvent) => {
       lastMousePos.current = { x: e.clientX, y: e.clientY };
-      updateFaceOffset();
+      if (pendingAnimationFrame.current == null) {
+        pendingAnimationFrame.current = requestAnimationFrame(() => {
+          pendingAnimationFrame.current = null;
+          updateFaceOffset();
+        });
+      }
     };
-
+  
     window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [updateFaceOffset]);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      if (pendingAnimationFrame.current != null) {
+        cancelAnimationFrame(pendingAnimationFrame.current);
+      }
+    };
+  }, [isInputFocused]);
 
   const strokeProps = {
     stroke: "white",
@@ -675,7 +677,7 @@ const AuroraSphere: React.FC<AuroraSphereProps> = ({
       <svg
         viewBox="0 0 400 400"
         className="w-full h-full overflow-visible"
-        style={{ filter: "drop-shadow(0 0 20px rgba(255,255,255,0.2))" }}
+        style={{ filter: reducedMotion ? "none" : "drop-shadow(0 0 20px rgba(255,255,255,0.2))" }}
       >
         <defs>
           <filter id="aurora-flow" x="-50%" y="-50%" width="200%" height="200%">
@@ -684,27 +686,31 @@ const AuroraSphere: React.FC<AuroraSphereProps> = ({
               stdDeviation="20"
               result="blur"
             />
-            <feTurbulence
-              type="turbulence"
-              baseFrequency="0.015"
-              numOctaves="3"
-              result="noise"
-              seed="5"
-            >
-              <animate
-                attributeName="baseFrequency"
-                values="0.015;0.01;0.015"
-                dur="15s"
-                repeatCount="indefinite"
-              />
-            </feTurbulence>
-            <feDisplacementMap
-              in="blur"
-              in2="noise"
-              scale="30"
-              xChannelSelector="R"
-              yChannelSelector="G"
-            />
+            {!reducedMotion && (
+                <>
+                    <feTurbulence
+                    type="turbulence"
+                    baseFrequency="0.015"
+                    numOctaves="3"
+                    result="noise"
+                    seed="5"
+                    >
+                    <animate
+                        attributeName="baseFrequency"
+                        values="0.015;0.01;0.015"
+                        dur="15s"
+                        repeatCount="indefinite"
+                    />
+                    </feTurbulence>
+                    <feDisplacementMap
+                    in="blur"
+                    in2="noise"
+                    scale="30"
+                    xChannelSelector="R"
+                    yChannelSelector="G"
+                    />
+                </>
+            )}
           </filter>
           
           {isInBottle && (
@@ -732,24 +738,28 @@ const AuroraSphere: React.FC<AuroraSphereProps> = ({
             opacity="0.7"
             style={{ transition: "fill 1.5s ease-in-out" }}
           >
-            <animate
-              attributeName="cx"
-              values="180;200;160;180"
-              dur="12s"
-              repeatCount="indefinite"
-            />
-            <animate
-              attributeName="cy"
-              values="180;160;200;180"
-              dur="14s"
-              repeatCount="indefinite"
-            />
-            <animate
-              attributeName="r"
-              values="110;120;100;110"
-              dur="10s"
-              repeatCount="indefinite"
-            />
+            {!reducedMotion && (
+                <>
+                    <animate
+                    attributeName="cx"
+                    values="180;200;160;180"
+                    dur="12s"
+                    repeatCount="indefinite"
+                    />
+                    <animate
+                    attributeName="cy"
+                    values="180;160;200;180"
+                    dur="14s"
+                    repeatCount="indefinite"
+                    />
+                    <animate
+                    attributeName="r"
+                    values="110;120;100;110"
+                    dur="10s"
+                    repeatCount="indefinite"
+                    />
+                </>
+            )}
           </circle>
 
           <circle
@@ -760,24 +770,28 @@ const AuroraSphere: React.FC<AuroraSphereProps> = ({
             opacity="0.7"
             style={{ transition: "fill 1.5s ease-in-out" }}
           >
-            <animate
-              attributeName="cx"
-              values="220;200;240;220"
-              dur="13s"
-              repeatCount="indefinite"
-            />
-            <animate
-              attributeName="cy"
-              values="180;200;160;180"
-              dur="11s"
-              repeatCount="indefinite"
-            />
-            <animate
-              attributeName="r"
-              values="110;100;120;110"
-              dur="12s"
-              repeatCount="indefinite"
-            />
+            {!reducedMotion && (
+                <>
+                    <animate
+                    attributeName="cx"
+                    values="220;200;240;220"
+                    dur="13s"
+                    repeatCount="indefinite"
+                    />
+                    <animate
+                    attributeName="cy"
+                    values="180;200;160;180"
+                    dur="11s"
+                    repeatCount="indefinite"
+                    />
+                    <animate
+                    attributeName="r"
+                    values="110;100;120;110"
+                    dur="12s"
+                    repeatCount="indefinite"
+                    />
+                </>
+            )}
           </circle>
 
           <circle
@@ -788,46 +802,52 @@ const AuroraSphere: React.FC<AuroraSphereProps> = ({
             opacity="0.7"
             style={{ transition: "fill 1.5s ease-in-out" }}
           >
-            <animate
-              attributeName="cx"
-              values="200;220;180;200"
-              dur="15s"
-              repeatCount="indefinite"
-            />
-            <animate
-              attributeName="cy"
-              values="230;210;250;230"
-              dur="13s"
-              repeatCount="indefinite"
-            />
-            <animate
-              attributeName="r"
-              values="110;115;105;110"
-              dur="14s"
-              repeatCount="indefinite"
-            />
+            {!reducedMotion && (
+                <>
+                    <animate
+                    attributeName="cx"
+                    values="200;220;180;200"
+                    dur="15s"
+                    repeatCount="indefinite"
+                    />
+                    <animate
+                    attributeName="cy"
+                    values="230;210;250;230"
+                    dur="13s"
+                    repeatCount="indefinite"
+                    />
+                    <animate
+                    attributeName="r"
+                    values="110;120;100;110"
+                    dur="12s"
+                    repeatCount="indefinite"
+                    />
+                </>
+            )}
           </circle>
         </g>
 
-        {/* --- 3. Face Layer (Unclipped) --- */}
+        {/* --- 3. Bottle Foreground (Front Glass & Reflections) --- */}
+        {isInBottle && <BottleFront />}
+
+        {/* --- 4. Face Features --- */}
         <g
-          style={{
-            transform: `translate(${faceOffset.x}px, ${faceOffset.y}px)`,
-            transition: "transform 0.1s ease-out",
-          }}
-          filter="drop-shadow(0 0 2px rgba(255,255,255,0.5))"
+            ref={faceGroupRef}
+            style={{ transition: "transform 0.1s ease-out" }}
+            filter="drop-shadow(0 0 2px rgba(255,255,255,0.5))"
         >
-          {generateEyes(currentFace.eyes, strokeProps, fillProps)}
+          {generateEyes(
+            isBlinking ? "closed" : currentFace.eyes,
+            strokeProps,
+            fillProps
+          )}
           {generateMouth(currentFace.mouth, strokeProps, fillProps)}
           {generateAccessory(currentFace.accessory, strokeProps)}
         </g>
-
-        {/* --- 4. Bottle Front (Highlights) --- */}
-        {isInBottle && <BottleFront />}
-
       </svg>
     </div>
   );
 };
 
+const AuroraSphere = React.memo(AuroraSphereComponent);
 export default AuroraSphere;

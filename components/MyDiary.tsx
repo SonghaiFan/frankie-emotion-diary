@@ -42,7 +42,7 @@ const MyDiary: React.FC<MyDiaryProps> = ({ user, onClose }) => {
   };
 
   const handleUpdate = async (text: string, emotion: Emotion, category: Category) => {
-    if (!currentEntry || !text.trim()) return;
+    if (!currentEntry || !text.trim()) return false;
     
     const updatedEntry = { 
         ...currentEntry, 
@@ -58,6 +58,7 @@ const MyDiary: React.FC<MyDiaryProps> = ({ user, onClose }) => {
     setEditingEntry(null);
 
     await saveChatMessage(user.uid, updatedEntry);
+    return true;
   };
 
   const handleDelete = async () => {

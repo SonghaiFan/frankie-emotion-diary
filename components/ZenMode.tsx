@@ -5,12 +5,17 @@ import AuroraSphere from "./AuroraSphere";
 
 interface ZenModeProps {
   onExit: () => void;
-  onSave: (text: string, emotion: Emotion, category: Category) => void;
+  onSave: (text: string, emotion: Emotion, category: Category) => Promise<boolean>;
   theme: {
     bgGradient: string;
     primary: string;
     secondary: string;
   };
+  initialData?: {
+      text: string;
+      emotion: Emotion;
+      category: Category;
+  }
 }
 
 const ZenMode: React.FC<ZenModeProps> = ({ onExit, onSave, theme, initialData }) => {
@@ -44,14 +49,18 @@ const ZenMode: React.FC<ZenModeProps> = ({ onExit, onSave, theme, initialData })
   const [selectedEmotion, setSelectedEmotion] = useState<Emotion>(initialData?.emotion || "neutral");
   const [selectedCategory, setSelectedCategory] = useState<Category>(initialData?.category || "default");
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const currentText = textRef.current;
     if (!currentText.trim()) return;
-    setIsExiting(true);
-    setTimeout(() => {
-      onSave(currentText, selectedEmotion, selectedCategory);
-      onExit();
-    }, 500);
+    
+    // Attempt to save first
+    const success = await onSave(currentText, selectedEmotion, selectedCategory);
+    
+    // Only exit if save was successful (or if the handler returned true indicating we should exit)
+    if (success) {
+        setIsExiting(true);
+        setTimeout(onExit, 500);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -74,18 +83,6 @@ const ZenMode: React.FC<ZenModeProps> = ({ onExit, onSave, theme, initialData })
           setHasText(hasContent);
       }
   };
-
-  // Memoize AuroraSphere to prevent re-renders on every keystroke
-  const memoizedSphere = React.useMemo(() => (
-    <AuroraSphere 
-        isThinking={false}
-        category={selectedCategory}
-        emotion={selectedEmotion}
-        isInputFocused={false}
-        forceSmile={false}
-        className="w-200 h-200"
-     />
-  ), [selectedCategory, selectedEmotion]);
 
   return (
     <div
@@ -230,8 +227,16 @@ const ZenMode: React.FC<ZenModeProps> = ({ onExit, onSave, theme, initialData })
       </div>
 
               {/* Visual Preview */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 opacity-30 pointer-events-none scale-[5] transition-all duration-500">
-             {memoizedSphere}
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 opacity-30 pointer-events-none scale-[3] transition-opacity duration-500">
+            <AuroraSphere
+                isThinking={false}
+                category={selectedCategory}
+                emotion={selectedEmotion}
+                isInputFocused={false}
+                forceSmile={false}
+                className="w-64 h-64"
+                reducedMotion={true}
+            />
         </div>
     </div>
   );

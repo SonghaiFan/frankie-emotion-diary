@@ -614,10 +614,18 @@ const App: React.FC = () => {
   // ... (rest of state)
 
   const handleZenSave = async (text: string, emotion: Emotion, category: Category) => {
-    if (!user) return; // Should be logged in for diary
+    if (!user) {
+        // Prompt for login if not authenticated
+        const confirmLogin = window.confirm("Please login to save your diary entry.");
+        if (confirmLogin) {
+            signInWithGoogle();
+        }
+        return false; // Don't exit Zen Mode
+    }
     
     // Send to Aurora as a diary entry with explicit metadata
     await handleSend(text, 'diary', emotion, category);
+    return true; // Exit Zen Mode
   };
 
   // ... (rest of render)
