@@ -630,6 +630,48 @@ const App: React.FC = () => {
 
   // ... (rest of render)
 
+  const handleCenterView = () => {
+    if (savedTodos.length === 0) {
+      setCanvasOffset({ x: 0, y: 0 });
+      return;
+    }
+
+    // Calculate the center of all todos
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    
+    savedTodos.forEach(todo => {
+      minX = Math.min(minX, todo.x);
+      maxX = Math.max(maxX, todo.x);
+      minY = Math.min(minY, todo.y);
+      maxY = Math.max(maxY, todo.y);
+    });
+
+    // Add note width/height to bounds (approximate)
+    maxX += 192; // w-48 is 12rem = 192px
+    maxY += 192; // Assume square-ish for safety
+
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+
+    // We want to center this point on the screen.
+    // The MemoWall renders items at (todo.x + canvasOffset.x, todo.y + canvasOffset.y).
+    // To center (centerX, centerY) at the screen center (which is effectively 0,0 in our relative coordinate space if we assume the container is centered),
+    // we need the resulting coordinate to be 0 (or centered in the viewport).
+    // However, MemoWall is absolute inset-0.
+    // Let's assume we want to shift the view so that the center of the bounding box is at the center of the screen.
+    // Screen center is roughly (window.innerWidth / 2, window.innerHeight / 2).
+    // So: centerX + offset = screenCenter.
+    // offset = screenCenter - centerX.
+    
+    const screenCenterX = window.innerWidth / 2;
+    const screenCenterY = window.innerHeight / 2;
+
+    setCanvasOffset({
+      x: screenCenterX - centerX,
+      y: screenCenterY - centerY
+    });
+  };
+
   return (
     <div
       className="relative w-full h-[100dvh] overflow-hidden touch-none transition-colors duration-1000 ease-in-out"
@@ -696,7 +738,10 @@ const App: React.FC = () => {
              <div className="relative w-64 h-64 lg:w-96 lg:h-96 flex items-center justify-center">
               <div
                 className="relative z-10 pointer-events-auto cursor-pointer"
-                onClick={() => triggerReaction("poke")}
+                onClick={() => {
+                    triggerReaction("poke");
+                    handleCenterView();
+                }}
               >
                 <AuroraSphere
                   className="w-48 h-48 md:w-64 md:h-64 lg:w-96 lg:h-96"
