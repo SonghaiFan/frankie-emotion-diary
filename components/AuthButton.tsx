@@ -46,6 +46,14 @@ const AuthButton: React.FC<AuthButtonProps> = ({
 
           {/* Dropdown Menu */}
           <div className="absolute right-0 top-full mt-2 w-40 bg-white rounded-lg shadow-lg py-1 border border-stone-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex flex-col">
+
+            <button
+              onClick={onOpenCalendar}
+              className="w-full text-left px-4 py-2 text-xs text-stone-600 hover:bg-stone-50 hover:text-stone-800 transition-colors flex items-center gap-2"
+            >
+              <Calendar className="w-3.5 h-3.5" />
+              Mood Calendar
+            </button>
             
             <button
               onClick={onOpenMyDiary}
@@ -54,13 +62,7 @@ const AuthButton: React.FC<AuthButtonProps> = ({
               <Book className="w-3.5 h-3.5" />
               My Diary
             </button>
-            <button
-              onClick={onOpenCalendar}
-              className="w-full text-left px-4 py-2 text-xs text-stone-600 hover:bg-stone-50 hover:text-stone-800 transition-colors flex items-center gap-2"
-            >
-              <Calendar className="w-3.5 h-3.5" />
-              Mood Calendar
-            </button>
+            
 
             {isManager &&  (
               <button
