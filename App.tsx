@@ -344,7 +344,7 @@ const App: React.FC = () => {
     }
 
     if (!hasSuggestions) {
-      const delay = 8000;
+      const delay = 20000;
       const timer = setTimeout(() => {
         setIsBubbleVisible(false);
       }, delay);
