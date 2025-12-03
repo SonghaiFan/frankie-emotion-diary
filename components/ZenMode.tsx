@@ -49,9 +49,13 @@ const ZenMode: React.FC<ZenModeProps> = ({ onExit, onSave, theme, initialData })
   const [selectedEmotion, setSelectedEmotion] = useState<Emotion>(initialData?.emotion || "neutral");
   const [selectedCategory, setSelectedCategory] = useState<Category>(initialData?.category || "default");
 
+  const [isSaving, setIsSaving] = useState(false);
+
   const handleSave = async () => {
     const currentText = textRef.current;
-    if (!currentText.trim()) return;
+    if (!currentText.trim() || isSaving) return;
+    
+    setIsSaving(true);
     
     // Attempt to save first
     const success = await onSave(currentText, selectedEmotion, selectedCategory);
@@ -60,6 +64,8 @@ const ZenMode: React.FC<ZenModeProps> = ({ onExit, onSave, theme, initialData })
     if (success) {
         setIsExiting(true);
         setTimeout(onExit, 500);
+    } else {
+        setIsSaving(false);
     }
   };
 
@@ -210,17 +216,17 @@ const ZenMode: React.FC<ZenModeProps> = ({ onExit, onSave, theme, initialData })
             
             <button
                 onClick={handleSave}
-                disabled={!hasText}
+                disabled={!hasText || isSaving}
                 className={`
                     group relative px-8 py-3 rounded-full flex items-center gap-3 transition-all duration-500
-                    ${!hasText 
+                    ${!hasText || isSaving
                         ? 'bg-stone-200 text-stone-400 cursor-not-allowed opacity-50' 
                         : 'bg-white text-stone-600 shadow-lg hover:shadow-xl hover:-translate-y-1 cursor-pointer'
                     }
                 `}
             >
-                <span className="text-sm font-medium tracking-wide">Save to Diary</span>
-                <Check className={`w-4 h-4 ${hasText ? 'text-green-500' : ''}`} />
+                <span className="text-sm font-medium tracking-wide">{isSaving ? 'Saving...' : 'Save to Diary'}</span>
+                {!isSaving && <Check className={`w-4 h-4 ${hasText ? 'text-green-500' : ''}`} />}
             </button>
         </div>
 
