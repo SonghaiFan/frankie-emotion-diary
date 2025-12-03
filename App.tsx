@@ -410,13 +410,14 @@ const App: React.FC = () => {
     setIsBubbleVisible(true);
   };
 
-  const handleSend = async (text: string) => {
+  const handleSend = async (text: string, type: 'chat' | 'diary' = 'chat', overrideEmotion?: Emotion, overrideCategory?: Category) => {
     // Add user message immediately
     const userMsg: Message = {
       id: Date.now().toString(),
       role: "user",
       text: text,
       timestamp: Date.now(),
+      type: type,
     };
     setMessages((prev) => [...prev, userMsg]);
 
@@ -448,7 +449,8 @@ const App: React.FC = () => {
     try {
       // Pass complete history + new text implicitly via the Gemini session
       // But we pass todo context explicitly
-      const rawResponse = await sendMessage(text, savedTodos);
+      // If overrides are present (from Zen Mode), pass them to prompt
+      const rawResponse = await sendMessage(text, savedTodos, overrideEmotion, overrideCategory);
       const {
         text: cleanText,
         emotion,
@@ -479,6 +481,7 @@ const App: React.FC = () => {
         suggestions: suggestions,
         category: category, // Use local variable
         emotion: emotion,   // Use local variable
+        type: type === 'diary' ? 'chat' : 'chat', // AI response is always chat for now, or maybe inherit? Let's keep it chat to show in bubble.
       };
 
       setMessages((prev) => [...prev, modelMsg]);
@@ -610,32 +613,11 @@ const App: React.FC = () => {
 
   // ... (rest of state)
 
-  const handleZenSave = async (text: string) => {
+  const handleZenSave = async (text: string, emotion: Emotion, category: Category) => {
     if (!user) return; // Should be logged in for diary
-
-    const diaryMsg: Message = {
-        id: Date.now().toString(),
-        role: "user",
-        text: text,
-        timestamp: Date.now(),
-        type: "diary",
-        category: currentCategory,
-        emotion: currentEmotion,
-    };
-
-    // Save to local state (optional, if we want it in chat history too)
-    setMessages((prev) => [...prev, diaryMsg]);
     
-    // Save to Cloud
-    saveChatMessage(user.uid, diaryMsg);
-
-    // Log emotion
-    if (currentEmotion !== "neutral") {
-        logEmotion(user.uid, currentEmotion, currentCategory, text);
-    }
-
-    // Trigger a subtle confirmation reaction instead of a full reply
-    triggerReaction("completion"); 
+    // Send to Aurora as a diary entry with explicit metadata
+    await handleSend(text, 'diary', emotion, category);
   };
 
   // ... (rest of render)

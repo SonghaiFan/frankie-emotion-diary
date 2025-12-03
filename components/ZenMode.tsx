@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { X, Check } from "lucide-react";
+import { Emotion, Category, EMOTIONS, CATEGORY_THEMES } from "../constants";
+import AuroraSphere from "./AuroraSphere";
 
 interface ZenModeProps {
   onExit: () => void;
-  onSave: (text: string) => void;
+  onSave: (text: string, emotion: Emotion, category: Category) => void;
   theme: {
     bgGradient: string;
     primary: string;
@@ -27,11 +29,14 @@ const ZenMode: React.FC<ZenModeProps> = ({ onExit, onSave, theme }) => {
     setTimeout(onExit, 500); // Wait for fade out
   };
 
+  const [selectedEmotion, setSelectedEmotion] = useState<Emotion>("neutral");
+  const [selectedCategory, setSelectedCategory] = useState<Category>("default");
+
   const handleSave = () => {
     if (!text.trim()) return;
     setIsExiting(true);
     setTimeout(() => {
-      onSave(text);
+      onSave(text, selectedEmotion, selectedCategory);
       onExit();
     }, 500);
   };
@@ -59,9 +64,21 @@ const ZenMode: React.FC<ZenModeProps> = ({ onExit, onSave, theme }) => {
       {/* Ambient Overlay to soften it further */}
       <div className="absolute inset-0 bg-white/30 backdrop-blur-3xl pointer-events-none"></div>
 
+        {/* Visual Preview */}
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 opacity-30 pointer-events-none scale-[5] transition-all duration-500">
+             <AuroraSphere 
+                isThinking={false}
+                category={selectedCategory}
+                emotion={selectedEmotion}
+                isInputFocused={false}
+                forceSmile={false}
+                className="w-200 h-200"
+             />
+        </div>
+
       {/* Content Container */}
       <div className="relative z-10 w-full max-w-3xl h-full flex flex-col p-6 md:p-12 lg:py-16 mx-auto">
-        
+
         {/* Header */}
         <div className="flex justify-between items-center mb-8 md:mb-12 animate-fade-in w-full">
             <div className="text-stone-400 text-xs md:text-sm font-medium tracking-widest uppercase">
@@ -90,7 +107,75 @@ const ZenMode: React.FC<ZenModeProps> = ({ onExit, onSave, theme }) => {
         />
 
         {/* Footer Actions */}
-        <div className="flex justify-center mt-6 md:mt-10 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+        <div className="flex flex-col items-center gap-4 mt-6 md:mt-10 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            
+            {/* Metadata Selection */}
+            <div className="flex gap-6 items-center">
+                
+                {/* Emotion Picker */}
+                <div className="flex flex-col items-center gap-2 group">
+                    <label className="text-[10px] uppercase tracking-widest text-stone-400 font-bold">Emotion</label>
+                    <div className="flex items-center gap-2">
+                        <button 
+                            onClick={() => {
+                                const currentIndex = EMOTIONS.indexOf(selectedEmotion);
+                                const prevIndex = (currentIndex - 1 + EMOTIONS.length) % EMOTIONS.length;
+                                setSelectedEmotion(EMOTIONS[prevIndex]);
+                            }}
+                            className="p-1 text-stone-300 hover:text-stone-500 transition-colors"
+                        >
+                            ←
+                        </button>
+                        <div className="w-32 text-center">
+                            <div className="text-stone-600 font-medium capitalize">{selectedEmotion}</div>
+                        </div>
+                        <button 
+                            onClick={() => {
+                                const currentIndex = EMOTIONS.indexOf(selectedEmotion);
+                                const nextIndex = (currentIndex + 1) % EMOTIONS.length;
+                                setSelectedEmotion(EMOTIONS[nextIndex]);
+                            }}
+                            className="p-1 text-stone-300 hover:text-stone-500 transition-colors"
+                        >
+                            →
+                        </button>
+                    </div>
+                </div>
+
+                {/* Category Picker */}
+                <div className="flex flex-col items-center gap-2 group">
+                    <label className="text-[10px] uppercase tracking-widest text-stone-400 font-bold">Category</label>
+                    <div className="flex items-center gap-2">
+                        <button 
+                            onClick={() => {
+                                const categories = Object.keys(CATEGORY_THEMES) as Category[];
+                                const currentIndex = categories.indexOf(selectedCategory);
+                                const prevIndex = (currentIndex - 1 + categories.length) % categories.length;
+                                setSelectedCategory(categories[prevIndex]);
+                            }}
+                            className="p-1 text-stone-300 hover:text-stone-500 transition-colors"
+                        >
+                            ←
+                        </button>
+                         <div className="w-32 text-center">
+                            <div className="text-stone-600 font-medium capitalize">{selectedCategory}</div>
+                        </div>
+                        <button 
+                            onClick={() => {
+                                const categories = Object.keys(CATEGORY_THEMES) as Category[];
+                                const currentIndex = categories.indexOf(selectedCategory);
+                                const nextIndex = (currentIndex + 1) % categories.length;
+                                setSelectedCategory(categories[nextIndex]);
+                            }}
+                            className="p-1 text-stone-300 hover:text-stone-500 transition-colors"
+                        >
+                            →
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
             <button
                 onClick={handleSave}
                 disabled={!text.trim()}

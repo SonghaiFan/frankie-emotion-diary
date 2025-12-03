@@ -25,7 +25,7 @@ export const initializeChat = (history: Content[] = []) => {
   });
 };
 
-export const sendMessage = async (text: string, contextTodos: TodoItem[] = []): Promise<string> => {
+export const sendMessage = async (text: string, contextTodos: TodoItem[] = [], overrideEmotion?: string, overrideCategory?: string): Promise<string> => {
   // If session doesn't exist (and wasn't initialized with history), init empty
   if (!chatSession) {
     initializeChat();
@@ -50,6 +50,10 @@ ${completedTasks || '(None)'}
 
 [User Message]
 ${text}
+
+${overrideEmotion ? `[User Selected Emotion: ${overrideEmotion}]` : ''}
+${overrideCategory ? `[User Selected Category: ${overrideCategory}]` : ''}
+${(overrideEmotion || overrideCategory) ? 'Please respect the user\'s selected emotion and category in your response logic, but you can still infer nuances.' : ''}
 `;
 
     const result: GenerateContentResponse = await chatSession.sendMessage({
