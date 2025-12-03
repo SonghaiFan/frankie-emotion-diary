@@ -362,17 +362,9 @@ const App: React.FC = () => {
         const rx = isMobile ? 10 : Math.min(window.innerWidth * 0.1, 40);
         const ry = 10;
 
-        const wanderX = Math.sin(time) * rx + Math.sin(time * 0.5) * (rx * 0.5);
-        const wanderY =
-          Math.cos(time * 0.8) * ry + Math.sin(time * 0.3) * (ry * 0.5);
-
-        let targetX = cx + wanderX;
-        let targetY = cy + wanderY;
-
-        if (isInputFocused) {
-          targetX = cx;
-          targetY = cy;
-        }
+        // Fixed position - no wandering
+        const targetX = cx;
+        const targetY = cy;
 
         targetPos.current.x = targetX;
         targetPos.current.y = targetY;
