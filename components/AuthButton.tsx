@@ -2,12 +2,13 @@
 import React from "react";
 import { UserProfile } from "../types";
 import { signInWithGoogle, signOut } from "../services/firebase";
-import { Book, Calendar, LogOut, Wrench } from "lucide-react";
+import { FileClock, Book, Calendar, LogOut, Wrench } from "lucide-react";
 
 interface AuthButtonProps {
   user: UserProfile | null;
   onOpenCalendar: () => void;
-  onOpenChatDiary: () => void;
+  onOpenChatHistory: () => void;
+  onOpenMyDiary: () => void;
   onOpenDebug?: () => void;
   showDebugOption?: boolean;
   onLogout: () => void;
@@ -16,21 +17,25 @@ interface AuthButtonProps {
 const AuthButton: React.FC<AuthButtonProps> = ({
   user,
   onOpenCalendar,
-  onOpenChatDiary,
+  onOpenChatHistory,
+  onOpenMyDiary,
   onOpenDebug,
   showDebugOption,
   onLogout,
 }) => {
+  const [imgError, setImgError] = React.useState(false);
+
   if (user) {
     return (
       <div className="flex items-center gap-3">
         <div className="relative group">
           <button className="w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden border border-stone-200 shadow-sm hover:shadow-md transition-all">
-            {user.photoURL ? (
+            {user.photoURL && !imgError ? (
               <img
                 src={user.photoURL}
                 alt={user.displayName || "User"}
                 className="w-full h-full object-cover"
+                onError={() => setImgError(true)}
               />
             ) : (
               <div className="w-full h-full bg-stone-100 flex items-center justify-center text-stone-500 text-xs">
@@ -42,11 +47,18 @@ const AuthButton: React.FC<AuthButtonProps> = ({
           {/* Dropdown Menu */}
           <div className="absolute right-0 top-full mt-2 w-40 bg-white rounded-lg shadow-lg py-1 border border-stone-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex flex-col">
             <button
-              onClick={onOpenChatDiary}
+              onClick={onOpenChatHistory}
+              className="w-full text-left px-4 py-2 text-xs text-stone-600 hover:bg-stone-50 hover:text-stone-800 transition-colors flex items-center gap-2"
+            >
+              <FileClock className="w-3.5 h-3.5" />
+              Chat History
+            </button>
+            <button
+              onClick={onOpenMyDiary}
               className="w-full text-left px-4 py-2 text-xs text-stone-600 hover:bg-stone-50 hover:text-stone-800 transition-colors flex items-center gap-2"
             >
               <Book className="w-3.5 h-3.5" />
-              Chat Diary
+              My Diary
             </button>
             <button
               onClick={onOpenCalendar}

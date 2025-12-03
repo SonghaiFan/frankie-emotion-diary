@@ -41,6 +41,7 @@ const InputArea: React.FC<InputAreaProps> = ({
   onSmileChange,
   onTypingStart,
   onIdle,
+  onEnterZenMode,
 }) => {
   const [input, setInput] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -106,10 +107,24 @@ const InputArea: React.FC<InputAreaProps> = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className="w-full max-w-lg relative mx-auto pointer-events-auto"
+      className="w-full max-w-lg relative mx-auto pointer-events-auto flex items-end gap-2"
     >
+       {/* Zen Mode Button */}
+       <button
+        type="button"
+        onClick={onEnterZenMode}
+        className="w-11 h-11 rounded-[20px] bg-white/80 backdrop-blur-xl border border-white/50 shadow-sm flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-white hover:scale-105 transition-all duration-300 mb-2"
+        title="Zen Writing Mode"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"></path>
+            <line x1="16" y1="8" x2="2" y2="22"></line>
+            <line x1="17.5" y1="15" x2="9" y2="15"></line>
+        </svg>
+      </button>
+
       <div
-        className={`relative flex items-end gap-2 backdrop-blur-xl rounded-[28px] p-2 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border transition-all duration-500 ${
+        className={`flex-1 relative flex items-end gap-2 backdrop-blur-xl rounded-[28px] p-2 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border transition-all duration-500 ${
           isLoading
             ? "bg-stone-50/50 border-stone-100"
             : "bg-white/80 border-white/50 focus-within:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.1)] focus-within:bg-white/95 focus-within:scale-[1.01]"

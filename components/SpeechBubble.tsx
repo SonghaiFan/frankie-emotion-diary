@@ -139,7 +139,7 @@ const SpeechBubble: React.FC<SpeechBubbleProps> = ({
 
   return (
     <div 
-      className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 sm:mb-4 w-[90vw] sm:w-80 max-w-[calc(100vw-2rem)] z-20 pointer-events-auto origin-bottom animate-slide-up-fade group ${
+      className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 sm:mb-4 w-[90vw] sm:w-80 max-w-[calc(100vw-2rem)] z-20 pointer-events-auto origin-bottom animate-slide-up-centered group ${
         !isVisible ? '!opacity-0 !scale-95 !pointer-events-none transition-all duration-700 ease-in-out' : ''
       }`}
     >
@@ -148,7 +148,7 @@ const SpeechBubble: React.FC<SpeechBubbleProps> = ({
         style={{
             backgroundColor: 'rgba(255, 255, 255, 0.4)',
             borderRadius: '2.5rem',
-            borderBottomLeftRadius: '1rem',
+            borderBottomLeftRadius: '0rem',
             boxShadow: `
               0 0 30px -5px rgba(255, 255, 255, 0.9),
               0 0 60px -15px ${theme.secondary}

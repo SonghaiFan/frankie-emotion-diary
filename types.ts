@@ -46,6 +46,7 @@ export interface Message {
   suggestions?: string[];
   category?: Category;
   emotion?: Emotion;
+  type?: 'chat' | 'diary';
 }
 
 export interface ChatState {

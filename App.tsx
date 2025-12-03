@@ -11,8 +11,10 @@ import DebugPanel from "./components/DebugPanel";
 import SpeechBubble from "./components/SpeechBubble";
 import AuthButton from "./components/AuthButton";
 import EmotionCalendar from "./components/EmotionCalendar";
-import ChatDiaryModal from "./components/ChatDiaryModal";
+import ChatHistory from "./components/ChatHistory";
 import LandingPage from "./components/LandingPage";
+import ZenMode from "./components/ZenMode";
+import MyDiary from "./components/MyDiary";
 import { sendMessage, initializeChat } from "./services/geminiService";
 import { Message, TodoItem, UserProfile } from "./types";
 import { Category, Emotion } from "./constants";
@@ -61,7 +63,40 @@ const App: React.FC = () => {
   // Auth State
   const [user, setUser] = useState<UserProfile | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
-  const [showChatDiary, setShowChatDiary] = useState(false);
+  const [showChatHistory, setShowChatHistory] = useState(false);
+  const [ChatHistoryTargetDate, setChatHistoryTargetDate] = useState<string | null>(null);
+
+  // ... (rest of state)
+
+  // ... (rest of handlers)
+
+  const handleCalendarDateClick = (date: string) => {
+    setChatHistoryTargetDate(date);
+    setShowCalendar(false);
+    setShowChatHistory(true);
+  };
+
+  // ... (rest of render)
+
+      {/* 5. Modals & Overlays */}
+      {showCalendar && user && (
+        <EmotionCalendar
+          uid={user.uid}
+          onClose={() => setShowCalendar(false)}
+          onDateClick={handleCalendarDateClick}
+        />
+      )}
+
+      {showChatHistory && user && (
+        <ChatHistory
+          user={user}
+          onClose={() => {
+            setShowChatHistory(false);
+            setChatHistoryTargetDate(null); // Reset target date on close
+          }}
+          initialDate={ChatHistoryTargetDate}
+        />
+      )}
 
   // Debug State
   const [showDebug, setShowDebug] = useState(false);
@@ -267,6 +302,8 @@ const App: React.FC = () => {
     setIsTypingComplete(false);
   }, [lastModelMessage?.id]);
 
+  const [userClosedBubbleId, setUserClosedBubbleId] = useState<string | null>(null);
+
   // --- Logic: Bubble Visibility Management ---
   useEffect(() => {
     // If landing page is shown, hide bubble
@@ -283,7 +320,7 @@ const App: React.FC = () => {
     if (!lastModelMessage) return;
 
     // On first load/enter, show the bubble if it's the greeting or recent
-    if (!isBubbleVisible && !showLanding) {
+    if (!isBubbleVisible && !showLanding && !userClosedBubbleId) {
       // Only if it was recently added? Or just show it.
       // Let's show it.
       setIsBubbleVisible(true);
@@ -300,6 +337,12 @@ const App: React.FC = () => {
       return;
     }
 
+    // If user explicitly closed this specific message, keep it closed
+    if (userClosedBubbleId === lastModelMessage.id) {
+        setIsBubbleVisible(false);
+        return;
+    }
+
     if (!hasSuggestions) {
       const delay = 8000;
       const timer = setTimeout(() => {
@@ -309,7 +352,7 @@ const App: React.FC = () => {
     }
 
     setIsBubbleVisible(true);
-  }, [lastModelMessage, savedTodos, isLoading, showLanding]);
+  }, [lastModelMessage, savedTodos, isLoading, showLanding, userClosedBubbleId]);
 
   // --- Logic: Avatar Reactions ---
   const triggerReaction = (type: keyof typeof AVATAR_REACTIONS) => {
@@ -562,150 +605,211 @@ const App: React.FC = () => {
 
   const theme = CATEGORY_THEMES[currentCategory] || CATEGORY_THEMES.default;
 
+  const [isZenMode, setIsZenMode] = useState(false);
+  const [showMyDiary, setShowMyDiary] = useState(false);
+
+  // ... (rest of state)
+
+  const handleZenSave = async (text: string) => {
+    if (!user) return; // Should be logged in for diary
+
+    const diaryMsg: Message = {
+        id: Date.now().toString(),
+        role: "user",
+        text: text,
+        timestamp: Date.now(),
+        type: "diary",
+        category: currentCategory,
+        emotion: currentEmotion,
+    };
+
+    // Save to local state (optional, if we want it in chat history too)
+    setMessages((prev) => [...prev, diaryMsg]);
+    
+    // Save to Cloud
+    saveChatMessage(user.uid, diaryMsg);
+
+    // Log emotion
+    if (currentEmotion !== "neutral") {
+        logEmotion(user.uid, currentEmotion, currentCategory, text);
+    }
+
+    // Trigger a subtle confirmation reaction instead of a full reply
+    triggerReaction("completion"); 
+  };
+
+  // ... (rest of render)
+
   return (
     <div
       className="relative w-full h-[100dvh] overflow-hidden touch-none transition-colors duration-1000 ease-in-out"
       style={{ background: theme.bgGradient }}
     >
-      {showLanding && (
-        <LandingPage
-          onEnter={handleEnterApp}
-          onLogin={signInWithGoogle}
-          user={user}
-          language={language}
-          setLanguage={setLanguage}
+      {/* Zen Mode Overlay */}
+      {isZenMode && (
+        <ZenMode 
+            onExit={() => setIsZenMode(false)}
+            onSave={handleZenSave}
+            theme={theme}
         />
       )}
 
-      {/* 1. Dynamic Background Orbs */}
-      <div className="absolute inset-0 pointer-events-none opacity-30 mix-blend-multiply transition-colors duration-1000 z-0">
-        <div
-          className={`absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full blur-[120px] transition-colors duration-1000 ${
-            currentCategory === "nature"
-              ? "bg-sky-100"
-              : currentCategory === "sensory"
-              ? "bg-pink-100"
-              : "bg-blue-50"
-          }`}
-        />
-        <div
-          className={`absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full blur-[120px] transition-colors duration-1000 ${
-            currentCategory === "creative" ? "bg-purple-100" : "bg-cyan-50"
-          }`}
-        />
-      </div>
+      {/* Main App Content - Hidden when in Zen Mode */}
+      <div className={`transition-opacity duration-700 ${isZenMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+          {showLanding && (
+            <LandingPage
+              onEnter={handleEnterApp}
+              onLogin={signInWithGoogle}
+              user={user}
+              language={language}
+              setLanguage={setLanguage}
+            />
+          )}
 
-      {/* 2. Memo Wall */}
-      <MemoWall
-        todos={savedTodos}
-        onUpdateTodoPosition={updateTodoPosition}
-        onDeleteTodo={deleteTodo}
-        onToggleTodo={toggleTodo}
-        onDragEnd={handleTodoDragEnd}
-        canvasOffset={canvasOffset}
-        onPanChange={setCanvasOffset}
-      />
-
-      {/* 3. Avatar Container */}
-      <div
-        className={`absolute left-1/2 -translate-x-1/2 bottom-[10px] sm:bottom-[40px] z-30 transition-all duration-700 ease-in-out pointer-events-none ${
-          showLanding ? "opacity-0 translate-y-20" : "opacity-100 translate-y-0"
-        }`}
-      >
-        <div className="relative w-64 h-64 lg:w-96 lg:h-96 flex items-center justify-center">
-          <div
-            className="relative z-10 pointer-events-auto cursor-pointer"
-            onClick={() => triggerReaction("poke")}
-          >
-            <AuroraSphere
-              className="w-48 h-48 md:w-64 md:h-64 lg:w-96 lg:h-96"
-              isThinking={isLoading}
-              category={currentCategory}
-              emotion={currentEmotion}
-              isInputFocused={isInputFocused}
-              forceSmile={forceSmile}
-              eyeOverride={debugOverrides.eyes}
-              mouthOverride={debugOverrides.mouth}
-              accessoryOverride={debugOverrides.accessory}
-              isInBottle={false}
+          {/* 1. Dynamic Background Orbs */}
+          <div className="absolute inset-0 pointer-events-none opacity-30 mix-blend-multiply transition-colors duration-1000 z-0">
+            {/* ... orbs ... */}
+             <div
+              className={`absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full blur-[120px] transition-colors duration-1000 ${
+                currentCategory === "nature"
+                  ? "bg-sky-100"
+                  : currentCategory === "sensory"
+                  ? "bg-pink-100"
+                  : "bg-blue-50"
+              }`}
+            />
+            <div
+              className={`absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full blur-[120px] transition-colors duration-1000 ${
+                currentCategory === "creative" ? "bg-purple-100" : "bg-cyan-50"
+              }`}
             />
           </div>
 
-          <SpeechBubble
-            message={lastModelMessage || null}
-            isLoading={isLoading}
-            isVisible={isBubbleVisible}
-            theme={{ secondary: theme.secondary, noteBg: theme.noteBg }}
-            isTypingComplete={isTypingComplete}
-            onTypingComplete={() => setIsTypingComplete(true)}
-            onSaveTodo={handleSaveTodo}
-            isTodoSaved={isTodoSaved}
-            onClose={() => setIsBubbleVisible(false)}
-            onSaveAllTodos={handleSaveAllTodos}
+          {/* 2. Memo Wall */}
+          <MemoWall
+            todos={savedTodos}
+            onUpdateTodoPosition={updateTodoPosition}
+            onDeleteTodo={deleteTodo}
+            onToggleTodo={toggleTodo}
+            onDragEnd={handleTodoDragEnd}
+            canvasOffset={canvasOffset}
+            onPanChange={setCanvasOffset}
           />
-        </div>
+
+          {/* 3. Avatar Container */}
+          <div
+            className={`absolute left-1/2 -translate-x-1/2 bottom-[10px] sm:bottom-[40px] z-30 transition-all duration-700 ease-in-out pointer-events-none ${
+              showLanding ? "opacity-0 translate-y-20" : "opacity-100 translate-y-0"
+            }`}
+          >
+             {/* ... avatar ... */}
+             <div className="relative w-64 h-64 lg:w-96 lg:h-96 flex items-center justify-center">
+              <div
+                className="relative z-10 pointer-events-auto cursor-pointer"
+                onClick={() => triggerReaction("poke")}
+              >
+                <AuroraSphere
+                  className="w-48 h-48 md:w-64 md:h-64 lg:w-96 lg:h-96"
+                  isThinking={isLoading}
+                  category={currentCategory}
+                  emotion={currentEmotion}
+                  isInputFocused={isInputFocused}
+                  forceSmile={forceSmile}
+                  eyeOverride={debugOverrides.eyes}
+                  mouthOverride={debugOverrides.mouth}
+                  accessoryOverride={debugOverrides.accessory}
+                  isInBottle={false}
+                />
+              </div>
+
+              <SpeechBubble
+                message={lastModelMessage || null}
+                isLoading={isLoading}
+                isVisible={isBubbleVisible}
+                theme={{ secondary: theme.secondary, noteBg: theme.noteBg }}
+                isTypingComplete={isTypingComplete}
+                onTypingComplete={() => setIsTypingComplete(true)}
+                onSaveTodo={handleSaveTodo}
+                isTodoSaved={isTodoSaved}
+                onClose={() => {
+                  setIsBubbleVisible(false);
+                  if (lastModelMessage) setUserClosedBubbleId(lastModelMessage.id);
+                }}
+                onSaveAllTodos={handleSaveAllTodos}
+              />
+            </div>
+          </div>
+
+          {/* 4. Input Layer */}
+          <div
+            className={`absolute bottom-0 left-0 w-full p-4 md:p-6 z-40 flex flex-col items-center pointer-events-none transition-opacity duration-700 ${
+              showLanding ? "opacity-0 translate-y-10" : "opacity-100 translate-y-0"
+            }`}
+          >
+            <InputArea
+              onSend={handleSend}
+              isLoading={isLoading}
+              onFocusChange={setIsInputFocused}
+              onSmileChange={setForceSmile}
+              onTypingStart={() => triggerReaction("typing")}
+              onIdle={() => triggerReaction("idle")}
+              onEnterZenMode={() => setIsZenMode(true)}
+            />
+          </div>
+
+          {/* Top Center: Credits */}
+          <div
+            className={`absolute top-4 left-1/2 -translate-x-1/2 z-50 text-center pointer-events-none select-none opacity-30 hover:opacity-60 transition-opacity duration-500 ${
+              showLanding ? "opacity-0" : "opacity-100"
+            }`}
+          >
+            <p className="text-[9px] sm:text-[10px] text-stone-600 font-bold tracking-wide">
+              Inspired by 武田友纪《高敏感人士幸福清单》
+            </p>
+            <p className="text-[9px] sm:text-[10px] text-stone-500 tracking-wider mt-0.5">
+              Made by 范不着frank
+            </p>
+          </div>
+
+          {/* Top Right: Auth */}
+          <div
+            className={`absolute top-0 right-0 p-4 z-50 flex flex-col items-end gap-2 transition-opacity duration-500 ${
+              showLanding ? "opacity-0 pointer-events-none" : "opacity-100"
+            }`}
+          >
+            <AuthButton
+              user={user}
+              onOpenCalendar={() => setShowCalendar(true)}
+              onOpenChatHistory={() => setShowChatHistory(true)}
+              onOpenMyDiary={() => setShowMyDiary(true)}
+              onOpenDebug={() => setShowDebug(true)}
+              showDebugOption={
+                process.env.NODE_ENV === "development" || user?.uid === MANAGER_UID
+              }
+              onLogout={handleLogout}
+            />
+          </div>
       </div>
 
-      {/* 4. Input Layer */}
-      <div
-        className={`absolute bottom-0 left-0 w-full p-4 md:p-6 z-40 flex flex-col items-center pointer-events-none transition-opacity duration-700 ${
-          showLanding ? "opacity-0 translate-y-10" : "opacity-100 translate-y-0"
-        }`}
-      >
-        <InputArea
-          onSend={handleSend}
-          isLoading={isLoading}
-          onFocusChange={setIsInputFocused}
-          onSmileChange={setForceSmile}
-          onTypingStart={() => triggerReaction("typing")}
-          onIdle={() => triggerReaction("idle")}
-        />
-      </div>
-
-      {/* Top Center: Credits */}
-      <div
-        className={`absolute top-4 left-1/2 -translate-x-1/2 z-50 text-center pointer-events-none select-none opacity-30 hover:opacity-60 transition-opacity duration-500 ${
-          showLanding ? "opacity-0" : "opacity-100"
-        }`}
-      >
-        <p className="text-[9px] sm:text-[10px] text-stone-600 font-bold tracking-wide">
-          Inspired by 武田友纪《高敏感人士幸福清单》
-        </p>
-        <p className="text-[9px] sm:text-[10px] text-stone-500 tracking-wider mt-0.5">
-          Made by 范不着frank
-        </p>
-      </div>
-
-      {/* Top Right: Auth */}
-      <div
-        className={`absolute top-0 right-0 p-4 z-50 flex flex-col items-end gap-2 transition-opacity duration-500 ${
-          showLanding ? "opacity-0 pointer-events-none" : "opacity-100"
-        }`}
-      >
-        <AuthButton
-          user={user}
-          onOpenCalendar={() => setShowCalendar(true)}
-          onOpenChatDiary={() => setShowChatDiary(true)}
-          onOpenDebug={() => setShowDebug(true)}
-          showDebugOption={
-            process.env.NODE_ENV === "development" || user?.uid === MANAGER_UID
-          }
-          onLogout={handleLogout}
-        />
-      </div>
-
-      {/* 5. Modals & Overlays */}
+      {/* 5. Modals & Overlays (Outside the hidden div to ensure they can still work if needed, though Zen Mode usually blocks them) */}
+      {/* Actually, we want modals to be hidden too if Zen Mode is active, but Zen Mode is on top anyway. */}
+      
       {showCalendar && user && (
         <EmotionCalendar
           uid={user.uid}
           onClose={() => setShowCalendar(false)}
+          onDateClick={handleCalendarDateClick}
         />
       )}
 
-      {showChatDiary && user && (
-        <ChatDiaryModal
+      {showChatHistory && user && (
+        <ChatHistory
           user={user}
-          onClose={() => setShowChatDiary(false)}
+          onClose={() => {
+            setShowChatHistory(false);
+            setChatHistoryTargetDate(null); // Reset target date on close
+          }}
+          initialDate={ChatHistoryTargetDate}
         />
       )}
 
@@ -728,7 +832,12 @@ const App: React.FC = () => {
         />
       )}
 
-
+      {showMyDiary && user && (
+        <MyDiary 
+            user={user}
+            onClose={() => setShowMyDiary(false)}
+        />
+      )}
     </div>
   );
 };

@@ -8,6 +8,7 @@ import AuroraSphere from "./AuroraSphere";
 interface EmotionCalendarProps {
   uid: string;
   onClose: () => void;
+  onDateClick: (date: string) => void;
 }
 
 const EMOTION_COLORS: Record<Emotion, string> = {
@@ -28,7 +29,7 @@ const EMOTION_COLORS: Record<Emotion, string> = {
   safe: "#86EFAC",
 };
 
-const EmotionCalendar: React.FC<EmotionCalendarProps> = ({ uid, onClose }) => {
+const EmotionCalendar: React.FC<EmotionCalendarProps> = ({ uid, onClose, onDateClick }) => {
   const [logs, setLogs] = useState<EmotionLog[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -44,7 +45,13 @@ const EmotionCalendar: React.FC<EmotionCalendarProps> = ({ uid, onClose }) => {
   // Group logs by date
   const logsByDate: Record<string, EmotionLog[]> = {};
   logs.forEach((log) => {
-    const date = new Date(log.timestamp).toLocaleDateString();
+    // Format date to match ChatHistory's format for easy matching
+    const date = new Date(log.timestamp).toLocaleDateString(undefined, {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
     if (!logsByDate[date]) logsByDate[date] = [];
     logsByDate[date].push(log);
   });
@@ -117,15 +124,16 @@ const EmotionCalendar: React.FC<EmotionCalendarProps> = ({ uid, onClose }) => {
               return (
                 <div
                   key={date}
-                  className="relative pl-6 border-l-2 border-stone-100 last:border-0 pb-8"
+                  className="relative pl-6 border-l-2 border-stone-100 last:border-0 pb-8 group cursor-pointer"
+                  onClick={() => onDateClick(date)}
                 >
-                  <div className="absolute -left-[5px] top-0 w-2.5 h-2.5 rounded-full bg-stone-200 ring-4 ring-white"></div>
+                  <div className="absolute -left-[5px] top-0 w-2.5 h-2.5 rounded-full bg-stone-200 ring-4 ring-white group-hover:bg-stone-400 transition-colors"></div>
 
-                  <h3 className="text-xs font-bold text-stone-400 mb-3 uppercase tracking-wider">
+                  <h3 className="text-xs font-bold text-stone-400 mb-3 uppercase tracking-wider group-hover:text-stone-600 transition-colors">
                     {date}
                   </h3>
 
-                  <div className="flex items-center gap-4 bg-stone-50/50 p-4 rounded-2xl border border-stone-100 transition-all hover:bg-stone-50 hover:shadow-sm">
+                  <div className="flex items-center gap-4 bg-stone-50/50 p-4 rounded-2xl border border-stone-100 transition-all hover:bg-white hover:shadow-md hover:border-stone-200 hover:-translate-y-0.5">
                     {/* Mini Aurora */}
                     <div className="relative w-16 h-16 flex-shrink-0">
                       <AuroraSphere

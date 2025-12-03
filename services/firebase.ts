@@ -192,6 +192,7 @@ export const saveChatMessage = async (uid: string, message: Message) => {
       timestamp: Timestamp.fromMillis(message.timestamp),
       category: message.category || "default",
       emotion: message.emotion || "neutral",
+      type: message.type || "chat",
     });
   } catch (error) {
     console.error("Error saving chat message", error);
@@ -217,6 +218,7 @@ export const getRecentChatHistory = async (uid: string): Promise<Message[]> => {
         suggestions: data.suggestions,
         category: data.category,
         emotion: data.emotion,
+        type: data.type || "chat",
       } as Message;
     });
   } catch (error) {
@@ -243,6 +245,7 @@ export const getFullChatHistory = async (uid: string): Promise<Message[]> => {
         suggestions: data.suggestions,
         category: data.category,
         emotion: data.emotion,
+        type: data.type || "chat",
       } as Message;
     });
   } catch (error) {

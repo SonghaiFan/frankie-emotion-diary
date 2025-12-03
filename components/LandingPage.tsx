@@ -121,13 +121,13 @@ const LandingPage: React.FC<LandingPageProps> = ({
 
           {/* 2. The Identity (Title & Slogan) */}
           <h1
-            className="text-4xl sm:text-5xl font-bold text-stone-700 tracking-tight mb-3 animate-slide-up-fade-in"
+            className="text-4xl sm:text-5xl font-bold text-stone-700 tracking-tight mb-3 animate-slide-up-normal"
             style={{ animationDelay: "0.1s" }}
           >
             Aurora
           </h1>
           <p
-            className="text-stone-400 text-xs sm:text-sm font-medium tracking-widest uppercase mb-10 animate-slide-up-fade-in"
+            className="text-stone-400 text-xs sm:text-sm font-medium tracking-widest uppercase mb-10 animate-slide-up-normal"
             style={{ animationDelay: "0.2s" }}
           >
             {t.slogan}
@@ -135,7 +135,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
 
           {/* 3. The Intro (Poetic Description) */}
           <div
-            className="max-w-2xl mx-auto space-y-8 animate-slide-up-fade-in mb-12"
+            className="max-w-2xl mx-auto space-y-8 animate-slide-up-normal mb-12"
             style={{ animationDelay: "0.4s" }}
           >
             <p className="text-lg sm:text-xl md:text-2xl text-stone-600 leading-relaxed">
@@ -154,7 +154,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
 
           {/* 4. The Action (CTA) */}
           <div
-            className="flex flex-col items-center gap-5 animate-slide-up-fade-in mb-16"
+            className="flex flex-col items-center gap-5 animate-slide-up-normal mb-16"
             style={{ animationDelay: "0.6s" }}
           >
             {!user ? (
@@ -191,7 +191,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
 
           {/* 5. The Lore (Narrative Cards) */}
           <div
-            className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl w-full border-t border-stone-100 pt-12 animate-slide-up-fade-in"
+            className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl w-full border-t border-stone-100 pt-12 animate-slide-up-normal"
             style={{ animationDelay: "0.8s" }}
           >
             {/* Origin */}
@@ -227,7 +227,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
 
           {/* Footer */}
           <div
-            className="w-full text-center pt-16 pb-6 text-stone-300 text-[10px] animate-slide-up-fade-in"
+            className="w-full text-center pt-16 pb-6 text-stone-300 text-[10px] animate-slide-up-normal"
             style={{ animationDelay: "1.2s" }}
           >
             {t.footer}
