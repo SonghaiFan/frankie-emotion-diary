@@ -576,7 +576,7 @@ const App: React.FC = () => {
 
       {/* 3. Avatar Container */}
       <div
-        className={`absolute left-1/2 -translate-x-1/2 bottom-[140px] sm:bottom-[190px] z-30 transition-all duration-700 ease-in-out pointer-events-none ${
+        className={`absolute left-1/2 -translate-x-1/2 bottom-[10px] sm:bottom-[40px] z-30 transition-all duration-700 ease-in-out pointer-events-none ${
           showLanding ? "opacity-0 translate-y-20" : "opacity-100 translate-y-0"
         }`}
       >
