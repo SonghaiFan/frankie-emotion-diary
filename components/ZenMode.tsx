@@ -56,17 +56,17 @@ const ZenMode: React.FC<ZenModeProps> = ({ onExit, onSave, theme, initialData })
       }
   };
 
-  // Memoize AuroraSphere to prevent re-renders on every keystroke
-  const memoizedSphere = React.useMemo(() => (
-    <AuroraSphere 
-        isThinking={false}
-        category={selectedCategory}
-        emotion={selectedEmotion}
-        isInputFocused={false}
-        forceSmile={false}
-        className="w-200 h-200"
-     />
-  ), [selectedCategory, selectedEmotion]);
+//   // Memoize AuroraSphere to prevent re-renders on every keystroke
+//   const memoizedSphere = React.useMemo(() => (
+//     <AuroraSphere 
+//         isThinking={false}
+//         category={selectedCategory}
+//         emotion={selectedEmotion}
+//         isInputFocused={false}
+//         forceSmile={false}
+//         className="w-200 h-200"
+//      />
+//   ), [selectedCategory, selectedEmotion]);
 
   return (
     <div
@@ -211,9 +211,9 @@ const ZenMode: React.FC<ZenModeProps> = ({ onExit, onSave, theme, initialData })
       </div>
 
               {/* Visual Preview */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 opacity-30 pointer-events-none scale-[5] transition-all duration-500">
+        {/* <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 opacity-30 pointer-events-none scale-[5] transition-all duration-500">
              {memoizedSphere}
-        </div>
+        </div> */}
     </div>
   );
 };
