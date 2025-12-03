@@ -22,7 +22,9 @@ export type Emotion =
   | 'angry'
   | 'love'
   | 'grateful'
-  | 'hungry';
+  | 'overstimulated'
+  | 'fragile'
+  | 'safe';
 
 export interface TodoItem {
   id: string;
@@ -42,6 +44,8 @@ export interface Message {
   text: string;
   timestamp: number;
   suggestions?: string[];
+  category?: Category;
+  emotion?: Emotion;
 }
 
 export interface ChatState {

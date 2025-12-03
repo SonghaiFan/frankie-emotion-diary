@@ -57,7 +57,7 @@ export const HAPPINESS_ITEMS: { text: string; category: Category }[] = [
   { text: "深吸一口怡人的香味（比如桂花香）。", category: "sensory" },
   { text: "做几个瑜伽动作拉伸全身，放松身心。", category: "sensory" },
   {
-    text: "诚实地感受当下的心情（哪怕是强烈的开心或激动）。",
+    text: "诚实地感受当下的心情（哪怕是强烈的）。",
     category: "sensory",
   },
   { text: "哼唱一首喜欢的歌。", category: "sensory" },

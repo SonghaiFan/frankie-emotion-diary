@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Message } from '../types';
 import { WAITING_MESSAGES } from '../constants';
+import { X, Check } from 'lucide-react';
 
 // Typewriter Effect Component
 const TypewriterText: React.FC<{ text: string; onComplete?: () => void }> = ({ text, onComplete }) => {
@@ -56,7 +57,8 @@ interface SpeechBubbleProps {
   isTypingComplete: boolean;
   onSaveTodo: (text: string) => void;
   isTodoSaved: (text: string) => boolean;
-
+  onClose: () => void;
+  onSaveAllTodos: () => void;
 }
 
 const SpeechBubble: React.FC<SpeechBubbleProps> = ({
@@ -68,6 +70,8 @@ const SpeechBubble: React.FC<SpeechBubbleProps> = ({
   isTypingComplete,
   onSaveTodo,
   isTodoSaved,
+  onClose,
+  onSaveAllTodos,
 }) => {
   const [waitingMessage, setWaitingMessage] = useState('');
   const [firstPartComplete, setFirstPartComplete] = useState(false);
@@ -140,7 +144,7 @@ const SpeechBubble: React.FC<SpeechBubbleProps> = ({
       }`}
     >
       <div 
-        className="p-5 md:p-6 backdrop-blur-2xl transition-all duration-500 relative select-none max-h-[60vh] overflow-y-auto hide-scrollbar"
+        className="p-5 md:p-6 pb-12 backdrop-blur-2xl transition-all duration-500 relative select-none max-h-[60vh] overflow-y-auto hide-scrollbar group"
         style={{
             backgroundColor: 'rgba(255, 255, 255, 0.4)',
             borderRadius: '2.5rem',
@@ -202,7 +206,29 @@ const SpeechBubble: React.FC<SpeechBubbleProps> = ({
             {!hasTodoSection && isTypingComplete && renderSuggestions(true)}
           </div>
         )}
+
+        {/* Footer Controls - Moved OUTSIDE the scrollable container to allow floating */}
       </div>
+
+      {/* Floating Close Button (Bottom Left) */}
+      <button 
+          onClick={(e) => { e.stopPropagation(); onClose(); }}
+          className="absolute -bottom-2 -left-2 p-2 bg-white text-stone-400 hover:text-stone-600 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-110 z-50 border border-stone-100"
+          title="Close"
+      >
+          <X className="w-4 h-4" />
+      </button>
+
+      {/* Floating Save All Button (Bottom Right) */}
+      {!isLoading && message?.suggestions && message.suggestions.length > 0 && (
+            <button 
+              onClick={(e) => { e.stopPropagation(); onSaveAllTodos(); }}
+              className="absolute -bottom-2 -right-2 p-2 bg-white text-green-500 hover:text-green-600 rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-110 z-50 border border-stone-100"
+              title="Save All Suggestions"
+          >
+              <Check className="w-4 h-4" />
+          </button>
+      )}
     </div>
   );
 };

@@ -144,21 +144,31 @@ const App: React.FC = () => {
 
   // --- 1. Initialization & Persistence ---
   useEffect(() => {
+    // Try to load user from localStorage first
+    const cachedUser = localStorage.getItem("aurora_user_profile");
+    if (cachedUser) {
+      try {
+        setUser(JSON.parse(cachedUser));
+      } catch (e) {
+        console.error("Failed to parse cached user", e);
+      }
+    }
+
     // Auth Listener with Cloud Sync
     const unsubscribe = subscribeToAuthChanges(async (firebaseUser) => {
       if (firebaseUser) {
         // If user logs in, we can optionally auto-dismiss landing page,
-        // but it's nice to let them click "Begin".
-        // setShowLanding(false);
-
-        setUser({
+        // but for now we keep it manual or based on "aurora_visited"
+        const userProfile: UserProfile = {
           uid: firebaseUser.uid,
           displayName: firebaseUser.displayName,
-          email: firebaseUser.email,
           photoURL: firebaseUser.photoURL,
-        });
+          email: firebaseUser.email,
+        };
+        setUser(userProfile);
+        localStorage.setItem("aurora_user_profile", JSON.stringify(userProfile));
 
-        // --- 1. Fetch Cloud Data (Todos) ---
+        // Sync Todos
         const cloudTodos = await getUserTodos(firebaseUser.uid);
 
         // Merge Local Guest Todos if not already in cloud
@@ -343,7 +353,9 @@ const App: React.FC = () => {
 
   const handleLogout = async () => {
     await signOut();
-    localStorage.clear();
+    localStorage.removeItem("aurora_user_profile");
+    localStorage.clear(); // This clears everything including visited state, maybe too aggressive?
+    // Let's keep it consistent with previous behavior but ensure profile is gone
     window.location.reload();
   };
 
@@ -407,12 +419,21 @@ const App: React.FC = () => {
         logEmotion(user.uid, emotion, category, text);
       }
 
+      // Update User Msg with new context and save again
+      const updatedUserMsg = { ...userMsg, category, emotion };
+      setMessages((prev) =>
+        prev.map((m) => (m.id === userMsg.id ? updatedUserMsg : m))
+      );
+      if (user) saveChatMessage(user.uid, updatedUserMsg);
+
       const modelMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: "model",
         text: cleanText,
         timestamp: Date.now(),
         suggestions: suggestions,
+        category: category, // Use local variable
+        emotion: emotion,   // Use local variable
       };
 
       setMessages((prev) => [...prev, modelMsg]);
@@ -529,6 +550,14 @@ const App: React.FC = () => {
     }
   };
 
+  const handleSaveAllTodos = () => {
+    if (lastModelMessage?.suggestions) {
+      lastModelMessage.suggestions.forEach((suggestion) => {
+        handleSaveTodo(suggestion);
+      });
+    }
+  };
+
   const theme = CATEGORY_THEMES[currentCategory] || CATEGORY_THEMES.default;
 
   return (
@@ -609,6 +638,8 @@ const App: React.FC = () => {
             onTypingComplete={() => setIsTypingComplete(true)}
             onSaveTodo={handleSaveTodo}
             isTodoSaved={isTodoSaved}
+            onClose={() => setIsBubbleVisible(false)}
+            onSaveAllTodos={handleSaveAllTodos}
           />
         </div>
       </div>
@@ -653,6 +684,10 @@ const App: React.FC = () => {
           user={user}
           onOpenCalendar={() => setShowCalendar(true)}
           onOpenChatDiary={() => setShowChatDiary(true)}
+          onOpenDebug={() => setShowDebug(true)}
+          showDebugOption={
+            process.env.NODE_ENV === "development" || user?.uid === MANAGER_UID
+          }
           onLogout={handleLogout}
         />
       </div>
@@ -667,7 +702,7 @@ const App: React.FC = () => {
 
       {showChatDiary && user && (
         <ChatDiaryModal
-          uid={user.uid}
+          user={user}
           onClose={() => setShowChatDiary(false)}
         />
       )}
@@ -691,28 +726,7 @@ const App: React.FC = () => {
         />
       )}
 
-      {!showLanding &&
-        (process.env.NODE_ENV === "development" ||
-          user?.uid === MANAGER_UID) && (
-          <button
-            onClick={() => setShowDebug(true)}
-            className="fixed top-4 left-4 z-50 p-2 text-stone-300 hover:text-stone-500 hover:bg-white/50 rounded-full transition-all opacity-20 hover:opacity-100 pointer-events-auto"
-            title="Open Debug Panel"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c-.836-1.372.734-2.942 2.106-2.106a1.532 1.532 0 012.287.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </button>
-        )}
+
     </div>
   );
 };

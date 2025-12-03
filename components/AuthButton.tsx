@@ -2,12 +2,14 @@
 import React from "react";
 import { UserProfile } from "../types";
 import { signInWithGoogle, signOut } from "../services/firebase";
-import { Book, Calendar, LogOut } from "lucide-react";
+import { Book, Calendar, LogOut, Wrench } from "lucide-react";
 
 interface AuthButtonProps {
   user: UserProfile | null;
   onOpenCalendar: () => void;
   onOpenChatDiary: () => void;
+  onOpenDebug?: () => void;
+  showDebugOption?: boolean;
   onLogout: () => void;
 }
 
@@ -15,6 +17,8 @@ const AuthButton: React.FC<AuthButtonProps> = ({
   user,
   onOpenCalendar,
   onOpenChatDiary,
+  onOpenDebug,
+  showDebugOption,
   onLogout,
 }) => {
   if (user) {
@@ -51,6 +55,17 @@ const AuthButton: React.FC<AuthButtonProps> = ({
               <Calendar className="w-3.5 h-3.5" />
               Mood Calendar
             </button>
+            
+            {showDebugOption && onOpenDebug && (
+              <button
+                onClick={onOpenDebug}
+                className="w-full text-left px-4 py-2 text-xs text-stone-600 hover:bg-stone-50 hover:text-stone-800 transition-colors flex items-center gap-2"
+              >
+                <Wrench className="w-3.5 h-3.5" />
+                Debug Panel
+              </button>
+            )}
+
             <div className="h-px bg-stone-100 my-1" />
             <button
               onClick={onLogout}

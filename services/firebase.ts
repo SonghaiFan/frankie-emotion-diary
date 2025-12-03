@@ -190,6 +190,8 @@ export const saveChatMessage = async (uid: string, message: Message) => {
       ...message,
       uid, // Optional redundancy
       timestamp: Timestamp.fromMillis(message.timestamp),
+      category: message.category || "default",
+      emotion: message.emotion || "neutral",
     });
   } catch (error) {
     console.error("Error saving chat message", error);
@@ -213,6 +215,8 @@ export const getRecentChatHistory = async (uid: string): Promise<Message[]> => {
         text: data.text,
         timestamp: data.timestamp.toMillis(),
         suggestions: data.suggestions,
+        category: data.category,
+        emotion: data.emotion,
       } as Message;
     });
   } catch (error) {
@@ -237,6 +241,8 @@ export const getFullChatHistory = async (uid: string): Promise<Message[]> => {
         text: data.text,
         timestamp: data.timestamp.toMillis(),
         suggestions: data.suggestions,
+        category: data.category,
+        emotion: data.emotion,
       } as Message;
     });
   } catch (error) {
