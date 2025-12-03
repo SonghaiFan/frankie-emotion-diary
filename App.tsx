@@ -72,17 +72,6 @@ const App: React.FC = () => {
   // Canvas State
   const [canvasOffset, setCanvasOffset] = useState({ x: 0, y: 0 });
 
-  // Avatar Physics State
-  const [avatarPos, setAvatarPos] = useState({
-    x: window.innerWidth / 2,
-    y: window.innerHeight * 0.8,
-  });
-  const [isPaused, setIsPaused] = useState(false);
-  const targetPos = useRef({
-    x: window.innerWidth / 2,
-    y: window.innerHeight * 0.8,
-  });
-
   const [isTypingComplete, setIsTypingComplete] = useState(false);
 
   // Helper for safe comparison
@@ -347,42 +336,7 @@ const App: React.FC = () => {
     if (user) saveChatMessage(user.uid, reactionMsg);
   };
 
-  // --- Animation Loop ---
-  useEffect(() => {
-    let animationFrameId: number;
-    let time = Math.random() * 100;
 
-    const animate = () => {
-      if (!isPaused && !showLanding) {
-        time += 0.0015;
-        const cx = window.innerWidth / 2;
-        const isMobile = window.innerWidth < 640;
-
-        const cy = window.innerHeight - (isMobile ? 140 : 190);
-        const rx = isMobile ? 10 : Math.min(window.innerWidth * 0.1, 40);
-        const ry = 10;
-
-        // Fixed position - no wandering
-        const targetX = cx;
-        const targetY = cy;
-
-        targetPos.current.x = targetX;
-        targetPos.current.y = targetY;
-
-        const lerpFactor = 0.003;
-
-        setAvatarPos((prev) => ({
-          x: prev.x + (targetPos.current.x - prev.x) * lerpFactor,
-          y: prev.y + (targetPos.current.y - prev.y) * lerpFactor,
-        }));
-      }
-
-      animationFrameId = requestAnimationFrame(animate);
-    };
-
-    animate();
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [isInputFocused, isPaused, showLanding]);
 
   // --- Handlers ---
 
@@ -622,12 +576,9 @@ const App: React.FC = () => {
 
       {/* 3. Avatar Container */}
       <div
-        className={`absolute z-30 transition-all duration-700 ease-in-out pointer-events-none ${
+        className={`absolute left-1/2 -translate-x-1/2 bottom-[140px] sm:bottom-[190px] z-30 transition-all duration-700 ease-in-out pointer-events-none ${
           showLanding ? "opacity-0 translate-y-20" : "opacity-100 translate-y-0"
         }`}
-        style={{
-          transform: `translate(${avatarPos.x}px, ${avatarPos.y}px) translate(-50%, -50%)`,
-        }}
       >
         <div className="relative w-64 h-64 lg:w-96 lg:h-96 flex items-center justify-center">
           <div
@@ -657,8 +608,6 @@ const App: React.FC = () => {
             onTypingComplete={() => setIsTypingComplete(true)}
             onSaveTodo={handleSaveTodo}
             isTodoSaved={isTodoSaved}
-            onMouseEnter={() => setIsPaused(true)}
-            onMouseLeave={() => setIsPaused(false)}
           />
         </div>
       </div>
