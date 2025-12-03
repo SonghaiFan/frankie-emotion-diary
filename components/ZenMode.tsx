@@ -227,7 +227,7 @@ const ZenMode: React.FC<ZenModeProps> = ({ onExit, onSave, theme, initialData })
       </div>
 
               {/* Visual Preview */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 opacity-30 pointer-events-none scale-[3] transition-opacity duration-500">
+        <div className="absolute bottom-10 left-10 -translate-x-1/2 translate-y-1/2 opacity-30 pointer-events-none scale-[3] transition-opacity duration-500">
             <AuroraSphere
                 isThinking={false}
                 category={selectedCategory}
