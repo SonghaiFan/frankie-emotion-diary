@@ -43,23 +43,24 @@ const MyDiary: React.FC<MyDiaryProps> = ({ user, onClose }) => {
     ? CATEGORY_THEMES[currentEntry.category || 'default'] 
     : CATEGORY_THEMES.default;
 
-  return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-md md:max-w-6xl lg:max-w-7xl h-[85vh] md:h-[80vh] bg-[#FDFBF7] rounded-r-2xl rounded-l-md shadow-2xl flex flex-col md:flex-row overflow-hidden perspective-1000 transition-all duration-500">
-        
-        {/* Book Volume Effect (Right Edge) */}
-        <div 
-            className="absolute right-0 top-0 bottom-0 w-[12px] z-20 pointer-events-none opacity-80"
-            style={{
-                background: 'linear-gradient(to right, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.1) 20%, rgba(0,0,0,0.05) 40%, rgba(0,0,0,0.1) 60%, rgba(0,0,0,0.05) 80%, rgba(0,0,0,0.2) 100%)',
-                boxShadow: 'inset 2px 0 5px rgba(0,0,0,0.05)'
-            }}
-        />
+  // Animation variants could be added here if we were using framer-motion, 
+  // but for now we'll use standard CSS transitions and keyframes defined in index.html
 
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-0 md:p-8 bg-stone-900/20 backdrop-blur-md animate-fade-in">
+      
+      {/* Main Card Container */}
+      <div 
+        className="relative w-full h-full md:w-[600px] md:h-[85vh] bg-white/90 backdrop-blur-xl md:rounded-[3rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border-none md:border border-white/60 flex flex-col overflow-hidden transition-all duration-500"
+        style={{
+            background: `linear-gradient(135deg, rgba(255,255,255,0.95) 0%, ${theme.bgGradient.split(',')[1] || 'rgba(255,255,255,0.9)'})`
+        }}
+      >
+        
         {/* Close Button */}
         <button
             onClick={onClose}
-            className="absolute top-4 right-6 z-30 p-2 text-stone-400 hover:text-stone-600 transition-colors bg-white/50 rounded-full md:bg-transparent"
+            className="absolute top-4 right-4 md:top-6 md:right-6 z-30 p-2 md:p-3 text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-full transition-all duration-300"
         >
             <X className="w-6 h-6" />
         </button>
@@ -67,99 +68,88 @@ const MyDiary: React.FC<MyDiaryProps> = ({ user, onClose }) => {
         {/* Loading State */}
         {loading && (
              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-stone-400"></div>
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-stone-300"></div>
              </div>
         )}
 
         {/* Empty State */}
         {!loading && entries.length === 0 && (
             <div className="absolute inset-0 flex flex-col items-center justify-center text-stone-400 p-8 text-center">
-                <Book className="w-12 h-12 mb-4 opacity-50" />
-                <p className="font-serif italic text-lg">Your diary is waiting for its first story...</p>
-                <p className="text-sm mt-2">Use Zen Mode to write a diary entry.</p>
+                <div className="w-24 h-24 bg-stone-100 rounded-full flex items-center justify-center mb-6">
+                    <Book className="w-10 h-10 opacity-30" />
+                </div>
+                <p className="font-medium text-xl text-stone-500 mb-2">Your diary is empty</p>
+                <p className="text-sm text-stone-400">Use Zen Mode to write your first entry.</p>
             </div>
         )}
 
-        {/* Book Content */}
+        {/* Content */}
         {!loading && currentEntry && (
-            <div className="flex flex-col md:flex-row w-full h-full">
-                {/* Left Page (Visual/Meta) - Hidden on mobile, shown on desktop */}
-                <div className="hidden md:flex w-1/2 h-full bg-[#F8F5F0] border-r border-stone-200/50 p-12 flex-col justify-center items-center relative shadow-[inset_-10px_0_20px_rgba(0,0,0,0.02)]">
-                    {/* Decorative Elements */}
-                    <div className="absolute top-10 left-10 w-full h-full opacity-5 pointer-events-none" 
-                        style={{ 
-                            backgroundImage: 'radial-gradient(#444 1px, transparent 1px)', 
-                            backgroundSize: '20px 20px' 
-                        }} 
-                    />
-                    
-                    <div className="text-center z-10">
-                        <div className="text-6xl font-serif text-stone-800 mb-4 font-bold opacity-80">
-                            {new Date(currentEntry.timestamp).getDate()}
-                        </div>
-                        <div className="text-xl font-serif text-stone-500 uppercase tracking-widest mb-8">
-                            {new Date(currentEntry.timestamp).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
-                        </div>
-                        <div className="w-16 h-1 bg-stone-300 mx-auto mb-8 rounded-full"></div>
-                        <div className="text-sm font-medium text-stone-400 uppercase tracking-wider">
+            <div className="flex flex-col h-full relative">
+                
+                {/* Header Section */}
+                <div className="px-6 pt-12 pb-4 md:px-12 md:pt-12 flex flex-col items-center text-center z-10 shrink-0">
+                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/60 border border-white/50 shadow-sm mb-4 md:mb-6">
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: theme.primary }}></span>
+                        <span className="text-xs font-bold tracking-widest uppercase text-stone-500">
                             {new Date(currentEntry.timestamp).toLocaleDateString(undefined, { weekday: 'long' })}
-                        </div>
-                        <div className="mt-4 inline-block px-4 py-1 rounded-full text-xs font-medium bg-white border border-stone-200 text-stone-500 shadow-sm">
-                            {new Date(currentEntry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </div>
+                        </span>
+                    </div>
+                    
+                    <h2 className="text-4xl md:text-5xl font-bold text-stone-800 mb-1 md:mb-2 tracking-tight">
+                        {new Date(currentEntry.timestamp).getDate()}
+                    </h2>
+                    <div className="text-lg text-stone-500 font-medium">
+                        {new Date(currentEntry.timestamp).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
+                    </div>
+                    
+                    {/* Time & Mood Badge */}
+                    <div className="mt-3 md:mt-4 flex items-center gap-3 text-sm text-stone-400">
+                         <span>{new Date(currentEntry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                         {currentEntry.emotion && (
+                             <>
+                                <span className="w-1 h-1 rounded-full bg-stone-300"></span>
+                                <span className="capitalize">{currentEntry.emotion}</span>
+                             </>
+                         )}
                     </div>
                 </div>
 
-                {/* Right Page (Text Content) */}
-                <div className="w-full md:w-1/2 h-full p-6 md:p-12 overflow-y-auto relative bg-[#FDFBF7] shadow-[inset_10px_0_20px_rgba(0,0,0,0.02)] flex flex-col">
-                    
-                    {/* Mobile Header (Date/Time) - Visible only on mobile */}
-                    <div className="md:hidden mb-6 pb-4 border-b border-stone-100 flex flex-col items-center">
-                         <div className="text-3xl font-serif text-stone-800 font-bold opacity-80">
-                            {new Date(currentEntry.timestamp).getDate()}
-                        </div>
-                        <div className="text-xs font-serif text-stone-500 uppercase tracking-widest mb-2">
-                             {new Date(currentEntry.timestamp).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
-                        </div>
-                         <div className="text-[10px] font-medium text-stone-400 uppercase tracking-wider">
-                            {new Date(currentEntry.timestamp).toLocaleDateString(undefined, { weekday: 'long' })} • {new Date(currentEntry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </div>
-                    </div>
-
-                    <div className="prose prose-stone max-w-none flex-1">
-                        <p className="font-serif text-base md:text-xl leading-loose text-stone-700 whitespace-pre-wrap first-letter:text-4xl md:first-letter:text-5xl first-letter:font-bold first-letter:text-stone-800 first-letter:mr-3 first-letter:float-left">
+                {/* Scrollable Text Area */}
+                <div className="flex-1 overflow-y-auto px-6 md:px-16 pb-28 md:pb-24 hide-scrollbar">
+                    <div className="prose prose-lg prose-stone max-w-none mx-auto">
+                        <p className="text-lg md:text-xl leading-loose text-stone-600 font-medium whitespace-pre-wrap text-center md:text-left">
                             {currentEntry.text}
                         </p>
                     </div>
-                    
-                    {/* Page Number / Navigation */}
-                    <div className="mt-8 flex justify-end items-center gap-4">
-                        <span className="text-xs font-serif text-stone-400 italic">
-                            Page {entries.length - currentPage} of {entries.length}
-                        </span>
-                    </div>
                 </div>
-            </div>
-        )}
 
-        {/* Navigation Arrows Overlay */}
-        {!loading && entries.length > 0 && (
-            <>
-                <button 
-                    onClick={handlePrev}
-                    disabled={currentPage === 0}
-                    className={`absolute left-2 md:left-4 top-1/2 -translate-y-1/2 p-2 md:p-3 rounded-full bg-white/80 shadow-lg hover:bg-white transition-all z-30 ${currentPage === 0 ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
-                >
-                    <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-stone-600" />
-                </button>
-                <button 
-                    onClick={handleNext}
-                    disabled={currentPage === entries.length - 1}
-                    className={`absolute right-4 md:right-4 top-1/2 -translate-y-1/2 p-2 md:p-3 rounded-full bg-white/80 shadow-lg hover:bg-white transition-all z-30 ${currentPage === entries.length - 1 ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
-                >
-                    <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-stone-600" />
-                </button>
-            </>
+                {/* Footer Navigation */}
+                <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 bg-gradient-to-t from-white/95 via-white/80 to-transparent flex justify-between items-center z-20">
+                    <button 
+                        onClick={handlePrev}
+                        disabled={currentPage === 0}
+                        className={`group flex items-center gap-2 px-4 py-2 md:px-5 md:py-2.5 rounded-full bg-white shadow-sm border border-stone-100 hover:shadow-md transition-all ${currentPage === 0 ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                    >
+                        <ChevronLeft className="w-4 h-4 text-stone-400 group-hover:text-stone-600" />
+                        <span className="text-sm font-bold text-stone-500 group-hover:text-stone-700 hidden md:inline">Prev</span>
+                    </button>
+
+                    <span className="text-xs font-bold text-stone-300 tracking-widest uppercase">
+                        {entries.length - currentPage} / {entries.length}
+                    </span>
+
+                    <button 
+                        onClick={handleNext}
+                        disabled={currentPage === entries.length - 1}
+                        className={`group flex items-center gap-2 px-4 py-2 md:px-5 md:py-2.5 rounded-full bg-white shadow-sm border border-stone-100 hover:shadow-md transition-all ${currentPage === entries.length - 1 ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                    >
+                        <span className="text-sm font-bold text-stone-500 group-hover:text-stone-700 hidden md:inline">Next</span>
+                        <ChevronRight className="w-4 h-4 text-stone-400 group-hover:text-stone-600" />
+                    </button>
+                </div>
+
+            </div>
         )}
 
       </div>

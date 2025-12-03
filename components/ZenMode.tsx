@@ -64,32 +64,99 @@ const ZenMode: React.FC<ZenModeProps> = ({ onExit, onSave, theme }) => {
       {/* Ambient Overlay to soften it further */}
       <div className="absolute inset-0 bg-white/30 backdrop-blur-3xl pointer-events-none"></div>
 
-        {/* Visual Preview */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 opacity-30 pointer-events-none scale-[5] transition-all duration-500">
-             <AuroraSphere 
-                isThinking={false}
-                category={selectedCategory}
-                emotion={selectedEmotion}
-                isInputFocused={false}
-                forceSmile={false}
-                className="w-200 h-200"
-             />
-        </div>
+
 
       {/* Content Container */}
-      <div className="relative z-10 w-full max-w-3xl h-full flex flex-col p-6 md:p-12 lg:py-16 mx-auto">
+      <div className="relative z-10 w-full max-w-3xl h-full flex flex-col p-6 pt-32 md:p-12 md:pt-48 lg:pt-48 lg:pb-16 mx-auto">
 
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8 md:mb-12 animate-fade-in w-full">
-            <div className="text-stone-400 text-xs md:text-sm font-medium tracking-widest uppercase">
-                {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
+        {/* Header - Compact Single Line */}
+        <div className="absolute top-0 left-0 right-0 p-6 flex justify-center items-center animate-fade-in z-50">
+            <div className="flex items-center gap-6 bg-white/40 backdrop-blur-md px-6 py-2 rounded-full shadow-sm border border-white/50">
+                
+                {/* Date Display */}
+                <div className="text-stone-500 text-xs font-bold tracking-widest uppercase whitespace-nowrap">
+                    {new Date().toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })}
+                </div>
+
+                {/* Divider */}
+                <div className="h-4 w-px bg-stone-300/50"></div>
+
+                {/* Emotion Picker */}
+                <div className="flex items-center gap-2">
+                    <span className="text-[9px] uppercase tracking-widest text-stone-400 font-bold hidden sm:inline-block">Mood</span>
+                    <div className="flex items-center gap-1 bg-white/50 rounded-full px-1">
+                        <button 
+                            onClick={() => {
+                                const currentIndex = EMOTIONS.indexOf(selectedEmotion);
+                                const prevIndex = (currentIndex - 1 + EMOTIONS.length) % EMOTIONS.length;
+                                setSelectedEmotion(EMOTIONS[prevIndex]);
+                            }}
+                            className="p-1 text-stone-400 hover:text-stone-600 transition-colors hover:bg-stone-200/50 rounded-full"
+                        >
+                            <span className="text-[10px]">◀</span>
+                        </button>
+                        <div className="w-16 text-center">
+                            <div className="text-stone-600 font-medium capitalize text-xs">{selectedEmotion}</div>
+                        </div>
+                        <button 
+                            onClick={() => {
+                                const currentIndex = EMOTIONS.indexOf(selectedEmotion);
+                                const nextIndex = (currentIndex + 1) % EMOTIONS.length;
+                                setSelectedEmotion(EMOTIONS[nextIndex]);
+                            }}
+                            className="p-1 text-stone-400 hover:text-stone-600 transition-colors hover:bg-stone-200/50 rounded-full"
+                        >
+                            <span className="text-[10px]">▶</span>
+                        </button>
+                    </div>
+                </div>
+
+                {/* Divider */}
+                <div className="h-4 w-px bg-stone-300/50"></div>
+
+                {/* Category Picker */}
+                <div className="flex items-center gap-2">
+                    <span className="text-[9px] uppercase tracking-widest text-stone-400 font-bold hidden sm:inline-block">Topic</span>
+                    <div className="flex items-center gap-1 bg-white/50 rounded-full px-1">
+                        <button 
+                            onClick={() => {
+                                const categories = Object.keys(CATEGORY_THEMES) as Category[];
+                                const currentIndex = categories.indexOf(selectedCategory);
+                                const prevIndex = (currentIndex - 1 + categories.length) % categories.length;
+                                setSelectedCategory(categories[prevIndex]);
+                            }}
+                            className="p-1 text-stone-400 hover:text-stone-600 transition-colors hover:bg-stone-200/50 rounded-full"
+                        >
+                            <span className="text-[10px]">◀</span>
+                        </button>
+                         <div className="w-16 text-center">
+                            <div className="text-stone-600 font-medium capitalize text-xs">{selectedCategory}</div>
+                        </div>
+                        <button 
+                            onClick={() => {
+                                const categories = Object.keys(CATEGORY_THEMES) as Category[];
+                                const currentIndex = categories.indexOf(selectedCategory);
+                                const nextIndex = (currentIndex + 1) % categories.length;
+                                setSelectedCategory(categories[nextIndex]);
+                            }}
+                            className="p-1 text-stone-400 hover:text-stone-600 transition-colors hover:bg-stone-200/50 rounded-full"
+                        >
+                            <span className="text-[10px]">▶</span>
+                        </button>
+                    </div>
+                </div>
+
+                {/* Divider */}
+                <div className="h-4 w-px bg-stone-300/50"></div>
+
+                {/* Close Button */}
+                <button 
+                    onClick={handleExit}
+                    className="p-1 text-stone-400 hover:text-red-500 transition-colors rounded-full hover:bg-red-50"
+                >
+                    <X className="w-4 h-4" />
+                </button>
             </div>
-            <button 
-                onClick={handleExit}
-                className="p-2 text-stone-400 hover:text-stone-600 transition-colors rounded-full hover:bg-stone-100/50"
-            >
-                <X className="w-6 h-6" />
-            </button>
         </div>
 
         {/* Writing Area */}
@@ -109,73 +176,6 @@ const ZenMode: React.FC<ZenModeProps> = ({ onExit, onSave, theme }) => {
         {/* Footer Actions */}
         <div className="flex flex-col items-center gap-4 mt-6 md:mt-10 animate-fade-in" style={{ animationDelay: '0.2s' }}>
             
-            {/* Metadata Selection */}
-            <div className="flex gap-6 items-center">
-                
-                {/* Emotion Picker */}
-                <div className="flex flex-col items-center gap-2 group">
-                    <label className="text-[10px] uppercase tracking-widest text-stone-400 font-bold">Emotion</label>
-                    <div className="flex items-center gap-2">
-                        <button 
-                            onClick={() => {
-                                const currentIndex = EMOTIONS.indexOf(selectedEmotion);
-                                const prevIndex = (currentIndex - 1 + EMOTIONS.length) % EMOTIONS.length;
-                                setSelectedEmotion(EMOTIONS[prevIndex]);
-                            }}
-                            className="p-1 text-stone-300 hover:text-stone-500 transition-colors"
-                        >
-                            ←
-                        </button>
-                        <div className="w-32 text-center">
-                            <div className="text-stone-600 font-medium capitalize">{selectedEmotion}</div>
-                        </div>
-                        <button 
-                            onClick={() => {
-                                const currentIndex = EMOTIONS.indexOf(selectedEmotion);
-                                const nextIndex = (currentIndex + 1) % EMOTIONS.length;
-                                setSelectedEmotion(EMOTIONS[nextIndex]);
-                            }}
-                            className="p-1 text-stone-300 hover:text-stone-500 transition-colors"
-                        >
-                            →
-                        </button>
-                    </div>
-                </div>
-
-                {/* Category Picker */}
-                <div className="flex flex-col items-center gap-2 group">
-                    <label className="text-[10px] uppercase tracking-widest text-stone-400 font-bold">Category</label>
-                    <div className="flex items-center gap-2">
-                        <button 
-                            onClick={() => {
-                                const categories = Object.keys(CATEGORY_THEMES) as Category[];
-                                const currentIndex = categories.indexOf(selectedCategory);
-                                const prevIndex = (currentIndex - 1 + categories.length) % categories.length;
-                                setSelectedCategory(categories[prevIndex]);
-                            }}
-                            className="p-1 text-stone-300 hover:text-stone-500 transition-colors"
-                        >
-                            ←
-                        </button>
-                         <div className="w-32 text-center">
-                            <div className="text-stone-600 font-medium capitalize">{selectedCategory}</div>
-                        </div>
-                        <button 
-                            onClick={() => {
-                                const categories = Object.keys(CATEGORY_THEMES) as Category[];
-                                const currentIndex = categories.indexOf(selectedCategory);
-                                const nextIndex = (currentIndex + 1) % categories.length;
-                                setSelectedCategory(categories[nextIndex]);
-                            }}
-                            className="p-1 text-stone-300 hover:text-stone-500 transition-colors"
-                        >
-                            →
-                        </button>
-                    </div>
-                </div>
-
-            </div>
-
             <button
                 onClick={handleSave}
                 disabled={!text.trim()}
@@ -193,6 +193,18 @@ const ZenMode: React.FC<ZenModeProps> = ({ onExit, onSave, theme }) => {
         </div>
 
       </div>
+
+              {/* Visual Preview */}
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 opacity-30 pointer-events-none scale-[5] transition-all duration-500">
+             <AuroraSphere 
+                isThinking={false}
+                category={selectedCategory}
+                emotion={selectedEmotion}
+                isInputFocused={false}
+                forceSmile={false}
+                className="w-200 h-200"
+             />
+        </div>
     </div>
   );
 };
