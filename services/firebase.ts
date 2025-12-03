@@ -220,3 +220,27 @@ export const getRecentChatHistory = async (uid: string): Promise<Message[]> => {
     return [];
   }
 };
+
+export const getFullChatHistory = async (uid: string): Promise<Message[]> => {
+  if (!db) return [];
+  try {
+    const userChatsColl = collection(db, "users", uid, "chats");
+    // Fetch more history for the diary, e.g., 500 messages
+    const q = query(userChatsColl, orderBy("timestamp", "asc"), limit(500));
+
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        role: data.role,
+        text: data.text,
+        timestamp: data.timestamp.toMillis(),
+        suggestions: data.suggestions,
+      } as Message;
+    });
+  } catch (error) {
+    console.error("Error fetching full chat history", error);
+    return [];
+  }
+};

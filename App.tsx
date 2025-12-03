@@ -11,6 +11,7 @@ import DebugPanel from "./components/DebugPanel";
 import SpeechBubble from "./components/SpeechBubble";
 import AuthButton from "./components/AuthButton";
 import EmotionCalendar from "./components/EmotionCalendar";
+import ChatDiaryModal from "./components/ChatDiaryModal";
 import LandingPage from "./components/LandingPage";
 import { sendMessage, initializeChat } from "./services/geminiService";
 import { Message, TodoItem, UserProfile } from "./types";
@@ -60,6 +61,7 @@ const App: React.FC = () => {
   // Auth State
   const [user, setUser] = useState<UserProfile | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
+  const [showChatDiary, setShowChatDiary] = useState(false);
 
   // Debug State
   const [showDebug, setShowDebug] = useState(false);
@@ -332,8 +334,7 @@ const App: React.FC = () => {
     setMessages((prev) => [...prev, reactionMsg]);
     setIsBubbleVisible(true);
 
-    // Save reaction to cloud history? Optional, but keeps conversation fluid.
-    if (user) saveChatMessage(user.uid, reactionMsg);
+    // Reaction messages are ephemeral and not saved to cloud history
   };
 
 
@@ -651,6 +652,7 @@ const App: React.FC = () => {
         <AuthButton
           user={user}
           onOpenCalendar={() => setShowCalendar(true)}
+          onOpenChatDiary={() => setShowChatDiary(true)}
           onLogout={handleLogout}
         />
       </div>
@@ -660,6 +662,13 @@ const App: React.FC = () => {
         <EmotionCalendar
           uid={user.uid}
           onClose={() => setShowCalendar(false)}
+        />
+      )}
+
+      {showChatDiary && user && (
+        <ChatDiaryModal
+          uid={user.uid}
+          onClose={() => setShowChatDiary(false)}
         />
       )}
 

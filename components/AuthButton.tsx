@@ -2,40 +2,24 @@
 import React from "react";
 import { UserProfile } from "../types";
 import { signInWithGoogle, signOut } from "../services/firebase";
+import { Book, Calendar, LogOut } from "lucide-react";
 
 interface AuthButtonProps {
   user: UserProfile | null;
   onOpenCalendar: () => void;
+  onOpenChatDiary: () => void;
   onLogout: () => void;
 }
 
 const AuthButton: React.FC<AuthButtonProps> = ({
   user,
   onOpenCalendar,
+  onOpenChatDiary,
   onLogout,
 }) => {
   if (user) {
     return (
       <div className="flex items-center gap-3">
-        <button
-          onClick={onOpenCalendar}
-          className="text-stone-500 hover:text-stone-800 text-xs font-medium tracking-wide transition-colors flex items-center gap-2"
-        >
-          <span className="hidden sm:inline">Mood Calendar</span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </button>
-
         <div className="relative group">
           <button className="w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden border border-stone-200 shadow-sm hover:shadow-md transition-all">
             {user.photoURL ? (
@@ -51,12 +35,28 @@ const AuthButton: React.FC<AuthButtonProps> = ({
             )}
           </button>
 
-          {/* Dropdown for Logout - Opens DOWNWARDS now */}
-          <div className="absolute right-0 top-full mt-2 w-32 bg-white rounded-lg shadow-lg py-1 border border-stone-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+          {/* Dropdown Menu */}
+          <div className="absolute right-0 top-full mt-2 w-40 bg-white rounded-lg shadow-lg py-1 border border-stone-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex flex-col">
+            <button
+              onClick={onOpenChatDiary}
+              className="w-full text-left px-4 py-2 text-xs text-stone-600 hover:bg-stone-50 hover:text-stone-800 transition-colors flex items-center gap-2"
+            >
+              <Book className="w-3.5 h-3.5" />
+              Chat Diary
+            </button>
+            <button
+              onClick={onOpenCalendar}
+              className="w-full text-left px-4 py-2 text-xs text-stone-600 hover:bg-stone-50 hover:text-stone-800 transition-colors flex items-center gap-2"
+            >
+              <Calendar className="w-3.5 h-3.5" />
+              Mood Calendar
+            </button>
+            <div className="h-px bg-stone-100 my-1" />
             <button
               onClick={onLogout}
-              className="w-full text-left px-4 py-2 text-xs text-red-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+              className="w-full text-left px-4 py-2 text-xs text-red-400 hover:bg-red-50 hover:text-red-500 transition-colors flex items-center gap-2"
             >
+              <LogOut className="w-3.5 h-3.5" />
               Sign Out
             </button>
           </div>
