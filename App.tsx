@@ -447,10 +447,10 @@ const App: React.FC = () => {
     setCurrentEmotion("focused");
 
     try {
-      // Pass complete history + new text implicitly via the Gemini session
-      // But we pass todo context explicitly
-      // If overrides are present (from Zen Mode), pass them to prompt
-      const rawResponse = await sendMessage(text, savedTodos, overrideEmotion, overrideCategory);
+      // Pass complete history (messages) and new text to Gemini.
+      // The service will slice the history to the last N messages.
+      // We also pass todo context explicitly and any overrides.
+      const rawResponse = await sendMessage(text, savedTodos, overrideEmotion, overrideCategory, messages);
       const {
         text: cleanText,
         emotion,
