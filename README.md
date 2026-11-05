@@ -2,9 +2,11 @@
 
 # Aurora
 
+[English](README.md) · [简体中文](README.zh-CN.md)
+
 Give today’s feelings a place in an aurora bottle, then sort through them with conversation, a diary and notes.
 
-[Guide (中文)](docs/guide.md) · [Run locally](#run-locally) · [中文](README.zh-CN.md)
+[Guide (中文)](docs/guide.md) · [Run locally](#run-locally)
 
 ## What it does
 
