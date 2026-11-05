@@ -1,32 +1,38 @@
-![Aurora — Frankie Emotion Diary — current product banner](docs/readme/banner.png)
+![Aurora](docs/readme/banner.png)
 
-# Aurora — Frankie Emotion Diary
+# Aurora
 
-Aurora（阿朵拉）是一款围绕极光瓶展开的情绪记录应用，提供情绪对话、日记、日历与便签墙。
+把今天的情绪交给一只极光瓶，在对话、日记和便签里慢慢整理。
 
-## Features
+[Guide](docs/guide.md) · [Run locally](#run-locally)
 
-- 在极光瓶旁记录当下情绪，与 Aurora 对话。
-- 通过日记、情绪日历和便签回看记录。
-- 支持访客入口，以及通过 Firebase 提供的 Google 登录与账户数据功能。
+## What it does
 
-## Getting started
+- 在极光瓶旁记录此刻的情绪，与 Aurora 对话。
+- 用日记和情绪日历回看自己的记录。
+- 把想留下的小事写成便签，贴在身后的墙上。
+
+## Run locally
 
 ```sh
 npm ci
 npm run dev
 ```
 
-打开 Vite 输出的本地地址。AI 对话需要在本地 `.env.local` 中设置 `GEMINI_API_KEY`；登录和账户数据功能需要配置 `services/firebase.ts` 对应的 Firebase 项目与授权域名。不要把密钥提交到仓库。
+打开 Vite 输出的地址。AI 对话需要在本地 `.env.local` 中设置 `GEMINI_API_KEY`；账户功能需要配置 `services/firebase.ts` 对应的 Firebase 项目和授权域名。
 
-## Project notes
+## Before you start
 
-使用 React、TypeScript、Vite、Gemini 与 Firebase。当前 Vite 配置会将 Gemini key 注入浏览器代码；不要把带私有 key 的构建作为公开共享方式。
+可以通过访客入口开始体验。Google 登录和账户数据由 Firebase 提供。当前 Vite 配置会把 Gemini key 注入浏览器代码，因此带私有 key 的构建不适合公开共享。
 
-## Development
+## For developers
 
 ```sh
 npm run build
 ```
 
-Banner sources and update instructions: [README artwork](docs/readme/README.md).
+[Project guide](docs/guide.md) · [Artwork](docs/readme/README.md)
+
+---
+
+Made by [Songhai Fan](https://github.com/SonghaiFan) · A Frankie project
