@@ -2,15 +2,15 @@
 
 # Aurora
 
-把今天的情绪交给一只极光瓶，在对话、日记和便签里慢慢整理。
+Give today’s feelings a place in an aurora bottle, then sort through them with conversation, a diary and notes.
 
-[Guide](docs/guide.md) · [Run locally](#run-locally)
+[Guide (中文)](docs/guide.md) · [Run locally](#run-locally) · [中文](README.zh-CN.md)
 
 ## What it does
 
-- 在极光瓶旁记录此刻的情绪，与 Aurora 对话。
-- 用日记和情绪日历回看自己的记录。
-- 把想留下的小事写成便签，贴在身后的墙上。
+- Record how you feel and talk with Aurora beside the aurora bottle.
+- Look back on your entries through the diary and emotion calendar.
+- Keep small things that matter as notes on the wall behind the bottle.
 
 ## Run locally
 
@@ -19,11 +19,11 @@ npm ci
 npm run dev
 ```
 
-打开 Vite 输出的地址。AI 对话需要在本地 `.env.local` 中设置 `GEMINI_API_KEY`；账户功能需要配置 `services/firebase.ts` 对应的 Firebase 项目和授权域名。
+Open the URL printed by Vite. AI conversation requires `GEMINI_API_KEY` in a local `.env.local`. Account features require the Firebase project and authorized domains configured through `services/firebase.ts`.
 
 ## Before you start
 
-可以通过访客入口开始体验。Google 登录和账户数据由 Firebase 提供。当前 Vite 配置会把 Gemini key 注入浏览器代码，因此带私有 key 的构建不适合公开共享。
+You can start through the guest entrance. Firebase provides Google sign-in and account data. The current Vite configuration injects the Gemini key into browser code, so a build containing a private key should not be shared publicly.
 
 ## For developers
 
@@ -31,7 +31,7 @@ npm run dev
 npm run build
 ```
 
-[Project guide](docs/guide.md) · [Artwork](docs/readme/README.md)
+[Project guide (中文)](docs/guide.md) · [Artwork](docs/readme/README.md)
 
 ---
 
