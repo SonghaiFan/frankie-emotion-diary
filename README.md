@@ -1,20 +1,32 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+![Aurora — Frankie Emotion Diary — current product banner](docs/readme/banner.png)
 
-# Run and deploy your AI Studio app
+# Aurora — Frankie Emotion Diary
 
-This contains everything you need to run your app locally.
+Aurora（阿朵拉）是一款围绕极光瓶展开的情绪记录应用，提供情绪对话、日记、日历与便签墙。
 
-View your app in AI Studio: https://ai.studio/apps/drive/1KFVllZ_oXxyiv90BX5Je1tbBK5BxdAZz
+## Features
 
-## Run Locally
+- 在极光瓶旁记录当下情绪，与 Aurora 对话。
+- 通过日记、情绪日历和便签回看记录。
+- 支持访客入口，以及通过 Firebase 提供的 Google 登录与账户数据功能。
 
-**Prerequisites:**  Node.js
+## Getting started
 
+```sh
+npm ci
+npm run dev
+```
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+打开 Vite 输出的本地地址。AI 对话需要在本地 `.env.local` 中设置 `GEMINI_API_KEY`；登录和账户数据功能需要配置 `services/firebase.ts` 对应的 Firebase 项目与授权域名。不要把密钥提交到仓库。
+
+## Project notes
+
+使用 React、TypeScript、Vite、Gemini 与 Firebase。当前 Vite 配置会将 Gemini key 注入浏览器代码；不要把带私有 key 的构建作为公开共享方式。
+
+## Development
+
+```sh
+npm run build
+```
+
+Banner sources and update instructions: [README artwork](docs/readme/README.md).

@@ -1,0 +1,31 @@
+{
+  "title": "Aurora",
+  "tagline": "A small space for how you feel.",
+  "category": "Emotion / Reflection",
+  "layout": "grid",
+  "assets": [
+    {
+      "src": "assets/ui.png",
+      "fit": "contain",
+      "crop": [
+        585,
+        31,
+        550,
+        526
+      ],
+      "source_size": [
+        1720,
+        1223
+      ]
+    }
+  ],
+  "signature": "assets/frankie.svg",
+  "provenance": [
+    {
+      "file": "assets/ui.png",
+      "kind": "current local app screenshot",
+      "note": "Current Aurora landing-page bottle and product identity, without account sign-in.",
+      "captured_on": "2026-11-05"
+    }
+  ]
+}
