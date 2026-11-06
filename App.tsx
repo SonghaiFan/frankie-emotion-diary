@@ -29,7 +29,7 @@ import type { ChatContent as Content } from "./services/openaiService";
 import { loadSnapshot, saveSnapshot, restoreBackup, type LocalSnapshot } from "./services/localStorage";
 
 
-const App: React.FC = () => {
+const App: React.FC<{ onRestored: () => void }> = ({ onRestored }) => {
   // --- State ---
   // Landing Page State
   const [showLanding, setShowLanding] = useState(true);
@@ -186,9 +186,9 @@ const App: React.FC = () => {
     restoringBackup.current = true;
     try { restoreBackup(backup); }
     catch (error) { restoringBackup.current = false; throw error; }
-    // A fresh mount resets drafts, timers, modal state and AI history together.
-    // The persistence guard prevents stale state overwriting the restored data.
-    window.location.reload();
+    // Remount locally so offline restores also reset drafts and AI history.
+    // The old instance keeps its persistence/reaction guard until unmounted.
+    onRestored();
   };
 
   const lastModelMessage = [...messages].reverse().find(m => m.role === "model") || null;

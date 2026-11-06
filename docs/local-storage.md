@@ -24,7 +24,7 @@ Diary entries are excluded from the AI conversation context. They are sent only 
 
 1. Open **Local records → Import backup** and select the JSON exported by Aurora. The file is read locally; it is not uploaded. Files up to 10 MB and backup version 1 are supported. / 打开本地记录菜单中的“导入备份”，选择 Aurora 导出的 JSON 文件；仅在本地读取，不上传，支持最大 10 MB 的 v1 备份。
 2. Review the chat, diary, note and mood counts. Use **Export current records first** to keep a copy before proceeding. Preferences, note positions and completion state are restored too. / 核对数量，建议先导出当前记录；语言、显示偏好、便签位置和完成状态也会恢复。
-3. Choose **Replace records and restore** to replace this browser's current snapshot. This is replacement, not merging. The page reloads after the atomic write to reset old timers, drafts and AI context. / 确认后替换当前快照，不合并；写入成功后刷新页面，重置旧计时器、草稿和 AI 上下文。
+3. Choose **Replace records and restore** to replace this browser's current snapshot. This is replacement, not merging. The app view resets locally after the atomic write to reset old timers, drafts and AI context, including while offline. / 确认后替换当前快照，不合并；写入成功后在本地重置界面、旧计时器、草稿和 AI 上下文，断网时也可恢复。
 4. Cancelling or selecting an invalid file does not change current records. Malformed JSON, unsupported versions, invalid nested fields and duplicate IDs are rejected. A storage/quota failure leaves the previous snapshot intact. An empty backup requires the same explicit confirmation and is clearly labelled as clearing current records. / 取消和无效文件不会改变数据；格式、版本、记录字段和重复 ID 都会校验，存储失败不会覆盖原快照，空备份会明确提示清空当前记录。
 
-Restoring is disabled while an AI response is pending. If the backup changes language or the entry-screen preference, those settings take effect after reload. / AI 回复进行中不可恢复；备份中的语言和入口偏好会在刷新后生效。
+Restoring is disabled while an AI response is pending. If the backup changes language or the entry-screen preference, those settings take effect when the view resets. / AI 回复进行中不可恢复；备份中的语言和入口偏好会在界面重置后生效。
