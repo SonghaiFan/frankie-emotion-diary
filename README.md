@@ -6,7 +6,7 @@
 
 Give today’s feelings a place in an aurora bottle, then sort through them with conversation, a diary and notes.
 
-[Guide (中文)](docs/guide.md) · [Run locally](#run-locally)
+[Introduction](https://songhaifan.github.io/frankie-emotion-diary/) · [Guide (中文)](docs/guide.md) · [Run locally](#run-locally)
 
 ## What it does
 
@@ -25,7 +25,7 @@ Open the URL printed by Vite. AI conversation requires `GEMINI_API_KEY` in a loc
 
 ## Before you start
 
-You can start through the guest entrance. Firebase provides Google sign-in and account data. The current Vite configuration injects the Gemini key into browser code, so a build containing a private key should not be shared publicly.
+You can start through the guest entrance. Firebase provides Google sign-in and account data. Public builds exclude the local Gemini key. AI conversation currently requires local development with your own key; the hosted app provides the entry and non-AI interface.
 
 ## For developers
 

@@ -1,0 +1,57 @@
+{
+  "repository": "SonghaiFan/frankie-emotion-diary",
+  "branch": "main",
+  "pages_url": "https://songhaifan.github.io/frankie-emotion-diary/",
+  "kind": "online",
+  "app_url": "https://aurora-taupe.vercel.app",
+  "vercel_project": "aurora",
+  "accent": "#526e63",
+  "tint": "#f2f6f1",
+  "category": {
+    "en": "Feelings / Reflection",
+    "zh": "情绪 / 回看"
+  },
+  "steps": {
+    "en": [
+      "Enter as a guest or sign in.",
+      "Record a feeling beside the aurora bottle.",
+      "Return to your diary, calendar and notes."
+    ],
+    "zh": [
+      "通过访客入口进入或登录。",
+      "在极光瓶旁记下此刻的情绪。",
+      "回到日记、日历与便签中整理。"
+    ]
+  },
+  "media": [
+    {
+      "src": "docs/readme/assets/ui.png",
+      "caption": {
+        "en": "Current product interface and original assets.",
+        "zh": "项目真实界面或原始素材。"
+      },
+      "crop": [
+        585,
+        31,
+        550,
+        526
+      ],
+      "source_size": [
+        1720,
+        1223
+      ]
+    },
+    {
+      "src": "site/assets/guest.png",
+      "caption": {
+        "en": "Aurora’s guest interface, without submitting a message.",
+        "zh": "Aurora 访客界面，未提交对话消息。"
+      },
+      "captured_on": "2026-11-06"
+    }
+  ],
+  "art_note": {
+    "en": "Current product interface and original assets.",
+    "zh": "素材来自项目当前界面与原始资源。"
+  }
+}
