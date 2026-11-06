@@ -15,7 +15,7 @@ import ChatHistory from "./components/ChatHistory";
 import LandingPage from "./components/LandingPage";
 import ZenMode from "./components/ZenMode";
 import MyDiary from "./components/MyDiary";
-import { sendMessage, initializeChat } from "./services/geminiService";
+import { sendMessage, initializeChat } from "./services/openaiService";
 import { Message, TodoItem, UserProfile } from "./types";
 import { Category, Emotion } from "./constants";
 import {
@@ -25,7 +25,7 @@ import {
   NEW_USER_GREETING,
   GUEST_MESSAGE_LIMIT,
 } from "./constants";
-import { Content } from "@google/genai";
+import type { ChatContent as Content } from "./services/openaiService";
 import {
   subscribeToAuthChanges,
   logEmotion,
@@ -167,7 +167,7 @@ const App: React.FC = () => {
   };
 
   // Helper to re-init chat from a message list
-  const reinitializeGemini = (msgs: Message[]) => {
+  const reinitializeChat = (msgs: Message[]) => {
     const history: Content[] = msgs
       .filter((m) => m.id !== "init" && !m.id.startsWith("reaction-"))
       .map((m) => ({
@@ -225,7 +225,7 @@ const App: React.FC = () => {
         const cloudHistory = await getRecentChatHistory(firebaseUser.uid);
         if (cloudHistory.length > 0) {
           setMessages(cloudHistory);
-          reinitializeGemini(cloudHistory);
+          reinitializeChat(cloudHistory);
           // Don't show bubble immediately on load if it's old history
           // setIsBubbleVisible(true);
         } else {
@@ -254,7 +254,7 @@ const App: React.FC = () => {
         if (storedMessages) {
           const parsedMsgs = JSON.parse(storedMessages) as Message[];
           setMessages(parsedMsgs);
-          reinitializeGemini(parsedMsgs);
+          reinitializeChat(parsedMsgs);
         } else {
           // New User: Greeting
           const rawGreeting = NEW_USER_GREETING;
@@ -447,7 +447,7 @@ const App: React.FC = () => {
     setCurrentEmotion("focused");
 
     try {
-      // Pass complete history (messages) and new text to Gemini.
+      // Pass complete history (messages) and new text to the AI service.
       // The service will slice the history to the last N messages.
       // We also pass todo context explicitly and any overrides.
       const rawResponse = await sendMessage(text, savedTodos, overrideEmotion, overrideCategory, messages);

@@ -21,11 +21,11 @@ npm ci
 npm run dev
 ```
 
-打开 Vite 输出的地址。AI 对话需要在本地 `.env.local` 中设置 `GEMINI_API_KEY`；账户功能需要配置 `services/firebase.ts` 对应的 Firebase 项目和授权域名。
+打开 Vite 输出的地址。AI 对话使用 Vercel 服务端的 `OPENAI_API_KEY`（本地开发时在 `.env.local` 中设置）；账户功能需要配置 `services/firebase.ts` 对应的 Firebase 项目和授权域名。
 
 ## 开始之前
 
-可以通过访客入口开始体验。Google 登录和账户数据由 Firebase 提供。公开构建不包含本地 Gemini key。AI 对话目前需要在本地开发环境配置自己的 key；线上应用提供入口与非 AI 界面。
+可以通过访客入口开始体验。Google 登录和账户数据由 Firebase 提供。AI 对话通过同源 `/api/chat` 接口调用 OpenAI，key 仅保存在服务端，不进入浏览器构建产物。
 
 ## 开发说明
 
@@ -33,7 +33,7 @@ npm run dev
 npm run build
 ```
 
-[项目指南](docs/guide.md) · [Banner 维护](docs/readme/README.md)
+[AI 配置](docs/ai-service.md) · [项目指南](docs/guide.md) · [Banner 维护](docs/readme/README.md)
 
 ---
 

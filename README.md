@@ -21,11 +21,11 @@ npm ci
 npm run dev
 ```
 
-Open the URL printed by Vite. AI conversation requires `GEMINI_API_KEY` in a local `.env.local`. Account features require the Firebase project and authorized domains configured through `services/firebase.ts`.
+Open the URL printed by Vite. AI conversation uses the server-side `OPENAI_API_KEY` on Vercel (or in `.env.local` for local development). Account features require the Firebase project and authorized domains configured through `services/firebase.ts`.
 
 ## Before you start
 
-You can start through the guest entrance. Firebase provides Google sign-in and account data. Public builds exclude the local Gemini key. AI conversation currently requires local development with your own key; the hosted app provides the entry and non-AI interface.
+You can start through the guest entrance. Firebase provides Google sign-in and account data. AI conversation runs through the same-origin `/api/chat` endpoint using OpenAI. The API key stays on the server and is never included in the browser bundle.
 
 ## For developers
 
@@ -33,7 +33,7 @@ You can start through the guest entrance. Firebase provides Google sign-in and a
 npm run build
 ```
 
-[Project guide (中文)](docs/guide.md) · [Artwork](docs/readme/README.md)
+[AI setup](docs/ai-service.md) · [Project guide (中文)](docs/guide.md) · [Artwork](docs/readme/README.md)
 
 ---
 

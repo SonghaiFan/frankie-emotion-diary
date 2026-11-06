@@ -19,11 +19,11 @@ npm ci
 npm run dev
 ```
 
-打开 Vite 输出的本地地址。AI 对话需要在本地 `.env.local` 中设置 `GEMINI_API_KEY`；登录和账户数据功能需要配置 `services/firebase.ts` 对应的 Firebase 项目与授权域名。不要把密钥提交到仓库。
+打开 Vite 输出的本地地址。AI 对话使用 Vercel 服务端的 `OPENAI_API_KEY`（本地开发时在 `.env.local` 中设置）；登录和账户数据功能需要配置 `services/firebase.ts` 对应的 Firebase 项目与授权域名。不要把密钥提交到仓库。
 
 ## Project notes
 
-使用 React、TypeScript、Vite、Gemini 与 Firebase。当前 Vite 配置会将 Gemini key 注入浏览器代码；不要把带私有 key 的构建作为公开共享方式。
+使用 React、TypeScript、Vite、OpenAI 与 Firebase。AI 请求通过同源服务端接口完成，key 不进入浏览器。详见 [AI 服务配置](ai-service.md)。
 
 ## Development
 

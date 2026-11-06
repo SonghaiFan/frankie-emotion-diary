@@ -25,3 +25,5 @@ dist-ssr
 
 # Standalone introduction build
 /_site/
+
+!.env.example
