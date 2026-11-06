@@ -13,12 +13,12 @@
   },
   "steps": {
     "en": [
-      "Enter as a guest or sign in.",
+      "Open Aurora without signing in; records stay in this browser.",
       "Record a feeling beside the aurora bottle.",
       "Return to your diary, calendar and notes."
     ],
     "zh": [
-      "通过访客入口进入或登录。",
+      "无需登录打开极光瓶，记录保存在当前浏览器。",
       "在极光瓶旁记下此刻的情绪。",
       "回到日记、日历与便签中整理。"
     ]
@@ -27,8 +27,8 @@
     {
       "src": "docs/readme/assets/ui.png",
       "caption": {
-        "en": "Current product interface and original assets.",
-        "zh": "项目真实界面或原始素材。"
+        "en": "Aurora’s account-free landing page.",
+        "zh": "Aurora 无需登录的入口。"
       },
       "crop": [
         585,
@@ -39,13 +39,30 @@
       "source_size": [
         1720,
         1223
-      ]
+      ],
+      "captured_on": "2026-11-06"
     },
     {
-      "src": "site/assets/guest.png",
+      "src": "site/assets/local-records.png",
       "caption": {
-        "en": "Aurora’s guest interface, without submitting a message.",
-        "zh": "Aurora 访客界面，未提交对话消息。"
+        "en": "Local records and data export, shown with labelled sample data.",
+        "zh": "本地记录与数据导出菜单，使用标明的示例数据。"
+      },
+      "captured_on": "2026-11-06"
+    },
+    {
+      "src": "site/assets/diary.png",
+      "caption": {
+        "en": "The local diary, shown with a sample entry.",
+        "zh": "本地日记界面，展示示例记录。"
+      },
+      "captured_on": "2026-11-06"
+    },
+    {
+      "src": "site/assets/calendar.png",
+      "caption": {
+        "en": "Mood history read from the same local snapshot, with sample data.",
+        "zh": "从同一本地快照读取的情绪历史，使用示例数据。"
       },
       "captured_on": "2026-11-06"
     }

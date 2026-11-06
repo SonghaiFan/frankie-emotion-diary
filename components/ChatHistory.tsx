@@ -1,33 +1,21 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Message, UserProfile } from "../types";
-import { getFullChatHistory } from "../services/firebase";
+import { Message } from "../types";
 import { Book, X } from "lucide-react";
 import { CATEGORY_THEMES } from "../constants";
 import AuroraSphere from "./AuroraSphere";
 
 interface ChatHistoryProps {
-  user: UserProfile;
+  messages: Message[];
   onClose: () => void;
   initialDate?: string | null;
 }
 
-const ChatHistory: React.FC<ChatHistoryProps> = ({ user, onClose, initialDate }) => {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [loading, setLoading] = useState(true);
+const ChatHistory: React.FC<ChatHistoryProps> = ({ messages: allMessages, onClose, initialDate }) => {
+  const messages = allMessages.filter(msg => msg.type !== 'diary');
+  const loading = false;
   const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set());
   const scrollRef = useRef<HTMLDivElement>(null);
   const dateRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
-
-  useEffect(() => {
-    const fetchHistory = async () => {
-      const history = await getFullChatHistory(user.uid);
-      // Filter out diary entries so they don't clutter the main chat history view
-      const chatOnly = history.filter(msg => msg.type !== 'diary');
-      setMessages(chatOnly);
-      setLoading(false);
-    };
-    fetchHistory();
-  }, [user.uid]);
 
   // Handle Initial Date Expansion and Scrolling
   useEffect(() => {
@@ -110,7 +98,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ user, onClose, initialDate })
             <Book className="w-5 h-5" /> Chat History
           </h2>
           <button
-            onClick={onClose}
+            onClick={onClose} aria-label="Close chat history"
             className="p-2 hover:bg-stone-100 rounded-full transition-colors text-stone-500"
           >
             <X className="w-5 h-5" />
@@ -214,7 +202,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ user, onClose, initialDate })
                                     {/* User Avatar (Right) */}
                                     {isUser && (
                                     <div className="flex-shrink-0 mt-1">
-                                        <UserAvatar user={user} />
+                                        <UserAvatar />
                                     </div>
                                     )}
                                 </div>
@@ -233,25 +221,6 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ user, onClose, initialDate })
 };
 
 // Helper component for avatar with error handling
-const UserAvatar: React.FC<{ user: UserProfile }> = ({ user }) => {
-    const [imgError, setImgError] = useState(false);
-
-    if (user.photoURL && !imgError) {
-        return (
-            <img 
-                src={user.photoURL} 
-                alt="User" 
-                className="w-8 h-8 rounded-full object-cover border border-stone-200 shadow-sm"
-                onError={() => setImgError(true)}
-            />
-        );
-    }
-
-    return (
-        <div className="w-8 h-8 rounded-full bg-stone-200 flex items-center justify-center text-stone-500 text-xs font-medium border border-stone-300 shadow-sm">
-            {user.displayName ? user.displayName[0] : "U"}
-        </div>
-    );
-};
+const UserAvatar = () => <div className="w-8 h-8 rounded-full bg-stone-200 flex items-center justify-center text-stone-500 text-xs">You</div>;
 
 export default ChatHistory;

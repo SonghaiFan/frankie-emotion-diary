@@ -9,36 +9,24 @@ import InputArea from "./components/InputArea";
 import MemoWall from "./components/MemoWall";
 import DebugPanel from "./components/DebugPanel";
 import SpeechBubble from "./components/SpeechBubble";
-import AuthButton from "./components/AuthButton";
+import LocalMenu from "./components/LocalMenu";
 import EmotionCalendar from "./components/EmotionCalendar";
 import ChatHistory from "./components/ChatHistory";
 import LandingPage from "./components/LandingPage";
 import ZenMode from "./components/ZenMode";
 import MyDiary from "./components/MyDiary";
 import { sendMessage, initializeChat } from "./services/openaiService";
-import { Message, TodoItem, UserProfile } from "./types";
+import { Message, TodoItem, EmotionLog } from "./types";
 import { Category, Emotion } from "./constants";
 import {
   CATEGORY_THEMES,
   AVATAR_REACTIONS,
   EMOTIONS,
   NEW_USER_GREETING,
-  GUEST_MESSAGE_LIMIT,
 } from "./constants";
 import type { ChatContent as Content } from "./services/openaiService";
-import {
-  subscribeToAuthChanges,
-  logEmotion,
-  syncTodoToCloud,
-  deleteTodoFromCloud,
-  getUserTodos,
-  saveChatMessage,
-  getRecentChatHistory,
-  signInWithGoogle,
-  signOut,
-} from "./services/firebase";
+import { loadSnapshot, saveSnapshot, type LocalSnapshot } from "./services/localStorage";
 
-const MANAGER_UID = "qv7LevpiYLhSA3jEI1nLyMtO5Rt1";
 
 const App: React.FC = () => {
   // --- State ---
@@ -60,8 +48,10 @@ const App: React.FC = () => {
 
   const [isBubbleVisible, setIsBubbleVisible] = useState(false);
 
-  // Auth State
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [hydrated, setHydrated] = useState(false);
+  const [storageError, setStorageError] = useState('');
+  const [visited, setVisited] = useState(false);
+  const [emotionLogs, setEmotionLogs] = useState<EmotionLog[]>([]);
   const [showCalendar, setShowCalendar] = useState(false);
   const [showChatHistory, setShowChatHistory] = useState(false);
   const [ChatHistoryTargetDate, setChatHistoryTargetDate] = useState<string | null>(null);
@@ -77,26 +67,6 @@ const App: React.FC = () => {
   };
 
   // ... (rest of render)
-
-      {/* 5. Modals & Overlays */}
-      {showCalendar && user && (
-        <EmotionCalendar
-          uid={user.uid}
-          onClose={() => setShowCalendar(false)}
-          onDateClick={handleCalendarDateClick}
-        />
-      )}
-
-      {showChatHistory && user && (
-        <ChatHistory
-          user={user}
-          onClose={() => {
-            setShowChatHistory(false);
-            setChatHistoryTargetDate(null); // Reset target date on close
-          }}
-          initialDate={ChatHistoryTargetDate}
-        />
-      )}
 
   // Debug State
   const [showDebug, setShowDebug] = useState(false);
@@ -169,7 +139,7 @@ const App: React.FC = () => {
   // Helper to re-init chat from a message list
   const reinitializeChat = (msgs: Message[]) => {
     const history: Content[] = msgs
-      .filter((m) => m.id !== "init" && !m.id.startsWith("reaction-"))
+      .filter((m) => m.type !== "diary" && m.id !== "init" && !m.id.startsWith("reaction-"))
       .map((m) => ({
         role: m.role,
         parts: [{ text: m.text }],
@@ -177,125 +147,38 @@ const App: React.FC = () => {
     initializeChat(history);
   };
 
-  // --- 1. Initialization & Persistence ---
+  // Hydrate before writing, so mounting never overwrites existing browser data.
   useEffect(() => {
-    // Try to load user from localStorage first
-    const cachedUser = localStorage.getItem("aurora_user_profile");
-    if (cachedUser) {
-      try {
-        setUser(JSON.parse(cachedUser));
-      } catch (e) {
-        console.error("Failed to parse cached user", e);
-      }
+    try {
+      const state = loadSnapshot();
+      const greeting = parseResponse(NEW_USER_GREETING);
+      const restored = state.messages.length ? state.messages : [{id:'init',role:'model' as const,text:greeting.text,timestamp:Date.now(),suggestions:greeting.suggestions}];
+      setMessages(restored); setSavedTodos(state.todos); setEmotionLogs(state.emotionLogs);
+      setCurrentCategory(state.category); setCurrentEmotion(state.emotion);
+      setLanguage(state.language); setVisited(state.visited); setShowLanding(!state.visited);
+      reinitializeChat(restored); setHydrated(true);
+    } catch {
+      setStorageError('Local data could not be loaded. Existing saved data is unchanged; this session will not overwrite it.');
     }
+  }, []);
 
-    // Auth Listener with Cloud Sync
-    const unsubscribe = subscribeToAuthChanges(async (firebaseUser) => {
-      if (firebaseUser) {
-        // If user logs in, we can optionally auto-dismiss landing page,
-        // but for now we keep it manual or based on "aurora_visited"
-        const userProfile: UserProfile = {
-          uid: firebaseUser.uid,
-          displayName: firebaseUser.displayName,
-          photoURL: firebaseUser.photoURL,
-          email: firebaseUser.email,
-        };
-        setUser(userProfile);
-        localStorage.setItem("aurora_user_profile", JSON.stringify(userProfile));
-
-        // Sync Todos
-        const cloudTodos = await getUserTodos(firebaseUser.uid);
-
-        // Merge Local Guest Todos if not already in cloud
-        const localTodos = JSON.parse(
-          localStorage.getItem("aurora_todos") || "[]"
-        );
-        const mergedTodos = [...cloudTodos];
-        const cloudIds = new Set(cloudTodos.map((t) => t.id));
-
-        for (const localT of localTodos) {
-          if (!cloudIds.has(localT.id)) {
-            await syncTodoToCloud(firebaseUser.uid, localT);
-            mergedTodos.push(localT);
-          }
-        }
-        setSavedTodos(mergedTodos);
-
-        // --- 2. Fetch Cloud Chat History ---
-        const cloudHistory = await getRecentChatHistory(firebaseUser.uid);
-        if (cloudHistory.length > 0) {
-          setMessages(cloudHistory);
-          reinitializeChat(cloudHistory);
-          // Don't show bubble immediately on load if it's old history
-          // setIsBubbleVisible(true);
-        } else {
-          // New User or Empty History -> Keep current Guest Messages but now they are tied to user
-          if (messages.length > 0) {
-            messages.forEach((m) => saveChatMessage(firebaseUser.uid, m));
-          }
-        }
-      } else {
-        setUser(null);
-      }
-    });
-
-    const loadState = () => {
-      try {
-        const storedMessages = localStorage.getItem("aurora_messages");
-        const storedTodos = localStorage.getItem("aurora_todos");
-        const storedCategory = localStorage.getItem("aurora_category");
-        const storedEmotion = localStorage.getItem("aurora_emotion");
-        const hasVisited = localStorage.getItem("aurora_visited");
-
-        // Optional: If user has visited before, maybe skip landing?
-        // For now, let's always show it for the vibe, or check session logic.
-        // if (hasVisited) setShowLanding(false);
-
-        if (storedMessages) {
-          const parsedMsgs = JSON.parse(storedMessages) as Message[];
-          setMessages(parsedMsgs);
-          reinitializeChat(parsedMsgs);
-        } else {
-          // New User: Greeting
-          const rawGreeting = NEW_USER_GREETING;
-          const parsed = parseResponse(rawGreeting);
-          const greeting: Message = {
-            id: "init",
-            role: "model",
-            text: parsed.text,
-            timestamp: Date.now(),
-            suggestions: parsed.suggestions,
-          };
-          setMessages([greeting]);
-          setCurrentCategory(parsed.category);
-          setCurrentEmotion(parsed.emotion);
-          initializeChat();
-        }
-
-        if (!user && storedTodos) setSavedTodos(JSON.parse(storedTodos));
-        if (storedCategory) setCurrentCategory(storedCategory as Category);
-        if (storedEmotion) setCurrentEmotion(storedEmotion as Emotion);
-      } catch (e) {
-        console.error("Failed to load state", e);
-        initializeChat();
-      }
-    };
-
-    loadState();
-    return () => unsubscribe();
-  }, []); // Run once on mount
-
-  // Persist State Changes (Local Storage Backup)
+  const snapshot: LocalSnapshot = {version:1,messages,todos:savedTodos,emotionLogs,category:currentCategory,emotion:currentEmotion,language,visited};
   useEffect(() => {
-    if (messages.length > 0)
-      localStorage.setItem("aurora_messages", JSON.stringify(messages));
-    localStorage.setItem("aurora_todos", JSON.stringify(savedTodos));
-    localStorage.setItem("aurora_category", currentCategory);
-    localStorage.setItem("aurora_emotion", currentEmotion);
-  }, [messages, savedTodos, currentCategory, currentEmotion]);
+    if (!hydrated) return;
+    try { saveSnapshot(snapshot); setStorageError(''); }
+    catch { setStorageError('Changes could not be saved in this browser. Export a backup before closing this page.'); }
+  }, [hydrated, messages, savedTodos, emotionLogs, currentCategory, currentEmotion, language, visited]);
 
-  const lastModelMessage =
-    messages.length > 0 ? messages[messages.length - 1] : null;
+  const recordEmotion = (emotion: Emotion, category: Category, note = '') => {
+    setEmotionLogs(prev => [...prev, {id:crypto.randomUUID(),emotion,category,note,timestamp:Date.now()}]);
+  };
+  const exportBackup = () => {
+    const url=URL.createObjectURL(new Blob([JSON.stringify(snapshot,null,2)],{type:'application/json'}));
+    const a=document.createElement('a'); a.href=url; a.download='aurora-backup-'+new Date().toISOString().slice(0,10)+'.json'; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),0);
+  };
+
+  const lastModelMessage = [...messages].reverse().find(m => m.role === "model") || null;
 
   // Reset typing state when message changes
   useEffect(() => {
@@ -389,24 +272,16 @@ const App: React.FC = () => {
     setMessages((prev) => [...prev, reactionMsg]);
     setIsBubbleVisible(true);
 
-    // Reaction messages are ephemeral and not saved to cloud history
+    // Reaction messages are ephemeral and not added to persistent history
   };
 
 
 
   // --- Handlers ---
 
-  const handleLogout = async () => {
-    await signOut();
-    localStorage.removeItem("aurora_user_profile");
-    localStorage.clear(); // This clears everything including visited state, maybe too aggressive?
-    // Let's keep it consistent with previous behavior but ensure profile is gone
-    window.location.reload();
-  };
-
   const handleEnterApp = () => {
     setShowLanding(false);
-    localStorage.setItem("aurora_visited", "true");
+    setVisited(true);
     setIsBubbleVisible(true);
   };
 
@@ -418,29 +293,11 @@ const App: React.FC = () => {
       text: text,
       timestamp: Date.now(),
       type: type,
+      category: overrideCategory || currentCategory,
+      emotion: overrideEmotion || currentEmotion,
     };
     setMessages((prev) => [...prev, userMsg]);
-
-    // Save User Msg to Cloud
-    if (user) saveChatMessage(user.uid, userMsg);
-
-    // Check Guest Limit
-    if (!user) {
-      const userMsgCount = messages.filter((m) => m.role === "user").length;
-      if (userMsgCount >= GUEST_MESSAGE_LIMIT) {
-        const limitMsg: Message = {
-          id: (Date.now() + 1).toString(),
-          role: "model",
-          text: "我们已经聊了很多啦。想要继续深入对话的话，请登录账号吧。\n(Guest limit reached: 20 messages)",
-          timestamp: Date.now(),
-          suggestions: [],
-        };
-        setMessages((prev) => [...prev, limitMsg]);
-        setIsBubbleVisible(true);
-        setCurrentEmotion("neutral");
-        return;
-      }
-    }
+    if (type === "diary") recordEmotion(userMsg.emotion!, userMsg.category!, text);
 
     setIsLoading(true);
     setIsBubbleVisible(true);
@@ -461,17 +318,16 @@ const App: React.FC = () => {
       setCurrentCategory(category);
       setCurrentEmotion(emotion);
 
-      // Log emotion to Cloud
-      if (user && emotion !== "neutral") {
-        logEmotion(user.uid, emotion, category, text);
+      // Record emotion on this device
+      if (type !== "diary" && emotion !== "neutral") {
+        recordEmotion(emotion, category, text);
       }
 
-      // Update User Msg with new context and save again
+      // Update the local message context
       const updatedUserMsg = { ...userMsg, category, emotion };
       setMessages((prev) =>
         prev.map((m) => (m.id === userMsg.id ? updatedUserMsg : m))
       );
-      if (user) saveChatMessage(user.uid, updatedUserMsg);
 
       const modelMsg: Message = {
         id: (Date.now() + 1).toString(),
@@ -487,8 +343,7 @@ const App: React.FC = () => {
       setMessages((prev) => [...prev, modelMsg]);
       setIsBubbleVisible(true);
 
-      // Save Model Msg to Cloud
-      if (user) saveChatMessage(user.uid, modelMsg);
+      // The message state is persisted locally
     } catch (error) {
       console.error(error);
       const errorMsg: Message = {
@@ -526,47 +381,18 @@ const App: React.FC = () => {
 
     setSavedTodos((prev) => [newTodo, ...prev]);
 
-    // Sync to cloud
-    if (user) {
-      syncTodoToCloud(user.uid, newTodo);
-    }
+
   };
 
   const toggleTodo = (id: string) => {
-    let toggledItem: TodoItem | undefined;
-
-    setSavedTodos((prev) => {
-      const newTodos = prev.map((t) => {
-        if (t.id === id) {
-          toggledItem = { ...t, completed: !t.completed };
-          return toggledItem;
-        }
-        return t;
-      });
-
-      const allCompleted =
-        newTodos.length > 0 && newTodos.every((t) => t.completed);
-      const wasAllCompleted = prev.every((t) => t.completed) && prev.length > 0;
-
-      if (allCompleted && !wasAllCompleted) {
-        setTimeout(() => triggerReaction("completion"), 500);
-      }
-
-      return newTodos;
-    });
-
-    if (user && toggledItem) {
-      syncTodoToCloud(user.uid, toggledItem);
-
-      // Log "Completion" as a positive emotion event!
-      if (toggledItem.completed) {
-        logEmotion(
-          user.uid,
-          "excited",
-          currentCategory,
-          `Completed: ${toggledItem.text}`
-        );
-      }
+    const item = savedTodos.find(t => t.id === id);
+    if (!item) return;
+    const toggled = {...item, completed: !item.completed};
+    const next = savedTodos.map(t => t.id === id ? toggled : t);
+    setSavedTodos(next);
+    if (toggled.completed) recordEmotion('excited', currentCategory, `Completed: ${toggled.text}`);
+    if (next.length && next.every(t => t.completed) && !savedTodos.every(t => t.completed)) {
+      setTimeout(() => triggerReaction('completion'), 500);
     }
   };
 
@@ -578,24 +404,13 @@ const App: React.FC = () => {
       );
     }
     setSavedTodos((prev) => prev.filter((t) => t.id !== id));
-    if (user) {
-      deleteTodoFromCloud(user.uid, id);
-    }
+
   };
 
   const updateTodoPosition = (id: string, x: number, y: number) => {
     setSavedTodos((prev) =>
       prev.map((t) => (t.id === id ? { ...t, x, y } : t))
     );
-  };
-
-  // New handler called only when drag ends to sync final position
-  const handleTodoDragEnd = (id: string) => {
-    if (!user) return;
-    const todo = savedTodos.find((t) => t.id === id);
-    if (todo) {
-      syncTodoToCloud(user.uid, todo);
-    }
   };
 
   const handleSaveAllTodos = () => {
@@ -614,18 +429,10 @@ const App: React.FC = () => {
   // ... (rest of state)
 
   const handleZenSave = async (text: string, emotion: Emotion, category: Category) => {
-    if (!user) {
-        // Prompt for login if not authenticated
-        const confirmLogin = window.confirm("Please login to save your diary entry.");
-        if (confirmLogin) {
-            signInWithGoogle();
-        }
-        return false; // Don't exit Zen Mode
-    }
-    
-    // Send to Aurora as a diary entry with explicit metadata
-    await handleSend(text, 'diary', emotion, category);
-    return true; // Exit Zen Mode
+    if (!text.trim()) return false;
+    setMessages(prev => [...prev, {id:crypto.randomUUID(),role:'user',text:text.trim(),timestamp:Date.now(),type:'diary',emotion,category}]);
+    recordEmotion(emotion, category, text.trim());
+    return true;
   };
 
   // ... (rest of render)
@@ -686,13 +493,12 @@ const App: React.FC = () => {
         />
       )}
 
+      {storageError ? <div role="alert" className="fixed top-2 left-2 right-2 z-[200] bg-amber-50 text-amber-950 border border-amber-200 rounded-lg p-3 text-sm">{storageError} <button className="underline ml-2" onClick={exportBackup}>Export backup</button></div> : null}
       {/* Main App Content - Hidden when in Zen Mode */}
       <div className={`transition-opacity duration-700 ${isZenMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
           {showLanding && (
             <LandingPage
               onEnter={handleEnterApp}
-              onLogin={signInWithGoogle}
-              user={user}
               language={language}
               setLanguage={setLanguage}
             />
@@ -723,7 +529,6 @@ const App: React.FC = () => {
             onUpdateTodoPosition={updateTodoPosition}
             onDeleteTodo={deleteTodo}
             onToggleTodo={toggleTodo}
-            onDragEnd={handleTodoDragEnd}
             canvasOffset={canvasOffset}
             onPanChange={setCanvasOffset}
           />
@@ -812,16 +617,12 @@ const App: React.FC = () => {
               showLanding ? "opacity-0 pointer-events-none" : "opacity-100"
             }`}
           >
-            <AuthButton
-              user={user}
+            <LocalMenu language={language}
               onOpenCalendar={() => setShowCalendar(true)}
               onOpenChatHistory={() => setShowChatHistory(true)}
               onOpenMyDiary={() => setShowMyDiary(true)}
-              onOpenDebug={() => setShowDebug(true)}
-              isManager={
-                process.env.NODE_ENV === "development" || user?.uid === MANAGER_UID
-              }
-              onLogout={handleLogout}
+              onExport={exportBackup}
+              onOpenDebug={import.meta.env.DEV ? () => setShowDebug(true) : undefined}
             />
           </div>
       </div>
@@ -829,17 +630,17 @@ const App: React.FC = () => {
       {/* 5. Modals & Overlays (Outside the hidden div to ensure they can still work if needed, though Zen Mode usually blocks them) */}
       {/* Actually, we want modals to be hidden too if Zen Mode is active, but Zen Mode is on top anyway. */}
       
-      {showCalendar && user && (
+      {showCalendar && (
         <EmotionCalendar
-          uid={user.uid}
+          logs={emotionLogs}
           onClose={() => setShowCalendar(false)}
           onDateClick={handleCalendarDateClick}
         />
       )}
 
-      {showChatHistory && user && (
+      {showChatHistory && (
         <ChatHistory
-          user={user}
+          messages={messages}
           onClose={() => {
             setShowChatHistory(false);
             setChatHistoryTargetDate(null); // Reset target date on close
@@ -867,9 +668,11 @@ const App: React.FC = () => {
         />
       )}
 
-      {showMyDiary && user && (
+      {showMyDiary && (
         <MyDiary 
-            user={user}
+            messages={messages}
+            onUpdate={(entry) => setMessages(prev => prev.map(m => m.id === entry.id ? entry : m))}
+            onDelete={(id) => setMessages(prev => prev.filter(m => m.id !== id))}
             onClose={() => setShowMyDiary(false)}
         />
       )}

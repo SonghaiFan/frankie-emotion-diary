@@ -1,14 +1,14 @@
 {
   "repository": "frankie-emotion-diary",
-  "source_commit": "09b6888bcd789acf484e0efd56004296582d9e04",
-  "captured_on": "2026-11-05",
-  "source_state": "Current local working tree; existing uncommitted app edits were included where present.",
+  "source_commit": "cf26272b7139d43ccf70c943115637218d6a91d8",
+  "captured_on": "2026-11-06",
+  "source_state": "Current local working tree during the local-storage migration; synthetic data only.",
   "materials": [
     {
       "file": "assets/ui.png",
       "kind": "current local app screenshot",
-      "note": "Current Aurora landing-page bottle and product identity, without account sign-in.",
-      "captured_on": "2026-11-05"
+      "note": "Current account-free Aurora landing page; local records replace Google sign-in.",
+      "captured_on": "2026-11-06"
     }
   ]
 }

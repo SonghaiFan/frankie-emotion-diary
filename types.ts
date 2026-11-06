@@ -58,17 +58,8 @@ export interface ChatState {
   savedTodos: TodoItem[];
 }
 
-// Auth Types
-export interface UserProfile {
-  uid: string;
-  displayName: string | null;
-  photoURL: string | null;
-  email: string | null;
-}
-
 export interface EmotionLog {
   id: string;
-  uid: string;
   emotion: Emotion;
   category: Category;
   timestamp: number;

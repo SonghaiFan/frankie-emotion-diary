@@ -21,11 +21,11 @@ npm ci
 npm run dev
 ```
 
-Open the URL printed by Vite. AI conversation uses the server-side `OPENAI_API_KEY` on Vercel (or in `.env.local` for local development). Account features require the Firebase project and authorized domains configured through `services/firebase.ts`.
+Open the URL printed by Vite. AI conversation uses the server-side `OPENAI_API_KEY` on Vercel (or in `.env.local` for local development). No account or Firebase setup is required.
 
 ## Before you start
 
-You can start through the guest entrance. Firebase provides Google sign-in and account data. AI conversation runs through the same-origin `/api/chat` endpoint using OpenAI. The API key stays on the server and is never included in the browser bundle.
+Messages, diary entries, notes and emotion history are stored in this browser. Existing browser records are retained; old Firebase-only records are not automatically imported. Export your data from the local-records menu before clearing browser storage or changing devices. AI conversation runs through the same-origin `/api/chat` endpoint using OpenAI. The API key stays on the server and is never included in the browser bundle.
 
 ## For developers
 
@@ -33,7 +33,7 @@ You can start through the guest entrance. Firebase provides Google sign-in and a
 npm run build
 ```
 
-[AI setup](docs/ai-service.md) · [Project guide (中文)](docs/guide.md) · [Artwork](docs/readme/README.md)
+[Local records](docs/local-storage.md) · [AI setup](docs/ai-service.md) · [Project guide (中文)](docs/guide.md) · [Artwork](docs/readme/README.md)
 
 ---
 

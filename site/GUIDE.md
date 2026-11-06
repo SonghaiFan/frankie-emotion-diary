@@ -14,7 +14,9 @@
 | Source / 来源 | What it shows / 内容 |
 | --- | --- |
 | `docs/readme/assets/ui.png` | Current product interface and original assets. |
-| `site/assets/guest.png` | Aurora’s guest interface, without submitting a message. |
+| `site/assets/local-records.png` | Local-records menu and export action, using sample data. |
+| `site/assets/diary.png` | Local diary using a sample entry. |
+| `site/assets/calendar.png` | Mood calendar using local sample data. |
 
 - `../README.md` and `../README.zh-CN.md`: product introduction, features, setup, limitations and developer commands. Update both languages together. / 同步维护双语介绍、功能、运行步骤与限制。
 - `project.json`: app URL, repository, category, colors, three user steps and the ordered media list. / 应用链接、仓库、分类、颜色、使用步骤与有序素材列表。
@@ -45,3 +47,7 @@ If the branch or repository owner changes, update `project.json`, the workflow b
 ## App signature / 应用签名
 
 The app signature uses `public/frankie-signature.svg`, copied from the approved `docs/readme/assets/frankie.svg`. It links to this introduction page. / 应用签名使用已确认的系列 SVG，并链接到介绍页。
+
+## Local-data screens / 本地记录界面
+
+Recapture the landing, local-records menu, diary and calendar screenshots when their controls change. Use a separate preview origin with clearly labelled synthetic entries; never capture a real personal diary. Storage behavior is documented in [local-storage.md](../docs/local-storage.md). / 入口、记录菜单、日记或日历变化时重新采集；使用独立预览地址和标明的示例内容，勿采集真实私人日记。

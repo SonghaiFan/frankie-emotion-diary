@@ -3,12 +3,9 @@ import React, { useState, useEffect } from "react";
 import AuroraSphere from "./AuroraSphere";
 import { Emotion, Category } from "@/constants";
 import { CATEGORY_THEMES, TRANSLATIONS } from "../constants";
-import { UserProfile } from "../types";
 
 interface LandingPageProps {
   onEnter: () => void;
-  onLogin: () => void;
-  user: UserProfile | null;
   language: "en" | "cn";
   setLanguage: (lang: "en" | "cn") => void;
 }
@@ -33,8 +30,6 @@ const DEMO_CATEGORIES: Category[] = [
 
 const LandingPage: React.FC<LandingPageProps> = ({
   onEnter,
-  onLogin,
-  user,
   language,
   setLanguage,
 }) => {
@@ -157,36 +152,8 @@ const LandingPage: React.FC<LandingPageProps> = ({
             className="flex flex-col items-center gap-5 animate-slide-up-normal mb-16"
             style={{ animationDelay: "0.6s" }}
           >
-            {!user ? (
-              <>
-                <button
-                  onClick={onLogin}
-                  className="group relative px-8 py-4 bg-white/80 backdrop-blur-md text-stone-600 rounded-full text-sm font-medium tracking-wide shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:bg-white transition-all duration-500 hover:-translate-y-1 active:scale-95 flex items-center gap-3 min-w-[220px] justify-center border border-white/60"
-                >
-                  <span className="opacity-80 group-hover:opacity-100 transition-opacity">
-                    ✨
-                  </span>
-                  <span className="group-hover:text-stone-800 transition-colors">
-                    {t.startGoogle}
-                  </span>
-                </button>
-                <button
-                  onClick={handleStart}
-                  className="text-stone-400 text-xs font-medium hover:text-stone-600 transition-all duration-300 border-b border-transparent hover:border-stone-300 pb-0.5"
-                >
-                  {t.continueGuest}
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={handleStart}
-                className="group relative px-10 py-5 bg-white/40 backdrop-blur-xl border border-white/50 text-stone-700 rounded-full text-base font-medium tracking-wide shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:bg-white/60 transition-all duration-500 hover:-translate-y-1 active:scale-95 min-w-[240px]"
-              >
-                <span className="relative z-10 flex items-center justify-center gap-2">
-                  {t.continueUser} {user.displayName?.split(" ")[0] || "User"}
-                </span>
-              </button>
-            )}
+            <button onClick={handleStart} className="px-10 py-5 bg-white/80 text-stone-700 rounded-full text-base shadow-sm hover:bg-white transition-colors border border-stone-100">{t.startLocal}</button>
+            <p className="text-xs text-stone-500">{t.localStorageNote}</p>
           </div>
 
           {/* 5. The Lore (Narrative Cards) */}

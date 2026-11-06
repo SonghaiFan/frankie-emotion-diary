@@ -130,7 +130,6 @@ export const HAPPINESS_LIST = HAPPINESS_ITEMS.map((item) => item.text);
 export const NEW_USER_GREETING =
   "你好啊，我是阿朵拉。\n我是你养在瓶子里的一抹极光云。你可以放心地把那些不为人知的情绪都告诉我，我会把它们好好储存在这个瓶子里。\n如果你觉得我给的建议有用，就请亲手写下来，把【便签】贴在我们身后的墙上。去完成上面的小事，我们一起寻找小确幸，好吗？\n[CALM] [DEFAULT] <TODO>深呼吸 Deep Breath</TODO> <TODO>喝杯水 Drink Water</TODO>";
 
-export const GUEST_MESSAGE_LIMIT = 20;
 
 export const TRANSLATIONS = {
   en: {
@@ -142,9 +141,8 @@ export const TRANSLATIONS = {
       key3: "safe",
       part2: "I hold your emotions so you don't have to carry them alone.",
     },
-    startGoogle: "Uncork with Google",
-    continueGuest: "Just whisper (Guest)",
-    continueUser: "Wake Aurora as",
+    startLocal: "Open Aurora",
+    localStorageNote: "No account needed. Your records stay in this browser.",
     story: {
       origin: {
         title: "The Container",
@@ -172,9 +170,8 @@ export const TRANSLATIONS = {
       key3: "守护",
       part2: "把你无处安放的情绪交给我，我会替你好好保管。",
     },
-    startGoogle: "通过 Google 打开瓶盖",
-    continueGuest: "悄悄打个招呼 (访客)",
-    continueUser: "唤醒阿朵拉：",
+    startLocal: "打开极光瓶",
+    localStorageNote: "无需登录，记录保存在当前浏览器。",
     story: {
       origin: {
         title: "情绪容器",

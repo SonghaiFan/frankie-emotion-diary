@@ -2,11 +2,10 @@
 import React, { useEffect, useState } from "react";
 import { EmotionLog } from "../types";
 import { Emotion, Category } from "@/constants";
-import { getEmotionHistory } from "../services/firebase";
 import AuroraSphere from "./AuroraSphere";
 
 interface EmotionCalendarProps {
-  uid: string;
+  logs: EmotionLog[];
   onClose: () => void;
   onDateClick: (date: string) => void;
 }
@@ -29,18 +28,8 @@ const EMOTION_COLORS: Record<Emotion, string> = {
   safe: "#86EFAC",
 };
 
-const EmotionCalendar: React.FC<EmotionCalendarProps> = ({ uid, onClose, onDateClick }) => {
-  const [logs, setLogs] = useState<EmotionLog[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchLogs = async () => {
-      const history = await getEmotionHistory(uid);
-      setLogs(history);
-      setLoading(false);
-    };
-    fetchLogs();
-  }, [uid]);
+const EmotionCalendar: React.FC<EmotionCalendarProps> = ({ logs, onClose, onDateClick }) => {
+  const loading = false;
 
   // Group logs by date
   const logsByDate: Record<string, EmotionLog[]> = {};
@@ -97,7 +86,7 @@ const EmotionCalendar: React.FC<EmotionCalendarProps> = ({ uid, onClose, onDateC
             <p className="text-xs text-stone-400">The shapes I took with you</p>
           </div>
           <button
-            onClick={onClose}
+            onClick={onClose} aria-label="Close mood calendar"
             className="w-8 h-8 rounded-full bg-stone-100 text-stone-500 hover:bg-stone-200 flex items-center justify-center transition-colors"
           >
             ×

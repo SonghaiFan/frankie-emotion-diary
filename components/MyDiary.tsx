@@ -1,34 +1,26 @@
 import React, { useState, useEffect } from "react";
-import { Message, UserProfile } from "../types";
-import { getFullChatHistory, saveChatMessage, deleteChatMessage } from "../services/firebase";
+import { Message } from "../types";
 import { Book, X, ChevronLeft, ChevronRight, Trash2, Edit2 } from "lucide-react";
 import { CATEGORY_THEMES, Emotion, Category } from "../constants";
 import ZenMode from "./ZenMode";
 
 interface MyDiaryProps {
-  user: UserProfile;
+  messages: Message[];
+  onUpdate: (entry: Message) => void;
+  onDelete: (id: string) => void;
   onClose: () => void;
 }
 
-const MyDiary: React.FC<MyDiaryProps> = ({ user, onClose }) => {
+const MyDiary: React.FC<MyDiaryProps> = ({ messages, onUpdate, onDelete, onClose }) => {
   const [entries, setEntries] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(0);
   const [editingEntry, setEditingEntry] = useState<Message | null>(null);
 
   useEffect(() => {
-    const fetchEntries = async () => {
-      const history = await getFullChatHistory(user.uid);
-      // Filter for diary entries only
-      const diaryEntries = history.filter(
-        (msg) => msg.type === "diary" && msg.role === "user"
-      ).reverse(); // Newest first for the book
-      
-      setEntries(diaryEntries);
-      setLoading(false);
-    };
-    fetchEntries();
-  }, [user.uid]);
+    setEntries(messages.filter(msg => msg.type === 'diary' && msg.role === 'user').slice().reverse());
+    setLoading(false);
+  }, [messages]);
 
   const totalPages = entries.length;
   const currentEntry = entries[currentPage];
@@ -57,7 +49,7 @@ const MyDiary: React.FC<MyDiaryProps> = ({ user, onClose }) => {
     setEntries(updatedEntries);
     setEditingEntry(null);
 
-    await saveChatMessage(user.uid, updatedEntry);
+    onUpdate(updatedEntry);
     return true;
   };
 
@@ -78,7 +70,7 @@ const MyDiary: React.FC<MyDiaryProps> = ({ user, onClose }) => {
             setCurrentPage(0);
         }
 
-        await deleteChatMessage(user.uid, entryToDelete.id);
+        onDelete(entryToDelete.id);
     }
   };
 
@@ -139,7 +131,7 @@ const MyDiary: React.FC<MyDiaryProps> = ({ user, onClose }) => {
             )}
             
             <button
-                onClick={onClose}
+                onClick={onClose} aria-label="Close diary"
                 className="p-2 text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-full transition-all duration-300"
             >
                 <X className="w-5 h-5 md:w-6 md:h-6" />
