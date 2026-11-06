@@ -1,5 +1,5 @@
 import { respond, generate, string, HttpError } from '../server/openai.js';
-import { SYSTEM_INSTRUCTION, EMOTIONS, CATEGORIES } from '../constants.ts';
+import { SYSTEM_INSTRUCTION, EMOTIONS, CATEGORIES } from '../server/aurora-prompt.js';
 export default async function handler(req,res) { return respond(req,res,async body=>{
   const text=string(body.text); if(!text.trim()) throw new HttpError(400,'Enter a message.');
   const messages=body.history ?? []; const todos=body.todos ?? [];
