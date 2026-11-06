@@ -802,7 +802,7 @@ const App: React.FC = () => {
               Inspired by 武田友纪《高敏感人士幸福清单》
             </p>
             <p className="text-[9px] sm:text-[10px] text-stone-500 tracking-wider mt-0.5">
-              Made by 范不着frank
+              <span style={{ display: "inline-block", pointerEvents: "auto" }}><a href="https://songhaifan.github.io/frankie-emotion-diary/" aria-label="About Frankie emotion diary" style={{ display: "inline-flex", alignItems: "center", padding: "6px", color: "inherit",  }}><span aria-hidden="true" style={{ display: "block", width: 76, height: 26, backgroundColor: "currentColor", mask: "url(/frankie-signature.svg) center / contain no-repeat", WebkitMask: "url(/frankie-signature.svg) center / contain no-repeat" }} /></a></span>
             </p>
           </div>
 
