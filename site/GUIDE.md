@@ -1,57 +1,56 @@
-# Introduction page maintenance / 介绍页维护
+# Aurora introduction maintenance / 介绍页维护
 
-[English README](../README.md) · [中文 README](../README.zh-CN.md)
+English is the default; Chinese is `zh/`. Introduction: https://songhaifan.github.io/frankie-emotion-diary/ . App: https://aurora-taupe.vercel.app . / 英文默认，中文位于 `zh/`；应用与介绍页独立部署。
 
-## Two destinations / 两个入口
+## Content and implementation / 内容与实现
 
-- Introduction / 介绍页: https://songhaifan.github.io/frankie-emotion-diary/
-- App / 应用: https://aurora-taupe.vercel.app
-- The introduction is a standalone static site. It never builds the app or reads environment files. / 介绍页独立构建，不构建应用，也不读取环境变量文件。
-- English is the default; `zh/` is the Chinese version. / 英文默认，中文位于 `zh/`。
+- `site/content.json`: all bilingual product copy, workflow, privacy explanation and gallery captions. Update `en` and `zh` together. It is independent of README formatting. / 双语内容独立维护，不再从 README 段落位置推断。
+- `site/project.json`: repository, live app/Pages links and capture revision/date. The renderer uses `content.json` for text and gallery order. / 仓库、线上链接与采集版本日期；正文及画廊顺序使用 `content.json`。
+- `site/build.py`: standard-library static renderer; copies only approved screenshot assets, signature and banner. It never reads environment files, builds the app or calls AI. / 标准库构建器，不读取 key、不请求 AI。
+- `site/style.css`: app-derived `#FAFAF9`/stone palette, rounded controls and native rounded font stack. Actual app uses Zen Maru Gothic; the static page uses installed rounded fonts without a network font dependency. / 保持应用配色与圆润视觉，静态页使用本地字体回退。
+- `site/AUDIT.md`: owning source paths, capture evidence and verification limits. / 源码与采集依据。
 
-## Files to update / 更新哪些文件
+## Replace these assets / 更新这些素材
 
-| Source / 来源 | What it shows / 内容 |
+| Asset | Recapture when / 何时重拍 |
 | --- | --- |
-| `docs/readme/assets/ui.png` | Current product interface and original assets. |
-| `site/assets/local-records.png` | Local-records menu, JSON export and import actions, using sample data. |
-| `site/assets/diary.png` | Local diary using a sample entry. |
-| `site/assets/calendar.png` | Mood calendar using local sample data. |
+| `site/assets/landing-current.png` | `LandingPage.tsx` or bottle/character styling changes. Hero is a CSS crop around this untouched screenshot. / 入口或极光瓶角色变化；主图通过 CSS 裁切。 |
+| `site/assets/bottle-current.png` | Workspace, greeting, input or layout changes. / 主界面、问候或输入区变化。 |
+| `site/assets/zen-current.png` | `ZenMode.tsx` writing/mood/topic controls change. Use labelled, unsaved synthetic text. / 书写与选择器变化，使用标明的示例草稿。 |
+| `site/assets/diary.png` | `MyDiary.tsx` changes. / 日记界面变化。 |
+| `site/assets/calendar.png` | `EmotionCalendar.tsx` date grouping/counting or visual changes. / 情绪时间线变化。 |
+| `site/assets/import-backup.png` | Import controls, version, size limit, count preview or restore behavior changes. / 导入格式、预览、上限或替换行为变化。 |
+| `docs/readme/banner.png` | Approved banner changes; copied as page Open Graph image. / 已确认的 banner 更新。 |
 
-- `../README.md` and `../README.zh-CN.md`: product introduction, features, setup, limitations and developer commands. Update both languages together. / 同步维护双语介绍、功能、运行步骤与限制。
-- `project.json`: app URL, repository, category, colors, three user steps and the ordered media list. / 应用链接、仓库、分类、颜色、使用步骤与有序素材列表。
-- `style.css`: this app's visual treatment within the shared layout. / 统一结构下的项目视觉风格。
-- `build.py`: portable standard-library renderer. / 可独立使用的 Python 标准库构建器。
-
-## Replacing screenshots and GIFs / 替换截图和动图
-
-1. Run the current app and capture real, settled UI. Use synthetic or guest data; hide credentials and private content. For GIFs, record a real interaction from start to finish, rather than animating a static screenshot. / 运行当前版本，使用访客或示例数据采集稳定画面；GIF 应录制真实操作，不把静态图伪装成操作录像。
-2. Replace the corresponding source file above when its screen changes. These banner assets are shared with the README; replacing them may update both the banner and this page. Keep `docs/readme/source-version.json` and banner provenance accurate. / 界面变化后替换对应文件；共享素材会同时影响 banner，需同步更新来源记录。
-3. For a new screen or GIF, add it under `site/assets/` and add an entry to `project.json` → `media` with `src`, bilingual `caption`, and optionally `captured_on` / `source_revision`. The first item is the hero; the full list is the gallery. Use a GIF's first frame as an informative resting frame, keep files small, and provide a still alternative. / 新素材放到 `site/assets/`，登记双语说明、采集时间和版本；第一项为主图，其余进入画廊。GIF 应有可读首帧并保留静态替代图。
-4. If app behavior changes, update both READMEs and both `steps` arrays. Native screenshots and shared family artwork must be labelled honestly. / 行为变化时同步更新双语 README 和使用步骤；区分原生截图与系列共享素材。
-5. Build and inspect desktop and mobile, in both languages. Check the app link and every image. / 构建后检查桌面、手机和两种语言，验证链接与所有图片。
+Capture current source on a separate unused local origin. Never clear or overwrite a user's existing records to make a screenshot. Use built-in greetings and explicitly labelled synthetic records; never publish a real journal or fabricated AI answer. Wait for entrance transitions to settle before capturing. / 使用独立本地地址和明确标明的示例内容，勿清理现有数据、发布真实日记或伪造 AI 回复；等待动画稳定。
 
 ```sh
-python3 site/build.py
-python3 -m http.server 8080 --directory _site --bind 127.0.0.1
+npm run dev -- --host 127.0.0.1 --port 8334
 ```
 
-Open http://127.0.0.1:8080/ and http://127.0.0.1:8080/zh/.
+Open the printed URL, switch to English on the landing, capture it, enter the workspace, and open the feather button for Zen Writing. No AI request is needed. Existing sample diary/calendar/import images may be replaced using an isolated preview with synthetic data. Add new screenshot filenames and bilingual captions to `content.json` → `gallery`; all `site/assets/` files are copied to generated `media/`. / 打开入口后切英文、进入主界面、点击羽毛书写；不需要调用 AI。新增截图登记到 `gallery`。
 
-## Publishing / 发布
+When replacing the landing capture, inspect `.hero-art img` cropping at desktop and phone widths. Keep the bottle fully visible and do not leave clipped text at the crop boundary. All source PNGs remain genuine untouched captures. / 更换入口截图后检查主图裁切，保留完整角色，避免裁切边缘出现残缺文字。
 
-Push the reviewed page changes to `main`. `.github/workflows/pages.yml` publishes only `_site/` to GitHub Pages. App deployment remains separate on Vercel for browser apps; API services and native/local apps retain their own runtime. Never include `.env` files or unrelated work in a page commit. / 推送审核后的页面改动到 `main`，工作流只发布 `_site/`；应用与 API 的部署分别管理，勿提交环境变量文件或其他未完成代码。
+## Update behavior claims / 同步行为说明
 
-If the branch or repository owner changes, update `project.json`, the workflow branch and README introduction links. / 分支或仓库所有者变化时，同步修改配置、工作流与介绍页链接。
+- Diary/chat separation: `App.tsx → handleZenSave`, `services/openaiService.ts` history filtering.
+- Data sent online: `services/openaiService.ts`, `api/chat.js`, `server/openai.js`. Do not describe the entire app as offline, encrypted end-to-end or guaranteed zero-retention.
+- Local storage and migration: `services/localStorage.ts`.
+- Backup version/limits/replacement: `services/localStorage.ts`, `components/ImportBackup.tsx`, `App.tsx → handleRestore`.
+- Mood timeline: `components/EmotionCalendar.tsx`; it groups recorded moods, not clinical measurements.
 
-## App signature / 应用签名
+同步更新上述功能与隐私说明。不要把“本地存储”写成“整个应用离线”或“端到端加密”，不要把情绪标签写成医疗测量。
 
-The app signature uses `public/frankie-signature.svg`, copied from the approved `docs/readme/assets/frankie.svg`. It links to this introduction page. / 应用签名使用已确认的系列 SVG，并链接到介绍页。
+## Build, check, publish / 构建与发布
 
-## Local-data screens / 本地记录界面
+```sh
+python3 site/build.py --out _site
+python3 -m http.server 8080 --bind 127.0.0.1 --directory _site
+```
 
-Recapture the landing, local-records menu, diary and calendar screenshots when their controls change. Use a separate preview origin with clearly labelled synthetic entries; never capture a real personal diary. Storage behavior is documented in [local-storage.md](../docs/local-storage.md). / 入口、记录菜单、日记或日历变化时重新采集；使用独立预览地址和标明的示例内容，勿采集真实私人日记。
+Open `/` and `/zh/` at desktop and 390px phone width. Check gallery loading, all anchors (especially `use`/`start`), the app link, backup warnings and language links. No AI API call is required for this page. / 检查双语、手机宽度、图片、锚点、恢复提示与应用入口。
 
-## Backup restore screen / 备份恢复界面
+Commit only reviewed `site/` changes (and approved shared assets if deliberately updated). Push `main`; `.github/workflows/pages.yml` builds the introduction. App code/Vercel deployment remains separate. Never include `.env` or unrelated changes. / 只提交本次介绍页与确认更新的素材；应用部署独立处理。
 
-`site/assets/import-backup.png` shows a validated backup preview with sample data. Recapture it when the import controls, confirmation warning or restored fields change. / 该图展示示例数据的校验预览；导入控件、确认提示或恢复字段变化时重新采集。
+The app's Frankie signature remains `public/frankie-signature.svg`, linked to this introduction. / 应用签名保留原有文件与介绍链接。
