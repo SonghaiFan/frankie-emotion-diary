@@ -65,6 +65,14 @@
         "zh": "从同一本地快照读取的情绪历史，使用示例数据。"
       },
       "captured_on": "2026-11-06"
+    },
+    {
+      "src": "site/assets/import-backup.png",
+      "caption": {
+        "en": "A validated JSON backup preview with sample records, before confirming replacement.",
+        "zh": "使用示例记录的 JSON 备份校验预览，确认后才替换当前数据。"
+      },
+      "captured_on": "2026-11-06"
     }
   ],
   "art_note": {

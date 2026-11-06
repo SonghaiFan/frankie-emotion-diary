@@ -25,7 +25,7 @@ Open the URL printed by Vite. AI conversation uses the server-side `OPENAI_API_K
 
 ## Before you start
 
-Messages, diary entries, notes and emotion history are stored in this browser. Existing browser records are retained; old Firebase-only records are not automatically imported. Export your data from the local-records menu before clearing browser storage or changing devices. AI conversation runs through the same-origin `/api/chat` endpoint using OpenAI. The API key stays on the server and is never included in the browser bundle.
+Messages, diary entries, notes and emotion history are stored in this browser. Existing browser records are retained; old Firebase-only records are not automatically imported. Export your data from the local-records menu before clearing browser storage or changing devices. You can import an Aurora JSON backup there too; preview and confirmation are required before it replaces current records. AI conversation runs through the same-origin `/api/chat` endpoint using OpenAI. The API key stays on the server and is never included in the browser bundle.
 
 ## For developers
 

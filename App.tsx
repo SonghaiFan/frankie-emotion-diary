@@ -10,6 +10,7 @@ import MemoWall from "./components/MemoWall";
 import DebugPanel from "./components/DebugPanel";
 import SpeechBubble from "./components/SpeechBubble";
 import LocalMenu from "./components/LocalMenu";
+import ImportBackup from "./components/ImportBackup";
 import EmotionCalendar from "./components/EmotionCalendar";
 import ChatHistory from "./components/ChatHistory";
 import LandingPage from "./components/LandingPage";
@@ -25,7 +26,7 @@ import {
   NEW_USER_GREETING,
 } from "./constants";
 import type { ChatContent as Content } from "./services/openaiService";
-import { loadSnapshot, saveSnapshot, type LocalSnapshot } from "./services/localStorage";
+import { loadSnapshot, saveSnapshot, restoreBackup, type LocalSnapshot } from "./services/localStorage";
 
 
 const App: React.FC = () => {
@@ -50,6 +51,8 @@ const App: React.FC = () => {
 
   const [hydrated, setHydrated] = useState(false);
   const [storageError, setStorageError] = useState('');
+  const [showImport, setShowImport] = useState(false);
+  const restoringBackup = useRef(false);
   const [visited, setVisited] = useState(false);
   const [emotionLogs, setEmotionLogs] = useState<EmotionLog[]>([]);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -164,7 +167,7 @@ const App: React.FC = () => {
 
   const snapshot: LocalSnapshot = {version:1,messages,todos:savedTodos,emotionLogs,category:currentCategory,emotion:currentEmotion,language,visited};
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || restoringBackup.current) return;
     try { saveSnapshot(snapshot); setStorageError(''); }
     catch { setStorageError('Changes could not be saved in this browser. Export a backup before closing this page.'); }
   }, [hydrated, messages, savedTodos, emotionLogs, currentCategory, currentEmotion, language, visited]);
@@ -176,6 +179,16 @@ const App: React.FC = () => {
     const url=URL.createObjectURL(new Blob([JSON.stringify(snapshot,null,2)],{type:'application/json'}));
     const a=document.createElement('a'); a.href=url; a.download='aurora-backup-'+new Date().toISOString().slice(0,10)+'.json'; a.click();
     setTimeout(()=>URL.revokeObjectURL(url),0);
+  };
+
+  const handleRestore = (backup: LocalSnapshot) => {
+    if (isLoading) throw new Error('Wait for the active AI response.');
+    restoringBackup.current = true;
+    try { restoreBackup(backup); }
+    catch (error) { restoringBackup.current = false; throw error; }
+    // A fresh mount resets drafts, timers, modal state and AI history together.
+    // The persistence guard prevents stale state overwriting the restored data.
+    window.location.reload();
   };
 
   const lastModelMessage = [...messages].reverse().find(m => m.role === "model") || null;
@@ -239,7 +252,7 @@ const App: React.FC = () => {
 
   // --- Logic: Avatar Reactions ---
   const triggerReaction = (type: keyof typeof AVATAR_REACTIONS) => {
-    if (isLoading || showLanding) return;
+    if (isLoading || showLanding || restoringBackup.current) return;
 
     const hasUnsavedSuggestions =
       lastModelMessage?.suggestions &&
@@ -481,9 +494,10 @@ const App: React.FC = () => {
 
   return (
     <div
-      className="relative w-full h-[100dvh] overflow-hidden touch-none transition-colors duration-1000 ease-in-out"
+      className={`relative w-full h-[100dvh] overflow-hidden ${showImport ? "touch-auto" : "touch-none"} transition-colors duration-1000 ease-in-out`}
       style={{ background: theme.bgGradient }}
     >
+      {showImport ? <ImportBackup language={language} waitingForAI={isLoading} onClose={() => setShowImport(false)} onExport={exportBackup} onRestore={handleRestore} /> : null}
       {/* Zen Mode Overlay */}
       {isZenMode && (
         <ZenMode 
@@ -493,7 +507,7 @@ const App: React.FC = () => {
         />
       )}
 
-      {storageError ? <div role="alert" className="fixed top-2 left-2 right-2 z-[200] bg-amber-50 text-amber-950 border border-amber-200 rounded-lg p-3 text-sm">{storageError} <button className="underline ml-2" onClick={exportBackup}>Export backup</button></div> : null}
+      {storageError ? <div role="alert" className="fixed top-2 left-2 right-2 z-[200] bg-amber-50 text-amber-950 border border-amber-200 rounded-lg p-3 text-sm">{storageError} <button className="underline ml-2" onClick={exportBackup}>Export backup</button> <button className="underline ml-2" onClick={() => setShowImport(true)}>Import backup</button></div> : null}
       {/* Main App Content - Hidden when in Zen Mode */}
       <div className={`transition-opacity duration-700 ${isZenMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
           {showLanding && (
@@ -621,6 +635,7 @@ const App: React.FC = () => {
               onOpenCalendar={() => setShowCalendar(true)}
               onOpenChatHistory={() => setShowChatHistory(true)}
               onOpenMyDiary={() => setShowMyDiary(true)}
+              onImport={() => setShowImport(true)}
               onExport={exportBackup}
               onOpenDebug={import.meta.env.DEV ? () => setShowDebug(true) : undefined}
             />

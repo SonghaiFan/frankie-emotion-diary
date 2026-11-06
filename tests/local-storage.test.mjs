@@ -38,3 +38,41 @@ test('private diary entries are excluded from AI chat context',async()=>{
   assert.equal(request.history.length,1);assert.equal(request.history[0].text,'A previous chat');assert.ok(!JSON.stringify(request).includes('A local diary'));
  } finally {globalThis.fetch=original;}
 });
+
+// Import previews must be read-only; replacement is one validated write.
+const {parseBackup,restoreBackup,MAX_BACKUP_BYTES}=await import('../services/localStorage.ts');
+function backupFixture(){
+ return {...loadSnapshot(new MemoryStore()),messages:[{...message,suggestions:['Take a breath']}],todos:[{...todo,rotation:4,color:'#fef3c7'}],emotionLogs:[{id:'m',emotion:'calm',category:'present',timestamp:456,note:'Sample mood'}],language:'en',visited:true,category:'present',emotion:'calm'};
+}
+test('an exported backup imports and restores every record and preference exactly',()=>{
+ const store=new MemoryStore();const original=backupFixture();saveSnapshot(original,store);
+ const exported=store.getItem(STORAGE_KEY);const target=new MemoryStore();
+ assert.deepEqual(restoreBackup(parseBackup(exported),target),original);
+ assert.deepEqual(loadSnapshot(target),original);
+});
+test('previewing or cancelling does not write; restore replaces instead of merging',()=>{
+ const store=new MemoryStore();const current=loadSnapshot(store);current.messages=[{...message,id:'old'}];saveSnapshot(current,store);
+ const before=store.getItem(STORAGE_KEY);const candidate=parseBackup(JSON.stringify(backupFixture()));
+ assert.equal(store.getItem(STORAGE_KEY),before);
+ restoreBackup(candidate,store);assert.deepEqual(loadSnapshot(store).messages.map(m=>m.id),['a']);
+});
+test('invalid JSON, foreign files, unsupported versions and oversize backups are rejected',()=>{
+ for(const text of ['{bad','null','[]','{"version":2}',JSON.stringify({hello:'world'}),' '.repeat(MAX_BACKUP_BYTES+1)])assert.throws(()=>parseBackup(text));
+ assert.deepEqual(parseBackup('\uFEFF'+JSON.stringify(backupFixture())),backupFixture());
+});
+test('reject nested corruptions, invalid dates and duplicate IDs without changing existing data',()=>{
+ const store=new MemoryStore();saveSnapshot(backupFixture(),store);const before=store.getItem(STORAGE_KEY);
+ const edits=[s=>s.messages[0].suggestions='bad',s=>s.messages[0].emotion='not-a-mood',s=>s.messages[0].timestamp=9e15,s=>s.messages.push({...s.messages[0]}),s=>s.todos[0].x='10',s=>s.todos[0].rotation=Infinity,s=>s.todos[0].color={},s=>s.emotionLogs[0].category='unknown',s=>s.language='fr',s=>s.visited='true'];
+ for(const edit of edits){const candidate=backupFixture();edit(candidate);assert.throws(()=>restoreBackup(candidate,store));assert.equal(store.getItem(STORAGE_KEY),before);}
+});
+test('quota failures preserve the old snapshot; an empty backup intentionally replaces records',()=>{
+ const store=new MemoryStore();saveSnapshot(backupFixture(),store);const before=store.getItem(STORAGE_KEY);
+ assert.throws(()=>restoreBackup(backupFixture(),{getItem:k=>store.getItem(k),setItem(){throw Error('quota');}}),/quota/);
+ assert.equal(store.getItem(STORAGE_KEY),before);
+ store.setItem('aurora_messages',JSON.stringify([message]));restoreBackup(loadSnapshot(new MemoryStore()),store);
+ assert.equal(loadSnapshot(store).messages.length,0);
+});
+test('unknown properties are not imported or re-exported',()=>{
+ const data=backupFixture();data.unexpectedSecret='do not import';data.messages[0].unexpected='not part of the backup contract';
+ const result=parseBackup(JSON.stringify(data));assert.ok(!('unexpectedSecret' in result));assert.ok(!('unexpected' in result.messages[0]));
+});

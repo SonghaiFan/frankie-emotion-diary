@@ -14,7 +14,7 @@
 | Source / 来源 | What it shows / 内容 |
 | --- | --- |
 | `docs/readme/assets/ui.png` | Current product interface and original assets. |
-| `site/assets/local-records.png` | Local-records menu and export action, using sample data. |
+| `site/assets/local-records.png` | Local-records menu, JSON export and import actions, using sample data. |
 | `site/assets/diary.png` | Local diary using a sample entry. |
 | `site/assets/calendar.png` | Mood calendar using local sample data. |
 
@@ -51,3 +51,7 @@ The app signature uses `public/frankie-signature.svg`, copied from the approved 
 ## Local-data screens / 本地记录界面
 
 Recapture the landing, local-records menu, diary and calendar screenshots when their controls change. Use a separate preview origin with clearly labelled synthetic entries; never capture a real personal diary. Storage behavior is documented in [local-storage.md](../docs/local-storage.md). / 入口、记录菜单、日记或日历变化时重新采集；使用独立预览地址和标明的示例内容，勿采集真实私人日记。
+
+## Backup restore screen / 备份恢复界面
+
+`site/assets/import-backup.png` shows a validated backup preview with sample data. Recapture it when the import controls, confirmation warning or restored fields change. / 该图展示示例数据的校验预览；导入控件、确认提示或恢复字段变化时重新采集。
